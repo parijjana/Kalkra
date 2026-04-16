@@ -1,0 +1,35 @@
+name: numra_app
+description: Kalkra - A vibrant math game.
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^3.3.1
+  game_engine:
+    path: ../packages/game_engine
+  google_fonts: ^8.0.2
+  mobile_scanner: ^7.2.0
+  network_info_plus: 6.1.2
+  qr_flutter: ^4.1.0
+  riverpod_annotation: ^4.0.2
+  transport_interface:
+    path: ../packages/transport_interface
+  transport_lan:
+    path: ../packages/transport_lan
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  riverpod_generator: ^4.0.3
+  build_runner: ^2.13.1
+  flutter_driver:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

@@ -1,0 +1,51 @@
+# Progress Log - Kalkra
+
+## Session Started: 2026-04-13
+
+### Phase 1: Research & Discovery
+- [x] Explored project directory.
+- [x] Extracted technical specifications from `numra_architecture.docx`.
+- [x] Created `GEMINI.md` with instructional context.
+- [x] Created `ARCH_MAP.md` mapping the system structure.
+- [x] Verified Flutter and Dart environment.
+
+### Phase 2: Core Implementation (v1)
+- [x] Initialize Flutter project.
+- [x] Create `game_engine` package.
+- [x] Implement `NumberGenerator` (TDD).
+- [x] Implement `TargetGenerator` (TDD).
+- [x] Implement `SubmissionValidator` (TDD).
+- [x] Implement `SolverEngine` (TDD).
+- [x] Implement `ScoreKeeper` and `RoundManager` (TDD).
+- [x] Achieve 100% test coverage for `game_engine`.
+- [x] Rename project from Numra to Kalkra.
+- [x] Implement `GameSettings` and `SessionManager` (TDD).
+- [x] Implement `MatchManager` and `Jeopardy` logic (TDD).
+- [x] Generate initial UI designs in Stitch (Vibrant, No Teal).
+- [x] Expand UI designs (Host, Join, Settings, Tablet/Web, Jeopardy).
+
+### Phase 3: Transport & Solo Mode
+- [x] Create `transport_interface` package.
+- [x] Implement `NullTransport`.
+- [x] Develop Solo Practice UI.
+- [x] Integrate `game_engine` with UI via `NullTransport`.
+- [x] Refine UI to match Stitch 'Vector Pop' design system.
+
+### Phase 4: LAN Multiplayer
+- [x] Create `transport_lan` package.
+- [x] Implement `LanHostTransport`.
+- [x] Implement `LanClientTransport`.
+- [x] Develop Multiplayer UI (Lobby, QR, Join).
+- [x] Synchronize Game Loop (Broadcast Start).
+- [ ] Sideload/Deploy for playtesting (Web/Android).
+
+### Phase 5: Player Career & Identity
+- [x] Design Profile and Stats screens in Stitch (Vibrant, No Teal).
+- [ ] Implement `CareerManager` logic (TDD).
+- [ ] Implement automatic name collision resolution.
+- [ ] Build Player Profile UI.
+- [ ] Build Stats & Rankings Dashboard with Tooltips.
+- [ ] Implement local Elo calculation and handshake.
+
+---
+*Last Updated: 2026-04-15*

@@ -5,7 +5,7 @@ This document tracks all implemented features, their associated tests, and their
 ## Summary
 - **Last Full Run:** 2026-04-16
 - **Total Features:** 16
-- **Total Test Cases:** 61
+- **Total Test Cases:** 65
 - **Status:** 🟢 ALL PASSED
 
 ---
@@ -24,11 +24,11 @@ This document tracks all implemented features, their associated tests, and their
 | **SessionManager** | `packages/game_engine/test/session_manager_test.dart` | 2026-04-14 | 2026-04-16 | Active | 🟢 PASSED |
 | **MatchManager** | `packages/game_engine/test/match_manager_test.dart` | 2026-04-14 | 2026-04-16 | Active | 🟢 PASSED |
 | **Jeopardy Logic** | `packages/game_engine/test/match_manager_test.dart` | 2026-04-14 | 2026-04-16 | Active | 🟢 PASSED |
-| **CareerManager** | `packages/game_engine/test/career_manager_test.dart` | 2026-04-15 | 2026-04-16 | Active | 🟢 PASSED |
+| **CareerManager** | `packages/game_engine/test/career_manager_test.dart` | 2026-04-15 | 2026-04-16 (Streaks & Names) | Active | 🟢 PASSED |
 | **EloCalculator** | `packages/game_engine/lib/src/elo_calculator.dart` | 2026-04-15 | 2026-04-16 | Active | 🟢 PASSED |
-| **Transport Models** | `packages/transport_interface/test/models_test.dart` | 2026-04-14 | 2026-04-16 | Active | 🟢 PASSED |
+| **Transport Models** | `packages/transport_interface/test/models_test.dart` | 2026-04-14 | 2026-04-16 (Full PlayerInfo) | Active | 🟢 PASSED |
 | **NullTransport** | `packages/transport_interface/test/null_transport_test.dart` | 2026-04-14 | 2026-04-16 | Active | 🟢 PASSED |
-| **LanTransport** | `packages/transport_lan/test/lan_transport_test.dart` | 2026-04-15 | 2026-04-16 | Active | 🟢 PASSED |
+| **LanTransport** | `packages/transport_lan/test/lan_transport_test.dart` | 2026-04-15 | 2026-04-16 (Handshake Options) | Active | 🟢 PASSED |
 | **Career Persistence** | `numra_app/test/services/career_persistence_test.dart` | 2026-04-16 | 2026-04-16 | Active | 🟢 PASSED |
 
 ---

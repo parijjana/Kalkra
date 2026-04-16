@@ -18,25 +18,45 @@ void main() {
       await host.disconnect();
     });
 
-    test('client can connect to host and receive join event', () async {
+    test('hostSession applies elo and port options', () async {
+      final completer = Completer<GameEvent>();
+      host.eventStream.listen((event) {
+        if (!completer.isCompleted) completer.complete(event);
+      });
+
+      await host.hostSession(playerName: 'HostAlice', options: {'port': 0, 'elo': 1600});
+      expect(host.port, greaterThan(0));
+      
+      final event = await completer.future.timeout(const Duration(seconds: 5));
+      final info = PlayerInfo.fromJson(event.payload);
+      expect(info.name, 'HostAlice');
+      expect(info.currentElo, 1600);
+    });
+
+    test('client can connect to host and receive join event with full info', () async {
       await host.hostSession(playerName: 'HostAlice', options: {'port': 0});
       final port = host.port;
 
       final completer = Completer<GameEvent>();
       host.eventStream.listen((event) {
-        if (event.payload['name'] == 'ClientBob') {
-          completer.complete(event);
+        if (event.type == GameEventType.playerJoined) {
+          final info = PlayerInfo.fromJson(event.payload);
+          if (info.name == 'ClientBob') {
+            completer.complete(event);
+          }
         }
       });
       
       await client.joinSession(
         playerName: 'ClientBob', 
         connectionInfo: 'ws://127.0.0.1:$port',
+        options: {'elo': 1300},
       );
 
       final result = await completer.future.timeout(const Duration(seconds: 5));
-      expect(result.type, GameEventType.playerJoined);
-      expect(result.payload['name'], 'ClientBob');
+      final playerInfo = PlayerInfo.fromJson(result.payload);
+      expect(playerInfo.name, 'ClientBob');
+      expect(playerInfo.currentElo, 1300);
     });
 
     test('host can broadcast events to client', () async {

@@ -37,7 +37,7 @@
 - [x] Implement `LanClientTransport`.
 - [x] Develop Multiplayer UI (Lobby, QR, Join).
 - [x] Synchronize Game Loop (Broadcast Start).
-- [ ] Sideload/Deploy for playtesting (Web/Android).
+- [x] Sideload/Deploy for playtesting (Web/Android).
 
 ### Phase 5: Player Career & Identity
 - [x] Design Profile and Stats screens in Stitch (Vibrant, No Teal).
@@ -47,6 +47,14 @@
 - [x] Build Stats & Rankings Dashboard with Tooltips.
 - [x] Implement local Elo calculation and handshake.
 - [x] Implement local persistence (SharedPreferences).
+
+### Phase 6: Sideload & Polish
+- [x] Apply "Vector Pop" visual polish (shadows, gradients, animations).
+- [x] Implement dynamic theme switcher (Noir, Pastel, Neon, Ivory).
+- [x] Configure Android permissions (Minimal: Internet, Camera, Wifi).
+- [x] Build production APKs for physical device testing.
+- [x] Test Windows desktop build for bidirectional LAN hosting.
+- [ ] Deploy web version for static hosting.
 
 ---
 *Last Updated: 2026-04-16*

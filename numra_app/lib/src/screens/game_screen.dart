@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_engine/game_engine.dart';
 import 'package:transport_interface/transport_interface.dart';
+import 'package:transport_lan/transport_lan.dart';
 import '../providers/game_providers.dart';
 import 'results_screen.dart';
 
@@ -13,7 +14,7 @@ class GameScreen extends ConsumerStatefulWidget {
   ConsumerState<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends ConsumerState<GameScreen> {
+class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStateMixin {
   late Timer _timer;
   int _secondsLeft = 60;
   String _currentExpression = '';
@@ -22,15 +23,24 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   DateTime? _roundStartTime;
   double? _secondsToSubmit;
 
+  // Animation Controllers for Polish
+  late AnimationController _entranceController;
+
   @override
   void initState() {
     super.initState();
+    _entranceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    
     final transport = ref.read(transportProvider);
     if (transport is NullTransport) {
       _startNewRound();
     }
     _startTimer();
     _roundStartTime = DateTime.now();
+    _entranceController.forward();
   }
 
   void _startNewRound() {
@@ -105,7 +115,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
       if (eloShifts != null && eloShifts.containsKey('host')) {
         final shift = eloShifts['host']!;
-        // Find a representative winner/opponent name
         String opponentName = 'Arena';
         ref.read(careerProvider.notifier).applyEloShift(shift, opponentName);
       }
@@ -117,11 +126,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         );
       }
     } else if (transport is NullTransport) {
-      // Record performance for Solo mode
       final expression = _currentExpression.trim();
-      final points = round.calculatePoints(expression);
-      final validation = SubmissionValidator().validate(expression, round.numbers);
-      final proximity = (round.target! - (validation.value ?? 0)).abs().toInt();
+      final roundData = ref.read(roundProvider);
+      final points = roundData.calculatePoints(expression);
+      final validation = SubmissionValidator().validate(expression, roundData.numbers);
+      final proximity = (roundData.target! - (validation.value ?? 0)).abs().toInt();
       
       ref.read(careerProvider.notifier).updatePerformance(
         secondsToSubmit: _secondsToSubmit ?? 60.0,
@@ -187,7 +196,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       round.submitExpression(expression);
       _onTimeUp();
     } else {
-      String myId = transport is LanHostTransport ? 'host' : 'me'; // TODO: proper ID
+      String myId = transport is LanHostTransport ? 'host' : 'me';
       await transport.sendEvent(GameEvent(
         type: GameEventType.submissionReceived,
         payload: {
@@ -210,6 +219,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   @override
   void dispose() {
     _timer.cancel();
+    _entranceController.dispose();
     super.dispose();
   }
 
@@ -220,7 +230,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     final round = ref.watch(roundProvider);
     final eventAsync = ref.watch(gameEventStreamProvider);
 
-    // Listen for events in multiplayer
     eventAsync.whenData((event) {
       if (event.type == GameEventType.roundResults) {
         final results = Map<String, dynamic>.from(event.payload['results']);
@@ -229,31 +238,23 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             : null;
 
         if (eloShifts != null) {
-          // Identify our own shift. Host is 'host', clients start with 'client-'
-          // This is a bit hacky, should use a session-assigned ID
           final transport = ref.read(transportProvider);
           String myKey = 'me';
           if (transport is LanHostTransport) myKey = 'host';
           else {
-             // Client needs to find its key in the eloShifts map
-             // For now we assume 'me' is sent by clients and host maps it back
-             // but LanClientTransport sends 'client-TIMESTAMP'.
-             // Let's find the key that starts with 'client-' if we are a client.
              myKey = eloShifts.keys.firstWhere((k) => k.startsWith('client-'), orElse: () => 'me');
           }
 
-          if (eloShifts.containsKey(myKey)) {
-             final shift = eloShifts[myKey]!;
-             ref.read(careerProvider.notifier).applyEloShift(shift, 'Arena Rival');
-          }
+      if (eloShifts?.containsKey(myKey) ?? false) {
+        final shift = eloShifts![myKey]!;
+        ref.read(careerProvider.notifier).applyEloShift(shift, 'Arena Rival');
+      }
         }
 
         if (mounted) {
           _navigateToResults(multiplayerResults: results, eloShifts: eloShifts);
         }
       } else if (event.type == GameEventType.roundStarted) {
-        // Client-side round start handled in JoinScreen usually, 
-        // but if we are already in GameScreen (next round), we need to handle it.
         final List<int> numbers = List<int>.from(event.payload['numbers']);
         final int target = event.payload['target'];
         ref.read(roundProvider).startRoundWithData(numbers: numbers, target: target);
@@ -265,6 +266,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           _roundStartTime = DateTime.now();
           _secondsToSubmit = null;
         });
+        _entranceController.reset();
+        _entranceController.forward();
         _startTimer();
       }
     });
@@ -275,16 +278,17 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [colorScheme.primary, colorScheme.primaryContainer],
+              colors: [colorScheme.primary, colorScheme.primary.withValues(alpha: 0.8)],
             ),
           ),
         ),
-        foregroundColor: Colors.white,
+        foregroundColor: colorScheme.onPrimary,
         title: Text(
           'TIME: $_secondsLeft',
           style: theme.textTheme.headlineSmall?.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
+            color: colorScheme.onPrimary,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 2,
           ),
         ),
         centerTitle: true,
@@ -308,12 +312,20 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   Widget _buildMobileLayout(BuildContext context, RoundManager round) {
     return Column(
       children: [
-        _TargetSection(target: round.target ?? 0),
-        const SizedBox(height: 24),
+        FadeTransition(
+          opacity: _entranceController,
+          child: SlideTransition(
+            position: Tween<Offset>(begin: const Offset(0, -0.2), end: Offset.zero)
+                .animate(CurvedAnimation(parent: _entranceController, curve: Curves.easeOutBack)),
+            child: _TargetSection(target: round.target ?? 0),
+          ),
+        ),
+        const SizedBox(height: 32),
         _NumbersSection(
           numbers: round.numbers,
           usedIndices: _usedIndices,
           onNumberTap: _onNumberTap,
+          entranceAnimation: _entranceController,
         ),
         const Spacer(),
         _ExpressionSection(currentExpression: _currentExpression),
@@ -332,20 +344,30 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       children: [
         // Left: History
         Container(
-          width: 250,
-          color: colorScheme.surfaceVariant.withOpacity(0.3),
+          width: 300,
+          margin: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(40),
+          ),
           child: Column(
             children: [
               const Padding(
-                padding: EdgeInsets.all(24),
-                child: Text('HISTORY', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2)),
+                padding: EdgeInsets.fromLTRB(24, 32, 24, 16),
+                child: Text('HISTORY', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 4, fontSize: 12)),
               ),
               Expanded(
                 child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: _history.length,
-                  itemBuilder: (context, i) => ListTile(
-                    title: Text(_history[i], style: const TextStyle(fontFamily: 'monospace')),
-                    leading: const Icon(Icons.history_rounded, size: 16),
+                  itemBuilder: (context, i) => Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    color: Colors.white.withValues(alpha: 0.5),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    child: ListTile(
+                      title: Text(_history[i], style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold)),
+                      leading: const Icon(Icons.history_rounded, size: 16),
+                    ),
                   ),
                 ),
               ),
@@ -362,8 +384,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 numbers: round.numbers,
                 usedIndices: _usedIndices,
                 onNumberTap: _onNumberTap,
+                entranceAnimation: _entranceController,
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 48),
               _ExpressionSection(currentExpression: _currentExpression),
               const Spacer(),
               _ControlsSection(
@@ -375,14 +398,18 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         ),
         // Right: Pro Tips
         Container(
-          width: 250,
-          color: colorScheme.surfaceVariant.withOpacity(0.3),
-          padding: const EdgeInsets.all(24),
+          width: 300,
+          margin: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(40),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('PRO TIPS', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2)),
-              const SizedBox(height: 24),
+              const Text('PRO TIPS', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 4, fontSize: 12)),
+              const SizedBox(height: 32),
               _TipItem(icon: Icons.lightbulb_outline, text: 'Try to reach near 100s first.'),
               _TipItem(icon: Icons.calculate_outlined, text: 'Use large numbers for big jumps.'),
               _TipItem(icon: Icons.timer_outlined, text: 'Speed counts in multiplayer!'),
@@ -401,17 +428,41 @@ class _TargetSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 48),
-      decoration: const BoxDecoration(
-        color: Color(0xFFF3F0F3),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(48)),
+      padding: const EdgeInsets.symmetric(vertical: 64),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(56)),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.onSurface.withValues(alpha: 0.05),
+            blurRadius: 30,
+            offset: const Offset(0, 15),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          Text('TARGET', style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800, letterSpacing: 2)),
-          Text('$target', style: theme.textTheme.displayLarge?.copyWith(color: theme.colorScheme.primary, fontSize: 100, height: 1)),
+          Text(
+            'TARGET', 
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.w900, 
+              letterSpacing: 6,
+              color: colorScheme.onSurface.withValues(alpha: 0.4),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '$target', 
+            style: theme.textTheme.displayLarge?.copyWith(
+              color: colorScheme.primary, 
+              fontSize: 120, 
+              height: 1,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
         ],
       ),
     );
@@ -422,23 +473,35 @@ class _NumbersSection extends StatelessWidget {
   final List<int> numbers;
   final List<int> usedIndices;
   final Function(int, int) onNumberTap;
+  final Animation<double> entranceAnimation;
 
-  const _NumbersSection({required this.numbers, required this.usedIndices, required this.onNumberTap});
+  const _NumbersSection({
+    required this.numbers, 
+    required this.usedIndices, 
+    required this.onNumberTap,
+    required this.entranceAnimation,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Wrap(
-        spacing: 16,
-        runSpacing: 16,
+        spacing: 20,
+        runSpacing: 20,
         alignment: WrapAlignment.center,
         children: List.generate(numbers.length, (i) {
           final isUsed = usedIndices.contains(i);
-          return _NumberTile(
-            value: numbers[i],
-            isUsed: isUsed,
-            onTap: () => onNumberTap(i, numbers[i]),
+          return ScaleTransition(
+            scale: CurvedAnimation(
+              parent: entranceAnimation,
+              curve: Interval(0.2 + (i * 0.1), 1.0, curve: Curves.elasticOut),
+            ),
+            child: _NumberTile(
+              value: numbers[i],
+              isUsed: isUsed,
+              onTap: () => onNumberTap(i, numbers[i]),
+            ),
           );
         }),
       ),
@@ -460,16 +523,32 @@ class _NumberTile extends StatelessWidget {
     return GestureDetector(
       onTap: isUsed ? null : onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 80,
-        height: 80,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutBack,
+        width: 84,
+        height: 84,
         decoration: BoxDecoration(
-          color: isUsed ? colorScheme.surfaceVariant : colorScheme.tertiaryContainer,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: isUsed ? null : [BoxShadow(color: colorScheme.onSurface.withOpacity(0.1), blurRadius: 12, offset: const Offset(0, 6))],
+          color: isUsed ? colorScheme.surfaceContainerHighest : colorScheme.tertiaryContainer,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: isUsed ? null : [
+            BoxShadow(
+              color: colorScheme.tertiary.withValues(alpha: 0.2), 
+              blurRadius: 15, 
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         alignment: Alignment.center,
-        child: Text('$value', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900, color: isUsed ? colorScheme.onSurfaceVariant.withOpacity(0.3) : colorScheme.onTertiaryContainer)),
+        child: Text(
+          '$value', 
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.w900, 
+            color: isUsed 
+              ? colorScheme.onSurfaceVariant.withValues(alpha: 0.2) 
+              : colorScheme.onTertiaryContainer,
+            fontSize: 28,
+          ),
+        ),
       ),
     );
   }
@@ -485,16 +564,27 @@ class _ExpressionSection extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 32),
       margin: const EdgeInsets.symmetric(horizontal: 24),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(32),
-        boxShadow: [BoxShadow(color: colorScheme.onSurface.withOpacity(0.06), blurRadius: 40, offset: const Offset(0, 12))],
+        color: theme.cardTheme.color,
+        borderRadius: BorderRadius.circular(40),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.onSurface.withValues(alpha: 0.08), 
+            blurRadius: 50, 
+            offset: const Offset(0, 20),
+          ),
+        ],
       ),
       child: Text(
         currentExpression.isEmpty ? 'BUILD EXPRESSION' : currentExpression,
-        style: theme.textTheme.headlineMedium?.copyWith(color: currentExpression.isEmpty ? colorScheme.onSurface.withOpacity(0.2) : colorScheme.onSurface, fontWeight: FontWeight.bold),
+        style: theme.textTheme.headlineMedium?.copyWith(
+          color: currentExpression.isEmpty ? colorScheme.onSurface.withValues(alpha: 0.15) : colorScheme.onSurface, 
+          fontWeight: FontWeight.w900,
+          fontFamily: 'monospace',
+          fontSize: 24,
+        ),
         textAlign: TextAlign.center,
       ),
     );
@@ -512,7 +602,7 @@ class _ControlsSection extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 60),
       child: Column(
         children: [
           Row(
@@ -524,22 +614,45 @@ class _ControlsSection extends StatelessWidget {
               _OpButton(label: '÷', onTap: () => onOperatorTap('/')),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Row(
             children: [
-              Expanded(child: _OpButton(label: '(', onTap: () => onOperatorTap('('), color: colorScheme.surfaceVariant, textColor: colorScheme.onSurfaceVariant)),
-              const SizedBox(width: 16),
-              Expanded(child: _OpButton(label: ')', onTap: () => onOperatorTap(')'), color: colorScheme.surfaceVariant, textColor: colorScheme.onSurfaceVariant)),
+              Expanded(child: _OpButton(label: '(', onTap: () => onOperatorTap('('), color: colorScheme.surfaceContainerHighest, textColor: colorScheme.onSurfaceVariant)),
+              const SizedBox(width: 20),
+              Expanded(child: _OpButton(label: ')', onTap: () => onOperatorTap(')'), color: colorScheme.surfaceContainerHighest, textColor: colorScheme.onSurfaceVariant)),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           SizedBox(
             width: double.infinity,
-            height: 72,
-            child: ElevatedButton(
-              onPressed: onSubmit,
-              style: ElevatedButton.styleFrom(backgroundColor: colorScheme.secondary, foregroundColor: Colors.white),
-              child: Text('SUBMIT', style: theme.textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 2)),
+            height: 80,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: [
+                  BoxShadow(
+                    color: colorScheme.secondary.withValues(alpha: 0.3),
+                    blurRadius: 25,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: ElevatedButton(
+                onPressed: onSubmit,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colorScheme.secondary, 
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+                ),
+                child: Text(
+                  'SUBMIT', 
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: Colors.white, 
+                    fontWeight: FontWeight.w900, 
+                    letterSpacing: 4,
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -558,14 +671,37 @@ class _OpButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return ElevatedButton(
-      onPressed: onTap,
-      style: ElevatedButton.styleFrom(
-        minimumSize: const Size(72, 72),
-        backgroundColor: color ?? theme.colorScheme.primary,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+    final colorScheme = theme.colorScheme;
+    final btnColor = color ?? colorScheme.primary;
+    
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: btnColor.withValues(alpha: 0.2),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
-      child: Text(label, style: TextStyle(fontSize: 32, color: textColor ?? Colors.white, fontWeight: FontWeight.w900)),
+      child: ElevatedButton(
+        onPressed: onTap,
+        style: ElevatedButton.styleFrom(
+          minimumSize: const Size(76, 76),
+          backgroundColor: btnColor,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          elevation: 0,
+        ),
+        child: Text(
+          label, 
+          style: TextStyle(
+            fontSize: 36, 
+            color: textColor ?? colorScheme.onPrimary, 
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -577,13 +713,21 @@ class _TipItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 24),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: 12),
-          Expanded(child: Text(text, style: const TextStyle(fontSize: 14))),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 20, color: colorScheme.primary),
+          ),
+          const SizedBox(width: 16),
+          Expanded(child: Text(text, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
         ],
       ),
     );

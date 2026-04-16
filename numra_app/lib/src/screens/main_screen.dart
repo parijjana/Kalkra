@@ -6,6 +6,8 @@ import 'host_screen.dart';
 import 'join_screen.dart';
 import 'profile_screen.dart';
 import 'stats_screen.dart';
+import 'settings_screen.dart';
+import 'package:transport_interface/transport_interface.dart';
 
 class MainScreen extends ConsumerWidget {
   const MainScreen({super.key});
@@ -14,8 +16,7 @@ class MainScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final settings = ref.watch(settingsProvider).value;
-    final career = ref.watch(careerProvider).value;
+    final career = ref.watch(careerProvider);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -23,19 +24,30 @@ class MainScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Hero Section with Linear Gradient & Profile Badge
+            // Hero Section with Vibrant Gradient & Profile Badge
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(24, 64, 24, 40),
+              padding: const EdgeInsets.fromLTRB(24, 80, 24, 60),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [colorScheme.primary, colorScheme.primaryContainer],
+                  colors: [
+                    colorScheme.primary,
+                    colorScheme.primary.withValues(alpha: 0.8),
+                    colorScheme.primaryContainer,
+                  ],
                 ),
                 borderRadius: const BorderRadius.vertical(
-                  bottom: Radius.circular(48),
+                  bottom: Radius.circular(56),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: colorScheme.primary.withValues(alpha: 0.3),
+                    blurRadius: 40,
+                    offset: const Offset(0, 20),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,56 +62,50 @@ class MainScreen extends ConsumerWidget {
                               'KALKRA',
                               style: theme.textTheme.displayLarge?.copyWith(
                                 color: colorScheme.onPrimary,
-                                fontSize: 64,
+                                fontSize: 72,
+                                height: 0.9,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 8),
                             Text(
                               'MASTER THE NUMBERS',
                               style: theme.textTheme.titleMedium?.copyWith(
-                                color: colorScheme.tertiaryContainer,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.2,
+                                color: colorScheme.onPrimary.withValues(alpha: 0.7),
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 3,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      GestureDetector(
-                        onTap: () => Navigator.of(context).push(
+                      _ProfileBadge(onTap: () {
+                        Navigator.of(context).push(
                           MaterialPageRoute(builder: (context) => const ProfileScreen()),
-                        ),
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: CircleAvatar(
-                            radius: 28,
-                            backgroundColor: colorScheme.tertiaryContainer,
-                            child: const Icon(Icons.person_rounded, color: Colors.black87),
-                          ),
-                        ),
-                      ),
+                        );
+                      }),
                     ],
                   ),
-                  const SizedBox(height: 24),
-                  // Compact Elo Badge
+                  const SizedBox(height: 32),
+                  // Compact Elo Badge with Glow
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(16),
+                      color: Colors.black.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.stars_rounded, color: Colors.amber, size: 16),
-                        const SizedBox(width: 8),
+                        const Icon(Icons.stars_rounded, color: Colors.amber, size: 20),
+                        const SizedBox(width: 10),
                         Text(
                           '${career.playerName} • ${career.elo} ELO',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            color: Colors.white, 
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                          ),
                         ),
                       ],
                     ),
@@ -108,22 +114,22 @@ class MainScreen extends ConsumerWidget {
               ),
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 48),
 
             // Mode Selection Section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
                 'THE ARENA',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.6),
-                  letterSpacing: 1.1,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.4),
+                  letterSpacing: 4,
                   fontWeight: FontWeight.w900,
                 ),
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
             _ModeCard(
               title: 'SOLO PRACTICE',
@@ -132,7 +138,7 @@ class MainScreen extends ConsumerWidget {
               color: colorScheme.primary,
               onTap: () async {
                 final transport = NullTransport();
-                ref.read(transportProvider.notifier).state = transport;
+                ref.read(transportProvider.notifier).setTransport(transport);
                 await transport.hostSession(playerName: career.playerName, options: {'elo': career.elo});
                 
                 if (context.mounted) {
@@ -160,15 +166,15 @@ class MainScreen extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
                 'YOUR CAREER',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.6),
-                  letterSpacing: 1.1,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.4),
+                  letterSpacing: 4,
                   fontWeight: FontWeight.w900,
                 ),
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
             _ModeCard(
               title: 'VIEW STATS',
@@ -182,19 +188,37 @@ class MainScreen extends ConsumerWidget {
               },
             ),
 
-            const SizedBox(height: 40),
+            const SizedBox(height: 60),
             
             // Settings Footer
             Center(
-              child: IconButton.filledTonal(
-                onPressed: () {
-                  // TODO: Implement Settings Screen
-                },
-                icon: const Icon(Icons.settings_rounded),
-                padding: const EdgeInsets.all(16),
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorScheme.onSurface.withValues(alpha: 0.05),
+                      blurRadius: 20,
+                      spreadRadius: 5,
+                    ),
+                  ],
+                ),
+                child: IconButton.filledTonal(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                    );
+                  },
+                  icon: const Icon(Icons.settings_rounded),
+                  padding: const EdgeInsets.all(20),
+                  style: IconButton.styleFrom(
+                    backgroundColor: colorScheme.surface,
+                    foregroundColor: colorScheme.onSurface,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 48),
           ],
         ),
       ),
@@ -204,15 +228,38 @@ class MainScreen extends ConsumerWidget {
   void _showMultiplayerDialog(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(48))),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(32),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(40),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(56)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 40,
+              offset: const Offset(0, -10),
+            ),
+          ],
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('MULTIPLAYER', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 24, letterSpacing: 2)),
+            Container(
+              width: 60,
+              height: 6,
+              decoration: BoxDecoration(
+                color: Colors.black12,
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
             const SizedBox(height: 32),
+            const Text(
+              'MULTIPLAYER', 
+              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 28, letterSpacing: 4),
+            ),
+            const SizedBox(height: 40),
             Row(
               children: [
                 Expanded(
@@ -225,7 +272,7 @@ class MainScreen extends ConsumerWidget {
                     },
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 24),
                 Expanded(
                   child: _DialogButton(
                     label: 'JOIN',
@@ -238,8 +285,34 @@ class MainScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileBadge extends StatelessWidget {
+  final VoidCallback onTap;
+  const _ProfileBadge({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.15),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 2),
+        ),
+        child: CircleAvatar(
+          radius: 32,
+          backgroundColor: colorScheme.tertiaryContainer,
+          child: Icon(Icons.person_rounded, color: colorScheme.onTertiaryContainer, size: 32),
         ),
       ),
     );
@@ -258,36 +331,72 @@ class _ModeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-      child: Material(
-        color: theme.cardTheme.color,
-        borderRadius: BorderRadius.circular(48),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(48),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
-                  child: Icon(icon, color: color, size: 32),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
-                      const SizedBox(height: 4),
-                      Text(description, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.6))),
-                    ],
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(40),
+          boxShadow: [
+            // Layered "Vector Pop" Shadows
+            BoxShadow(
+              color: color.withValues(alpha: 0.1),
+              blurRadius: 30,
+              offset: const Offset(0, 15),
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Material(
+          color: theme.cardTheme.color,
+          borderRadius: BorderRadius.circular(40),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            child: Container(
+              padding: const EdgeInsets.all(28),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.1), 
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Icon(icon, color: color, size: 36),
                   ),
-                ),
-                Icon(Icons.arrow_forward_ios_rounded, color: theme.colorScheme.onSurface.withOpacity(0.2), size: 16),
-              ],
+                  const SizedBox(width: 24),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title, 
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w900, 
+                            color: colorScheme.onSurface,
+                            fontSize: 22,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          description, 
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurface.withValues(alpha: 0.5),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.arrow_forward_ios_rounded, color: colorScheme.onSurface.withValues(alpha: 0.15), size: 18),
+                ],
+              ),
             ),
           ),
         ),
@@ -304,18 +413,24 @@ class _DialogButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return ElevatedButton(
       onPressed: onTap,
       style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 32),
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
-        foregroundColor: Theme.of(context).colorScheme.primary,
+        padding: const EdgeInsets.symmetric(vertical: 40),
+        backgroundColor: colorScheme.surfaceContainerLow,
+        foregroundColor: colorScheme.primary,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+        elevation: 0,
       ),
       child: Column(
         children: [
-          Icon(icon, size: 32),
-          const SizedBox(height: 8),
-          Text(label, style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
+          Icon(icon, size: 40),
+          const SizedBox(height: 12),
+          Text(
+            label, 
+            style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2, fontSize: 16),
+          ),
         ],
       ),
     );

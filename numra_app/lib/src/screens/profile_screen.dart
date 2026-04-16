@@ -68,7 +68,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: colorScheme.secondary.withOpacity(0.2),
+                    color: colorScheme.secondary.withValues(alpha: 0.2),
                     blurRadius: 30,
                     offset: const Offset(0, 10),
                   ),
@@ -115,7 +115,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: colorScheme.tertiaryContainer.withOpacity(0.3),
+                color: colorScheme.tertiaryContainer.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Row(
@@ -128,7 +128,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       children: [
                         Text(
                           'ARENA IDENTITY',
-                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: colorScheme.onSurface.withOpacity(0.5)),
+                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: colorScheme.onSurface.withValues(alpha: 0.5)),
                         ),
                         const SizedBox(height: 4),
                         ValueListenableBuilder<TextEditingValue>(

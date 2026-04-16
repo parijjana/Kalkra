@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:transport_interface/transport_interface.dart';
+import 'package:transport_lan/transport_lan.dart';
 import '../providers/game_providers.dart';
 import 'game_screen.dart';
 
@@ -43,7 +45,7 @@ class ResultsScreen extends ConsumerWidget {
               Text(
                 'ROUND OVER',
                 style: theme.textTheme.headlineSmall?.copyWith(
-                  color: Colors.white.withOpacity(0.7),
+                  color: Colors.white.withValues(alpha: 0.7),
                   fontWeight: FontWeight.w900,
                   letterSpacing: 4,
                 ),
@@ -62,7 +64,7 @@ class ResultsScreen extends ConsumerWidget {
                 title: 'OPTIMAL SOLUTION',
                 content: solverResult?.expression ?? 'NO SOLUTION FOUND',
                 subtitle: 'Target: ${round.target} • Solver: ${solverResult?.bestValue ?? "?"}',
-                color: colorScheme.secondary.withOpacity(0.8),
+                color: colorScheme.secondary.withValues(alpha: 0.8),
               ),
 
               const Spacer(),
@@ -77,7 +79,7 @@ class ResultsScreen extends ConsumerWidget {
                         onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.white,
-                          side: BorderSide(color: Colors.white.withOpacity(0.3), width: 2),
+                          side: BorderSide(color: Colors.white.withValues(alpha: 0.3), width: 2),
                           padding: const EdgeInsets.symmetric(vertical: 20),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                         ),
@@ -87,7 +89,7 @@ class ResultsScreen extends ConsumerWidget {
                     const SizedBox(width: 16),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: (multiplayerResults != null && !(ref.read(transportProvider) is LanHostTransport)) 
+                        onPressed: (multiplayerResults != null && ref.read(transportProvider) is! LanHostTransport) 
                           ? null 
                           : () async {
                             final transport = ref.read(transportProvider);
@@ -123,7 +125,7 @@ class ResultsScreen extends ConsumerWidget {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                         ),
                         child: Text(
-                          (multiplayerResults != null && !(ref.read(transportProvider) is LanHostTransport)) 
+                          (multiplayerResults != null && ref.read(transportProvider) is! LanHostTransport) 
                             ? 'WAITING FOR HOST' 
                             : 'NEXT ROUND', 
                           style: const TextStyle(fontWeight: FontWeight.bold)
@@ -152,7 +154,7 @@ class ResultsScreen extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text('$playerPoints', style: theme.textTheme.displayLarge?.copyWith(fontSize: 64, color: colorScheme.onTertiaryContainer, height: 1)),
-              Text('POINTS', style: theme.textTheme.labelLarge?.copyWith(color: colorScheme.onTertiaryContainer.withOpacity(0.5), fontWeight: FontWeight.w900)),
+              Text('POINTS', style: theme.textTheme.labelLarge?.copyWith(color: colorScheme.onTertiaryContainer.withValues(alpha: 0.5), fontWeight: FontWeight.w900)),
             ],
           ),
         ),
@@ -161,14 +163,13 @@ class ResultsScreen extends ConsumerWidget {
           title: 'YOUR EXPRESSION',
           content: playerExpression.isEmpty ? 'NO SUBMISSION' : playerExpression,
           subtitle: playerValue != null ? 'Result: ${playerValue!.toInt()}' : null,
-          color: Colors.white.withOpacity(0.15),
+          color: Colors.white.withValues(alpha: 0.15),
         ),
       ],
     );
   }
 
   Widget _buildLeaderboard(BuildContext context, Map<String, dynamic> results) {
-    final theme = Theme.of(context);
     // Sort players by points
     final sortedPlayers = results.entries.toList()
       ..sort((a, b) => (b.value['points'] as int).compareTo(a.value['points'] as int));
@@ -177,7 +178,7 @@ class ResultsScreen extends ConsumerWidget {
       margin: const EdgeInsets.symmetric(horizontal: 24),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(32),
       ),
       child: Column(
@@ -244,12 +245,12 @@ class _ResultCard extends StatelessWidget {
       decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(32)),
       child: Column(
         children: [
-          Text(title, style: theme.textTheme.labelSmall?.copyWith(color: Colors.white.withOpacity(0.6), fontWeight: FontWeight.w900, letterSpacing: 1.5)),
+          Text(title, style: theme.textTheme.labelSmall?.copyWith(color: Colors.white.withValues(alpha: 0.6), fontWeight: FontWeight.w900, letterSpacing: 1.5)),
           const SizedBox(height: 12),
           Text(content, style: theme.textTheme.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w800), textAlign: TextAlign.center),
           if (subtitle != null) ...[
             const SizedBox(height: 8),
-            Text(subtitle!, style: theme.textTheme.titleMedium?.copyWith(color: Colors.white.withOpacity(0.7), fontWeight: FontWeight.bold)),
+            Text(subtitle!, style: theme.textTheme.titleMedium?.copyWith(color: Colors.white.withValues(alpha: 0.7), fontWeight: FontWeight.bold)),
           ],
         ],
       ),

@@ -2,15 +2,23 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:transport_interface/transport_interface.dart';
-import 'package:transport_lan/transport_lan.dart';
 import 'package:game_engine/game_engine.dart';
 import '../services/career_persistence.dart';
 
 /// Provider for the transport layer. 
 /// Defaults to NullTransport for solo play.
-final transportProvider = StateProvider<IGameTransport>((ref) {
-  return NullTransport();
-});
+final transportProvider = NotifierProvider<TransportNotifier, IGameTransport>(TransportNotifier.new);
+
+class TransportNotifier extends Notifier<IGameTransport> {
+  @override
+  IGameTransport build() {
+    return NullTransport();
+  }
+
+  void setTransport(IGameTransport newTransport) {
+    state = newTransport;
+  }
+}
 
 /// Provider for the current game settings.
 final settingsProvider = Provider<ValueNotifier<GameSettings>>((ref) {

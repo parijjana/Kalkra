@@ -31,7 +31,7 @@ class _HostScreenState extends ConsumerState<HostScreen> {
     final ip = await info.getWifiIP() ?? '127.0.0.1';
     
     final hostTransport = LanHostTransport();
-    ref.read(transportProvider.notifier).state = hostTransport;
+    ref.read(transportProvider.notifier).setTransport(hostTransport);
     
     final career = ref.read(careerProvider);
 
@@ -43,11 +43,13 @@ class _HostScreenState extends ConsumerState<HostScreen> {
       },
     );
 
-    setState(() {
-      _ipAddress = ip;
-      _port = hostTransport.port;
-      _isHosting = true;
-    });
+    if (mounted) {
+      setState(() {
+        _ipAddress = ip;
+        _port = hostTransport.port;
+        _isHosting = true;
+      });
+    }
   }
 
   @override
@@ -95,7 +97,7 @@ class _HostScreenState extends ConsumerState<HostScreen> {
                 borderRadius: BorderRadius.circular(48),
                 boxShadow: [
                   BoxShadow(
-                    color: colorScheme.onSurface.withOpacity(0.05),
+                    color: colorScheme.onSurface.withValues(alpha: 0.05),
                     blurRadius: 40,
                     offset: const Offset(0, 12),
                   ),
@@ -130,7 +132,7 @@ class _HostScreenState extends ConsumerState<HostScreen> {
                     Text(
                       connectionString,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurface.withOpacity(0.4),
+                        color: colorScheme.onSurface.withValues(alpha: 0.4),
                         fontFamily: 'monospace',
                       ),
                     ),
@@ -152,14 +154,14 @@ class _HostScreenState extends ConsumerState<HostScreen> {
                     style: theme.textTheme.labelLarge?.copyWith(
                       fontWeight: FontWeight.w900,
                       letterSpacing: 2,
-                      color: colorScheme.onSurface.withOpacity(0.5),
+                      color: colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
                   ),
                   const Spacer(),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: colorScheme.primary.withOpacity(0.1),
+                      color: colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -187,7 +189,7 @@ class _HostScreenState extends ConsumerState<HostScreen> {
                     borderRadius: BorderRadius.circular(24),
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: colorScheme.primary.withOpacity(0.1),
+                        backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
                         child: Text(player.name[0].toUpperCase()),
                       ),
                       title: Text(
@@ -213,7 +215,7 @@ class _HostScreenState extends ConsumerState<HostScreen> {
                 width: double.infinity,
                 height: 72,
                 child: ElevatedButton(
-                  onPressed: players.length >= 1 ? () async {
+                  onPressed: players.isNotEmpty ? () async {
                     // Initialize match and first round
                     final match = MatchManager(totalRounds: 5);
                     ref.read(matchProvider).value = match;

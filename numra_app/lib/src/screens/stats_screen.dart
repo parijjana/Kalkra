@@ -121,7 +121,7 @@ class StatsScreen extends ConsumerWidget {
               style: theme.textTheme.labelLarge?.copyWith(
                 fontWeight: FontWeight.w900,
                 letterSpacing: 2,
-                color: colorScheme.onSurface.withOpacity(0.5),
+                color: colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             ),
             const SizedBox(height: 16),
@@ -210,7 +210,7 @@ class _StatCard extends StatelessWidget {
               const Spacer(),
               GestureDetector(
                 onTap: onInfo,
-                child: Icon(Icons.info_outline_rounded, color: theme.colorScheme.onSurface.withOpacity(0.2), size: 18),
+                child: Icon(Icons.info_outline_rounded, color: theme.colorScheme.onSurface.withValues(alpha: 0.2), size: 18),
               ),
             ],
           ),
@@ -221,7 +221,7 @@ class _StatCard extends StatelessWidget {
           ),
           Text(
             title,
-            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 10, color: theme.colorScheme.onSurface.withOpacity(0.4), letterSpacing: 1),
+            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 10, color: theme.colorScheme.onSurface.withValues(alpha: 0.4), letterSpacing: 1),
           ),
         ],
       ),

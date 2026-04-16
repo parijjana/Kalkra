@@ -4,6 +4,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:transport_lan/transport_lan.dart';
 import 'package:transport_interface/transport_interface.dart';
 import '../providers/game_providers.dart';
+import 'game_screen.dart';
 
 class JoinScreen extends ConsumerStatefulWidget {
   const JoinScreen({super.key});
@@ -23,7 +24,7 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
     
     try {
       final clientTransport = LanClientTransport();
-      ref.read(transportProvider.notifier).state = clientTransport;
+      ref.read(transportProvider.notifier).setTransport(clientTransport);
       
       final career = ref.read(careerProvider);
       
@@ -155,7 +156,7 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
                     style: theme.textTheme.labelLarge?.copyWith(
                       fontWeight: FontWeight.w900,
                       letterSpacing: 2,
-                      color: colorScheme.onSurface.withOpacity(0.5),
+                      color: colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
                   ),
                   const SizedBox(height: 24),

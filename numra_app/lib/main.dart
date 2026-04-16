@@ -1,10 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'src/screens/main_screen.dart';
+import 'src/providers/game_providers.dart';
 
-void main() {
-  runApp(const ProviderScope(child: KalkraApp()));
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+      ],
+      child: const KalkraApp(),
+    ),
+  );
 }
 
 class KalkraApp extends StatelessWidget {

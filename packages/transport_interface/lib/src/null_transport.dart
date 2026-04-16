@@ -11,14 +11,20 @@ class NullTransport implements IGameTransport {
 
   @override
   Future<void> hostSession({required String playerName, Map<String, dynamic>? options}) async {
+    final elo = options?['elo'] ?? 1200;
     _controller.add(GameEvent(
       type: GameEventType.playerJoined,
-      payload: PlayerInfo(id: 'local-host', name: playerName, isHost: true).toJson(),
+      payload: PlayerInfo(
+        id: 'local-host', 
+        name: playerName, 
+        isHost: true,
+        currentElo: elo,
+      ).toJson(),
     ));
   }
 
   @override
-  Future<void> joinSession({required String playerName, required String connectionInfo}) async {
+  Future<void> joinSession({required String playerName, required String connectionInfo, Map<String, dynamic>? options}) async {
     throw UnsupportedError('Cannot join a session in NullTransport. Use hostSession for solo play.');
   }
 

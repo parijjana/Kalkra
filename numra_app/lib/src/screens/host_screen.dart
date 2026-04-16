@@ -33,11 +33,10 @@ class _HostScreenState extends ConsumerState<HostScreen> {
     final hostTransport = LanHostTransport();
     ref.read(transportProvider.notifier).state = hostTransport;
     
-    final settings = ref.read(settingsProvider).value;
-    final career = ref.read(careerProvider).value;
+    final career = ref.read(careerProvider);
 
     await hostTransport.hostSession(
-      playerName: settings.playerName,
+      playerName: career.playerName,
       options: {
         'port': _port,
         'elo': career.elo,

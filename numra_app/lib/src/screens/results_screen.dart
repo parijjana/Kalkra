@@ -8,6 +8,7 @@ class ResultsScreen extends ConsumerWidget {
   final num? playerValue;
   final int playerPoints;
   final Map<String, dynamic>? multiplayerResults;
+  final Map<String, int>? eloShifts;
 
   const ResultsScreen({
     super.key,
@@ -15,6 +16,7 @@ class ResultsScreen extends ConsumerWidget {
     required this.playerValue,
     required this.playerPoints,
     this.multiplayerResults,
+    this.eloShifts,
   });
 
   @override
@@ -91,7 +93,7 @@ class ResultsScreen extends ConsumerWidget {
                             final transport = ref.read(transportProvider);
                             if (transport is LanHostTransport) {
                               final match = ref.read(matchProvider).value;
-                              if (match != null) {
+                              if (match != null && !match.isMatchOver) {
                                 match.nextRound();
                                 final round = ref.read(roundProvider);
                                 round.startRound(difficulty: match.currentDifficulty);
@@ -108,7 +110,7 @@ class ResultsScreen extends ConsumerWidget {
                               }
                             }
                             
-                            if (mounted) {
+                            if (context.mounted) {
                               Navigator.of(context).pushReplacement(
                                 MaterialPageRoute(builder: (context) => const GameScreen()),
                               );

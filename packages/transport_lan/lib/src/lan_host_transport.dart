@@ -20,6 +20,7 @@ class LanHostTransport implements IGameTransport {
   @override
   Future<void> hostSession({required String playerName, Map<String, dynamic>? options}) async {
     final requestedPort = options?['port'] ?? 8080;
+    final elo = options?['elo'] ?? 1200;
     
     final handler = webSocketHandler((WebSocketChannel webSocket) {
       _clients.add(webSocket);
@@ -27,30 +28,24 @@ class LanHostTransport implements IGameTransport {
       webSocket.stream.listen((message) {
         final data = jsonDecode(message);
         final event = GameEvent.fromJson(data);
-        
-        if (event.type == GameEventType.playerJoined) {
-           // We add the client channel to the payload for internal tracking if needed
-           // but for now we just emit the event
-        }
-        
         _eventController.add(event);
       }, onDone: () {
         _clients.remove(webSocket);
       });
     });
 
-    _server = await io.serve(handler, InternetAddress.loopbackIPv4, requestedPort);
+    _server = await io.serve(handler, InternetAddress.anyIPv4, requestedPort);
     _port = _server!.port;
     
     // Emit host join event
     _eventController.add(GameEvent(
       type: GameEventType.playerJoined,
-      payload: PlayerInfo(id: 'host', name: playerName, isHost: true).toJson(),
+      payload: PlayerInfo(id: 'host', name: playerName, isHost: true, currentElo: elo).toJson(),
     ));
   }
 
   @override
-  Future<void> joinSession({required String playerName, required String connectionInfo}) async {
+  Future<void> joinSession({required String playerName, required String connectionInfo, Map<String, dynamic>? options}) async {
     throw UnsupportedError('Use LanClientTransport to join a session.');
   }
 

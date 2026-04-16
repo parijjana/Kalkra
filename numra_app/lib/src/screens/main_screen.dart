@@ -98,7 +98,7 @@ class MainScreen extends ConsumerWidget {
                         const Icon(Icons.stars_rounded, color: Colors.amber, size: 16),
                         const SizedBox(width: 8),
                         Text(
-                          '${settings.playerName} • ${career.elo} ELO',
+                          '${career.playerName} • ${career.elo} ELO',
                           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                         ),
                       ],
@@ -130,10 +130,16 @@ class MainScreen extends ConsumerWidget {
               description: 'Hone your mental math skills.',
               icon: Icons.person_rounded,
               color: colorScheme.primary,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => const GameScreen()),
-                );
+              onTap: () async {
+                final transport = NullTransport();
+                ref.read(transportProvider.notifier).state = transport;
+                await transport.hostSession(playerName: career.playerName, options: {'elo': career.elo});
+                
+                if (context.mounted) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const GameScreen()),
+                  );
+                }
               },
             ),
 

@@ -41,11 +41,12 @@
 
 ### Phase 5: Player Career & Identity
 - [x] Design Profile and Stats screens in Stitch (Vibrant, No Teal).
-- [ ] Implement `CareerManager` logic (TDD).
-- [ ] Implement automatic name collision resolution.
-- [ ] Build Player Profile UI.
-- [ ] Build Stats & Rankings Dashboard with Tooltips.
-- [ ] Implement local Elo calculation and handshake.
+- [x] Implement `CareerManager` logic (TDD).
+- [x] Implement automatic name collision resolution.
+- [x] Build Player Profile UI.
+- [x] Build Stats & Rankings Dashboard with Tooltips.
+- [x] Implement local Elo calculation and handshake.
+- [x] Implement local persistence (SharedPreferences).
 
 ---
-*Last Updated: 2026-04-15*
+*Last Updated: 2026-04-16*

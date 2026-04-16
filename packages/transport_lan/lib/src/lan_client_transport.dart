@@ -16,7 +16,8 @@ class LanClientTransport implements IGameTransport {
   }
 
   @override
-  Future<void> joinSession({required String playerName, required String connectionInfo}) async {
+  Future<void> joinSession({required String playerName, required String connectionInfo, Map<String, dynamic>? options}) async {
+    final elo = options?['elo'] ?? 1200;
     final uri = Uri.parse(connectionInfo);
     _channel = WebSocketChannel.connect(uri);
 
@@ -26,10 +27,14 @@ class LanClientTransport implements IGameTransport {
       _eventController.add(event);
     });
 
-    // Send join event to host
+    // Send join event to host with full info
     await sendEvent(GameEvent(
       type: GameEventType.playerJoined,
-      payload: PlayerInfo(id: 'client-${DateTime.now().millisecondsSinceEpoch}', name: playerName).toJson(),
+      payload: PlayerInfo(
+        id: 'client-${DateTime.now().millisecondsSinceEpoch}', 
+        name: playerName,
+        currentElo: elo,
+      ).toJson(),
     ));
   }
 

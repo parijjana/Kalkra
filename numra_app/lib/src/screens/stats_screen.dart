@@ -28,7 +28,7 @@ class StatsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final career = ref.watch(careerProvider).value;
+    final career = ref.watch(careerProvider);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -104,8 +104,8 @@ class StatsScreen extends ConsumerWidget {
                   onInfo: () => _showTooltip(context, 'WINS', 'Total number of multiplayer sessions where you finished with the highest cumulative score.'),
                 ),
                 _StatCard(
-                  title: 'STREAK',
-                  value: '0', // TODO: Implement best streak
+                  title: 'BEST STREAK',
+                  value: '${career.bestStreak}',
                   icon: Icons.whatshot_rounded,
                   color: Colors.deepOrange,
                   onInfo: () => _showTooltip(context, 'BEST STREAK', 'The highest number of consecutive rounds where you achieved an EXACT match to the target.'),
@@ -146,7 +146,7 @@ class StatsScreen extends ConsumerWidget {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                       leading: CircleAvatar(
                         backgroundColor: colorScheme.surface,
-                        child: Text(rival.name[0]),
+                        child: Text(rival.name.isNotEmpty ? rival.name[0] : '?'),
                       ),
                       title: Text(rival.name, style: const TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: Text(DateFormat('MMM dd, HH:mm').format(rival.date)),

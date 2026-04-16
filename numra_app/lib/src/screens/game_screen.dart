@@ -19,16 +19,18 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   String _currentExpression = '';
   final List<int> _usedIndices = [];
   final List<String> _history = [];
+  DateTime? _roundStartTime;
+  double? _secondsToSubmit;
 
   @override
   void initState() {
     super.initState();
-    // Only start round locally if in Solo mode and not already started
     final transport = ref.read(transportProvider);
     if (transport is NullTransport) {
       _startNewRound();
     }
     _startTimer();
+    _roundStartTime = DateTime.now();
   }
 
   void _startNewRound() {
@@ -69,24 +71,26 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
       // Check if match is over
       Map<String, int>? eloShifts;
-      if (match != null && (match.currentRound >= match.totalRounds)) {
-        // Calculate Elo shifts
-        final playerElos = session.players.map((id, p) => MapEntry(id, p.currentElo));
-        // Find match winner (highest cumulative score)
-        String? winnerId;
-        int maxScore = -1;
-        for (final entry in session.players.entries) {
-          if (entry.value.cumulativeScore > maxScore) {
-            maxScore = entry.value.cumulativeScore;
-            winnerId = entry.key;
+      bool isMatchOver = false;
+      if (match != null) {
+        isMatchOver = match.isMatchOver;
+        if (isMatchOver) {
+          final playerElos = session.players.map((id, p) => MapEntry(id, p.currentElo));
+          String? winnerId;
+          int maxScore = -1;
+          for (final entry in session.players.entries) {
+            if (entry.value.cumulativeScore > maxScore) {
+              maxScore = entry.value.cumulativeScore;
+              winnerId = entry.key;
+            }
           }
-        }
-        
-        if (winnerId != null) {
-          eloShifts = EloCalculator.calculateMultiplayerShifts(
-            playerElos: playerElos,
-            winnerId: winnerId,
-          );
+          
+          if (winnerId != null) {
+            eloShifts = EloCalculator.calculateMultiplayerShifts(
+              playerElos: playerElos,
+              winnerId: winnerId,
+            );
+          }
         }
       }
 
@@ -95,9 +99,16 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         payload: {
           'results': roundResults,
           if (eloShifts != null) 'eloShifts': eloShifts,
-          'isMatchOver': match?.isMatchOver ?? false,
+          'isMatchOver': isMatchOver,
         },
       ));
+
+      if (eloShifts != null && eloShifts.containsKey('host')) {
+        final shift = eloShifts['host']!;
+        // Find a representative winner/opponent name
+        String opponentName = 'Arena';
+        ref.read(careerProvider.notifier).applyEloShift(shift, opponentName);
+      }
 
       if (mounted) {
         _navigateToResults(
@@ -106,6 +117,17 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         );
       }
     } else if (transport is NullTransport) {
+      // Record performance for Solo mode
+      final expression = _currentExpression.trim();
+      final points = round.calculatePoints(expression);
+      final validation = SubmissionValidator().validate(expression, round.numbers);
+      final proximity = (round.target! - (validation.value ?? 0)).abs().toInt();
+      
+      ref.read(careerProvider.notifier).updatePerformance(
+        secondsToSubmit: _secondsToSubmit ?? 60.0,
+        proximityToTarget: proximity,
+      );
+
       _navigateToResults();
     }
   }
@@ -159,16 +181,18 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     final transport = ref.read(transportProvider);
     final expression = _currentExpression.trim();
 
+    _secondsToSubmit = DateTime.now().difference(_roundStartTime!).inMilliseconds / 1000.0;
+
     if (transport is NullTransport) {
       round.submitExpression(expression);
-      round.endRound();
-      _navigateToResults();
+      _onTimeUp();
     } else {
+      String myId = transport is LanHostTransport ? 'host' : 'me'; // TODO: proper ID
       await transport.sendEvent(GameEvent(
         type: GameEventType.submissionReceived,
         payload: {
           'expression': expression,
-          'playerId': 'me',
+          'playerId': myId,
         },
       ));
       setState(() {
@@ -196,26 +220,52 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     final round = ref.watch(roundProvider);
     final eventAsync = ref.watch(gameEventStreamProvider);
 
-    // Listen for round results in multiplayer
+    // Listen for events in multiplayer
     eventAsync.whenData((event) {
       if (event.type == GameEventType.roundResults) {
-        final results = event.payload['results'] as Map<String, dynamic>;
+        final results = Map<String, dynamic>.from(event.payload['results']);
         final Map<String, int>? eloShifts = event.payload['eloShifts'] != null 
             ? Map<String, int>.from(event.payload['eloShifts']) 
             : null;
 
-        // Apply local Elo shift if present
-        if (eloShifts != null && eloShifts.containsKey('me')) { // TODO: use real ID
-           final shift = eloShifts['me']!;
-           final careerNotifier = ref.read(careerProvider);
-           // We need to find the winner's name for the rival history
-           String winnerName = 'Opponent'; 
-           careerNotifier.value.applyEloShift(shift, winnerName);
+        if (eloShifts != null) {
+          // Identify our own shift. Host is 'host', clients start with 'client-'
+          // This is a bit hacky, should use a session-assigned ID
+          final transport = ref.read(transportProvider);
+          String myKey = 'me';
+          if (transport is LanHostTransport) myKey = 'host';
+          else {
+             // Client needs to find its key in the eloShifts map
+             // For now we assume 'me' is sent by clients and host maps it back
+             // but LanClientTransport sends 'client-TIMESTAMP'.
+             // Let's find the key that starts with 'client-' if we are a client.
+             myKey = eloShifts.keys.firstWhere((k) => k.startsWith('client-'), orElse: () => 'me');
+          }
+
+          if (eloShifts.containsKey(myKey)) {
+             final shift = eloShifts[myKey]!;
+             ref.read(careerProvider.notifier).applyEloShift(shift, 'Arena Rival');
+          }
         }
 
         if (mounted) {
           _navigateToResults(multiplayerResults: results, eloShifts: eloShifts);
         }
+      } else if (event.type == GameEventType.roundStarted) {
+        // Client-side round start handled in JoinScreen usually, 
+        // but if we are already in GameScreen (next round), we need to handle it.
+        final List<int> numbers = List<int>.from(event.payload['numbers']);
+        final int target = event.payload['target'];
+        ref.read(roundProvider).startRoundWithData(numbers: numbers, target: target);
+        
+        setState(() {
+          _secondsLeft = 60;
+          _currentExpression = '';
+          _usedIndices.clear();
+          _roundStartTime = DateTime.now();
+          _secondsToSubmit = null;
+        });
+        _startTimer();
       }
     });
 

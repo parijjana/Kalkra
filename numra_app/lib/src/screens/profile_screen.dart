@@ -15,8 +15,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    final settings = ref.read(settingsProvider).value;
-    _nameController = TextEditingController(text: settings.playerName);
+    final career = ref.read(careerProvider);
+    _nameController = TextEditingController(text: career.playerName);
   }
 
   @override
@@ -28,6 +28,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   void _save() {
     final newName = _nameController.text.trim();
     if (newName.isNotEmpty) {
+      ref.read(careerProvider.notifier).setPlayerName(newName);
+      
+      // Also update settings for the current session
       final settingsNotifier = ref.read(settingsProvider);
       settingsNotifier.value = settingsNotifier.value.copyWith(playerName: newName);
       

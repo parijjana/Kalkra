@@ -25,9 +25,12 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
       final clientTransport = LanClientTransport();
       ref.read(transportProvider.notifier).state = clientTransport;
       
+      final career = ref.read(careerProvider);
+      
       await clientTransport.joinSession(
-        playerName: 'Guest', // TODO: Get from settings
+        playerName: career.playerName,
         connectionInfo: connectionInfo,
+        options: {'elo': career.elo},
       );
       
       if (mounted) {

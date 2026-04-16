@@ -17,6 +17,7 @@ dependencies:
   network_info_plus: 6.1.2
   qr_flutter: ^4.1.0
   riverpod_annotation: ^4.0.2
+  shared_preferences: ^2.5.5
   transport_interface:
     path: ../packages/transport_interface
   transport_lan:

@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "numra_app" "\0"
+            VALUE "FileDescription", "Kalkra" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "numra_app" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "numra_app.exe" "\0"
-            VALUE "ProductName", "numra_app" "\0"
+            VALUE "InternalName", "Kalkra" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 Kalkra. All rights reserved." "\0"
+            VALUE "OriginalFilename", "Kalkra.exe" "\0"
+            VALUE "ProductName", "Kalkra" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

@@ -4,7 +4,7 @@
 
 ### Phase 1: Research & Discovery
 - [x] Explored project directory.
-- [x] Extracted technical specifications from `numra_architecture.docx`.
+- [x] Extracted technical specifications from `kalkra_architecture.docx`.
 - [x] Created `GEMINI.md` with instructional context.
 - [x] Created `ARCH_MAP.md` mapping the system structure.
 - [x] Verified Flutter and Dart environment.
@@ -18,7 +18,7 @@
 - [x] Implement `SolverEngine` (TDD).
 - [x] Implement `ScoreKeeper` and `RoundManager` (TDD).
 - [x] Achieve 100% test coverage for `game_engine`.
-- [x] Rename project from Numra to Kalkra.
+- [x] Rename project to Kalkra.
 - [x] Implement `GameSettings` and `SessionManager` (TDD).
 - [x] Implement `MatchManager` and `Jeopardy` logic (TDD).
 - [x] Generate initial UI designs in Stitch (Vibrant, No Teal).

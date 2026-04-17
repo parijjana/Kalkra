@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:game_engine/game_engine.dart';
-import 'package:numra_app/src/services/career_persistence.dart';
+import 'package:kalkra_app/src/services/career_persistence.dart';
 
 void main() {
   group('CareerPersistence', () {

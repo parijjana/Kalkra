@@ -15,7 +15,7 @@ This directory currently serves as the central repository for the project's docu
 
 ### Key Files
 
-- **`numra_architecture.docx`**: This is the primary architectural document. It contains the high-level design, system components, and potentially the rules or mechanics of the Kalkra math game.
+- **`kalkra_architecture.docx`**: This is the primary architectural document. It contains the high-level design, system components, and potentially the rules or mechanics of the Kalkra math game.
 - **`GEMINI.md`**: (This file) Provides instructional context for AI interactions and development guidelines.
 
 ## Usage & Development Guidelines
@@ -25,7 +25,7 @@ As the project transitions from planning to implementation, the following guidel
 1.  **Framework:** Use **Flutter** for the mobile application development.
 2.  **Design First:** Use **Stitch** to generate UI ideas and design prototypes before implementing them in Flutter.
 3.  **TDD & OOP:** All software development tasks must employ Test-Driven Development. Prefer full OOP structures for maintainability and scalability.
-4.  **Architecture Reference:** Always refer to `numra_architecture.docx` (once accessible or when more documents are added) for foundational system design.
+4.  **Architecture Reference:** Always refer to `kalkra_architecture.docx` (once accessible or when more documents are added) for foundational system design.
 6.  **Regression Testing:** The entire test suite must be run, and `REGRESSION_SUITE.md` must be updated every time a feature is added or modified to ensure zero regressions.
 
 ## Getting Started (TODO)

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:game_engine/game_engine.dart';
 import '../theme/theme_provider.dart';
 import '../theme/app_theme.dart';
+import '../providers/game_providers.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -9,6 +11,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentTheme = ref.watch(themeProvider);
+    final settings = ref.watch(settingsProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -18,14 +21,8 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
-          Text(
-            'CHOOSE THEME',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w900,
-              color: theme.colorScheme.primary,
-              letterSpacing: 2,
-            ),
-          ),
+          // Theme Selection Section
+          _SectionHeader(title: 'VISUAL THEME'),
           const SizedBox(height: 24),
           _ThemeTile(
             title: 'Vector Pop',
@@ -58,6 +55,35 @@ class SettingsScreen extends ConsumerWidget {
             currentTheme: currentTheme,
           ),
         ],
+      ),
+    );
+  }
+
+  String _getDifficultyDesc(Difficulty d) {
+    switch (d) {
+      case Difficulty.easy:
+        return 'Targets under 100. Simple operators.';
+      case Difficulty.medium:
+        return 'Targets up to 500. Balanced number pool.';
+      case Difficulty.hard:
+        return 'Targets up to 999. Complex fractions possible.';
+    }
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  const _SectionHeader({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Text(
+      title,
+      style: theme.textTheme.labelLarge?.copyWith(
+        fontWeight: FontWeight.w900,
+        color: theme.colorScheme.primary,
+        letterSpacing: 4,
       ),
     );
   }
@@ -101,7 +127,6 @@ class _ThemeTile extends ConsumerWidget {
           ),
           child: Row(
             children: [
-              // Mini Theme Preview
               Container(
                 width: 48,
                 height: 48,

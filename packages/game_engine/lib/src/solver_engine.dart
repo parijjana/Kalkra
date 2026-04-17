@@ -7,18 +7,25 @@ class SolveResult {
 }
 
 class SolverEngine {
-  SolveResult solve(List<int> pool, int target) {
+  /// Solves the math puzzle with optional operator restrictions.
+  SolveResult solve(List<int> pool, int target, {List<String>? allowedOperators}) {
     if (pool.isEmpty) return SolveResult();
+
+    // Default to all operators if none specified
+    final ops = allowedOperators ?? ['+', '-', '*', '/'];
 
     final solutions = <int, String>{};
     for (final n in pool) {
       solutions[n] = n.toString();
     }
 
-    _search(pool.map((e) => e.toDouble()).toList(), 
-            pool.map((e) => e.toString()).toList(), 
-            target, 
-            solutions);
+    _search(
+      pool.map((e) => e.toDouble()).toList(), 
+      pool.map((e) => e.toString()).toList(), 
+      target, 
+      solutions,
+      ops,
+    );
 
     if (solutions.containsKey(target)) {
       return SolveResult(bestValue: target, expression: solutions[target], foundExact: true);
@@ -38,7 +45,13 @@ class SolverEngine {
     return SolveResult(bestValue: closest, expression: solutions[closest]);
   }
 
-  void _search(List<double> numbers, List<String> exprs, int target, Map<int, String> solutions) {
+  void _search(
+    List<double> numbers, 
+    List<String> exprs, 
+    int target, 
+    Map<int, String> solutions,
+    List<String> allowedOps,
+  ) {
     if (solutions.containsKey(target)) return;
 
     for (int i = 0; i < numbers.length; i++) {
@@ -59,23 +72,35 @@ class SolverEngine {
           }
         }
 
-        // Try all operators
-        _tryOp(a + b, '($sA + $sB)', nextNumbers, nextExprs, target, solutions);
-        
-        if (a - b > 0) {
-          _tryOp(a - b, '($sA - $sB)', nextNumbers, nextExprs, target, solutions);
+        // Try allowed operators
+        if (allowedOps.contains('+')) {
+          _tryOp(a + b, '($sA + $sB)', nextNumbers, nextExprs, target, solutions, allowedOps);
         }
         
-        _tryOp(a * b, '($sA * $sB)', nextNumbers, nextExprs, target, solutions);
+        if (allowedOps.contains('-') && a - b > 0) {
+          _tryOp(a - b, '($sA - $sB)', nextNumbers, nextExprs, target, solutions, allowedOps);
+        }
         
-        if (b != 0 && a % b == 0) {
-          _tryOp(a / b, '($sA / $sB)', nextNumbers, nextExprs, target, solutions);
+        if (allowedOps.contains('*')) {
+          _tryOp(a * b, '($sA * $sB)', nextNumbers, nextExprs, target, solutions, allowedOps);
+        }
+        
+        if (allowedOps.contains('/') && b != 0 && a % b == 0) {
+          _tryOp(a / b, '($sA / $sB)', nextNumbers, nextExprs, target, solutions, allowedOps);
         }
       }
     }
   }
 
-  void _tryOp(double res, String sRes, List<double> nextNumbers, List<String> nextExprs, int target, Map<int, String> solutions) {
+  void _tryOp(
+    double res, 
+    String sRes, 
+    List<double> nextNumbers, 
+    List<String> nextExprs, 
+    int target, 
+    Map<int, String> solutions,
+    List<String> allowedOps,
+  ) {
     final iRes = res.toInt();
     if (!solutions.containsKey(iRes)) {
       solutions[iRes] = sRes;
@@ -86,6 +111,6 @@ class SolverEngine {
 
     final newNumbers = List<double>.from(nextNumbers)..add(res);
     final newExprs = List<String>.from(nextExprs)..add(sRes);
-    _search(newNumbers, newExprs, target, solutions);
+    _search(newNumbers, newExprs, target, solutions, allowedOps);
   }
 }

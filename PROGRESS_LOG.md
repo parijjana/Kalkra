@@ -53,8 +53,8 @@
 - [x] Implement dynamic theme switcher (Noir, Pastel, Neon, Ivory).
 - [x] Configure Android permissions (Minimal: Internet, Camera, Wifi).
 - [x] Build production APKs for physical device testing.
-- [x] Test Windows desktop build for bidirectional LAN hosting.
-- [ ] Deploy web version for static hosting.
+- [x] Refine and Build production-ready standalone Windows executable.
+- [x] Solver-validated Jeopardy rounds implemented.
 
 ---
-*Last Updated: 2026-04-16*
+*Last Updated: 2026-04-17*

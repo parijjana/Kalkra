@@ -7,6 +7,7 @@ import 'join_screen.dart';
 import 'profile_screen.dart';
 import 'stats_screen.dart';
 import 'settings_screen.dart';
+import 'match_setup_screen.dart';
 import 'package:transport_interface/transport_interface.dart';
 
 class MainScreen extends ConsumerWidget {
@@ -136,16 +137,12 @@ class MainScreen extends ConsumerWidget {
               description: 'Hone your mental math skills.',
               icon: Icons.person_rounded,
               color: colorScheme.primary,
-              onTap: () async {
-                final transport = NullTransport();
-                ref.read(transportProvider.notifier).setTransport(transport);
-                await transport.hostSession(playerName: career.playerName, options: {'elo': career.elo});
-                
-                if (context.mounted) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const GameScreen()),
-                  );
-                }
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const MatchSetupScreen(mode: MatchSetupMode.solo),
+                  ),
+                );
               },
             ),
 

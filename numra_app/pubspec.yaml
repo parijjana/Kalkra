@@ -14,6 +14,7 @@ dependencies:
     path: ../packages/game_engine
   google_fonts: ^8.0.2
   intl: ^0.20.2
+  logging: ^1.3.0
   mobile_scanner: ^7.2.0
   network_info_plus: 6.1.2
   qr_flutter: ^4.1.0
@@ -23,6 +24,7 @@ dependencies:
     path: ../packages/transport_interface
   transport_lan:
     path: ../packages/transport_lan
+  window_manager: ^0.5.1
 
 dev_dependencies:
   flutter_test:

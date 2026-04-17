@@ -10,23 +10,29 @@ enum JeopardyType {
 
 class MatchManager {
   final int totalRounds;
+  final bool jeopardyEnabled;
   int _currentRound = 1;
   Difficulty _currentDifficulty = Difficulty.easy;
   JeopardyType? _activeJeopardy;
+  String? _lockedOperator; // Specific for operatorLockout
   final Random _random;
 
-  MatchManager({this.totalRounds = 5, int? seed}) : _random = Random(seed);
+  MatchManager({
+    this.totalRounds = 5, 
+    this.jeopardyEnabled = true,
+    int? seed,
+  }) : _random = Random(seed);
 
   int get currentRound => _currentRound;
   Difficulty get currentDifficulty => _currentDifficulty;
   JeopardyType? get activeJeopardy => _activeJeopardy;
+  String? get lockedOperator => _lockedOperator;
   bool get isMatchOver => _currentRound > totalRounds;
 
   void nextRound() {
     _currentRound++;
     if (isMatchOver) return;
 
-    // Progression Logic: Scale difficulty based on round percentage
     final progress = _currentRound / totalRounds;
     if (progress <= 0.34) {
       _currentDifficulty = Difficulty.easy;
@@ -36,17 +42,24 @@ class MatchManager {
       _currentDifficulty = Difficulty.hard;
     }
 
-    // Jeopardy Logic: Start introducing jeopardy from round 2 onwards
-    // Chance increases as the match progresses
-    if (_currentRound > 1) {
-      final jeopardyChance = 0.2 + (progress * 0.5); // 20% to 70% chance
+    if (jeopardyEnabled && _currentRound > 1) {
+      final jeopardyChance = 0.2 + (progress * 0.5); 
       if (_random.nextDouble() < jeopardyChance) {
         _activeJeopardy = JeopardyType.values[_random.nextInt(JeopardyType.values.length)];
+        
+        if (_activeJeopardy == JeopardyType.operatorLockout) {
+          const ops = ['+', '-', '*', '/'];
+          _lockedOperator = ops[_random.nextInt(ops.length)];
+        } else {
+          _lockedOperator = null;
+        }
       } else {
         _activeJeopardy = null;
+        _lockedOperator = null;
       }
     } else {
       _activeJeopardy = null;
+      _lockedOperator = null;
     }
   }
 }

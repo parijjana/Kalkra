@@ -3,6 +3,7 @@ import 'target_generator.dart';
 import 'submission_validator.dart';
 import 'solver_engine.dart';
 import 'score_keeper.dart';
+import 'match_manager.dart';
 
 enum RoundState { idle, playing, scoring, completed }
 
@@ -16,25 +17,68 @@ class RoundManager {
   RoundState _state = RoundState.idle;
   List<int> _numbers = [];
   int? _target;
+  JeopardyType? _jeopardyType;
+  String? _lockedOperator;
   final List<String> _submissions = [];
   SolveResult? _bestSolution;
 
   RoundState get state => _state;
   List<int> get numbers => _numbers;
   int? get target => _target;
+  JeopardyType? get jeopardyType => _jeopardyType;
+  String? get lockedOperator => _lockedOperator;
   List<String> get submissions => _submissions;
   SolveResult? get bestSolution => _bestSolution;
 
-  void startRound({int? seed, Difficulty difficulty = Difficulty.medium}) {
-    _numbers = _numGen.generatePool(difficulty: difficulty, seed: seed);
-    _target = _targetGen.generateTarget(seed: seed);
+  /// Starts a new round, ensuring it is solvable if a jeopardy event is active.
+  void startRound({
+    int? seed, 
+    Difficulty difficulty = Difficulty.medium, 
+    JeopardyType? jeopardy,
+    String? lockedOp,
+  }) {
+    _jeopardyType = jeopardy;
+    _lockedOperator = lockedOp;
+
+    bool isSolvable = false;
+    int attempts = 0;
+
+    // Solver-Validated Generation Loop
+    while (!isSolvable && attempts < 10) {
+      _numbers = _numGen.generatePool(difficulty: difficulty, seed: seed != null ? seed + attempts : null);
+      _target = _targetGen.generateTarget(difficulty: difficulty, seed: seed != null ? seed + attempts : null);
+      
+      final allowedOps = _getAllowedOperators();
+      final result = _solver.solve(_numbers, _target!, allowedOperators: allowedOps);
+      
+      if (result.foundExact) {
+        isSolvable = true;
+      }
+      attempts++;
+    }
+
     _resetRound();
   }
 
-  void startRoundWithData({required List<int> numbers, required int target}) {
+  void startRoundWithData({
+    required List<int> numbers, 
+    required int target, 
+    JeopardyType? jeopardy,
+    String? lockedOp,
+  }) {
     _numbers = numbers;
     _target = target;
+    _jeopardyType = jeopardy;
+    _lockedOperator = lockedOp;
     _resetRound();
+  }
+
+  List<String> _getAllowedOperators() {
+    final ops = ['+', '-', '*', '/'];
+    if (_lockedOperator != null) {
+      ops.remove(_lockedOperator);
+    }
+    return ops;
   }
 
   void _resetRound() {
@@ -47,8 +91,6 @@ class RoundManager {
     if (_state != RoundState.playing) {
       throw StateError('Cannot submit expression when not in playing state');
     }
-    // Validation is done at submission time but result is not stored in state
-    // to prevent real-time feedback. 
     _submissions.add(expression);
   }
 
@@ -56,10 +98,9 @@ class RoundManager {
     if (_state != RoundState.playing) return;
     _state = RoundState.scoring;
 
-    // Evaluate submissions (This is a simplification, usually you want to evaluate each one for points)
-    // Find best overall solution using solver
     if (_numbers.isNotEmpty && _target != null) {
-      _bestSolution = _solver.solve(_numbers, _target!);
+      final allowedOps = _getAllowedOperators();
+      _bestSolution = _solver.solve(_numbers, _target!, allowedOperators: allowedOps);
     }
   }
 
@@ -74,7 +115,8 @@ class RoundManager {
     
     return _scoreKeeper.calculateScore(
       target: _target!, 
-      result: validation.value?.toInt()
+      result: validation.value?.toInt(),
+      jeopardy: _jeopardyType,
     );
   }
 }

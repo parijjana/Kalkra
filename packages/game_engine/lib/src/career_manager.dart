@@ -4,19 +4,22 @@ class RivalInfo {
   final String name;
   final int eloShift;
   final DateTime date;
+  final bool wasSolo;
 
-  RivalInfo({required this.name, required this.eloShift, required this.date});
+  RivalInfo({required this.name, required this.eloShift, required this.date, this.wasSolo = false});
 
   Map<String, dynamic> toJson() => {
     'name': name,
     'eloShift': eloShift,
     'date': date.toIso8601String(),
+    'wasSolo': wasSolo,
   };
 
   factory RivalInfo.fromJson(Map<String, dynamic> json) => RivalInfo(
     name: json['name'],
     eloShift: json['eloShift'],
     date: DateTime.parse(json['date']),
+    wasSolo: json['wasSolo'] ?? false,
   );
 }
 
@@ -76,6 +79,17 @@ class CareerManager {
       }
     } else {
       _currentStreak = 0;
+    }
+
+    _rivals.insert(0, RivalInfo(
+      name: 'Solo Practice',
+      eloShift: proximityToTarget == 0 ? 10 : 0, // Visual indicator of success
+      date: DateTime.now(),
+      wasSolo: true,
+    ));
+
+    if (_rivals.length > 20) {
+      _rivals.removeLast();
     }
   }
 

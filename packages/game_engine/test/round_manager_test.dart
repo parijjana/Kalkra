@@ -17,8 +17,11 @@ void main() {
     test('starts a new round and transitions to playing', () {
       roundManager.startRound(seed: 123, difficulty: Difficulty.easy);
       expect(roundManager.state, RoundState.playing);
-      expect(roundManager.numbers.length, 6);
+      expect(roundManager.numbers.length, 4);
       expect(roundManager.target, isNotNull);
+
+      roundManager.startRound(seed: 123, difficulty: Difficulty.medium);
+      expect(roundManager.numbers.length, 6);
     });
 
     test('accepts submissions during playing state', () {

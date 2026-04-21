@@ -21,6 +21,7 @@ class LanHostTransport implements IGameTransport {
   Future<void> hostSession({required String playerName, Map<String, dynamic>? options}) async {
     final requestedPort = options?['port'] ?? 8080;
     final elo = options?['elo'] ?? 1200;
+    final isSpectator = options?['isSpectator'] ?? false;
     
     final handler = webSocketHandler((WebSocketChannel webSocket) {
       _clients.add(webSocket);
@@ -37,11 +38,13 @@ class LanHostTransport implements IGameTransport {
     _server = await io.serve(handler, InternetAddress.anyIPv4, requestedPort);
     _port = _server!.port;
     
-    // Emit host join event
-    _eventController.add(GameEvent(
-      type: GameEventType.playerJoined,
-      payload: PlayerInfo(id: 'host', name: playerName, isHost: true, currentElo: elo).toJson(),
-    ));
+    // Emit host join event only if not a spectator
+    if (!isSpectator) {
+      _eventController.add(GameEvent(
+        type: GameEventType.playerJoined,
+        payload: PlayerInfo(id: 'host', name: playerName, isHost: true, currentElo: elo).toJson(),
+      ));
+    }
   }
 
   @override

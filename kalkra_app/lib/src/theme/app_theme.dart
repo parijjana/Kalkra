@@ -7,6 +7,8 @@ enum AppThemeType {
   pastel,
   neon,
   ivory,
+  midnightCyber,
+  retroArcade,
 }
 
 class AppTheme {
@@ -15,9 +17,10 @@ class AppTheme {
       case AppThemeType.vectorPop:
         return _buildTheme(
           primary: const Color(0xFF652FE7),
-          primaryContainer: const Color(0xFFA98FFF),
+          primaryContainer: const Color(0xFF4527A0), // Deeper shadow purple
           secondary: const Color(0xFF9B3F00),
-          tertiary: const Color(0xFF6D5A00),
+          secondaryContainer: const Color(0xFFFF6D00), // Action orange
+          tertiary: const Color(0xFFFFD600), // Electric yellow
           tertiaryContainer: const Color(0xFFFDD400),
           background: const Color(0xFFF9F5F8),
           surface: Colors.white,
@@ -33,12 +36,13 @@ class AppTheme {
       case AppThemeType.noir:
         return _buildTheme(
           primary: const Color(0xFFFFFFFF),
-          primaryContainer: const Color(0xFF333333),
+          primaryContainer: const Color(0xFF121214), // Midnight well
           secondary: const Color(0xFF999999),
+          secondaryContainer: const Color(0xFF333333),
           tertiary: const Color(0xFF666666),
           tertiaryContainer: const Color(0xFF444444),
           background: const Color(0xFF0A0A0A),
-          surface: const Color(0xFF1A1A1A),
+          surface: const Color(0xFF1A1A1C), // Sunken texture
           onBackground: const Color(0xFFF5F5F5),
           onSurface: const Color(0xFFF5F5F5),
           onPrimary: Colors.black,
@@ -53,7 +57,8 @@ class AppTheme {
           primary: const Color(0xFFFFB7B2),
           primaryContainer: const Color(0xFFFFD1CC),
           secondary: const Color(0xFFE2F0CB),
-          tertiary: const Color(0xFFB5EAD7),
+          secondaryContainer: const Color(0xFFB5EAD7),
+          tertiary: const Color(0xFFFFE4E1), // Misty Rose
           tertiaryContainer: const Color(0xFFC7F0DF),
           background: const Color(0xFFFFF5EE),
           surface: Colors.white,
@@ -69,12 +74,13 @@ class AppTheme {
       case AppThemeType.neon:
         return _buildTheme(
           primary: const Color(0xFF39FF14),
-          primaryContainer: const Color(0xFF1B8A05),
+          primaryContainer: const Color(0xFF0D4D00), // Deep acid green
           secondary: const Color(0xFFFF00FF),
+          secondaryContainer: const Color(0xFF800080),
           tertiary: const Color(0xFF00FFFF),
-          tertiaryContainer: const Color(0xFF008080),
+          tertiaryContainer: const Color(0xFF004D4D),
           background: const Color(0xFF000000),
-          surface: const Color(0xFF111111),
+          surface: const Color(0xFF050505),
           onBackground: Colors.white,
           onSurface: Colors.white,
           onPrimary: Colors.black,
@@ -87,10 +93,11 @@ class AppTheme {
       case AppThemeType.ivory:
         return _buildTheme(
           primary: const Color(0xFF5C4033),
-          primaryContainer: const Color(0xFF8B5A2B),
+          primaryContainer: const Color(0xFF3E2723), // Dark saddle
           secondary: const Color(0xFF8B4513),
+          secondaryContainer: const Color(0xFFCD853F),
           tertiary: const Color(0xFFA0522D),
-          tertiaryContainer: const Color(0xFFCD853F),
+          tertiaryContainer: const Color(0xFFEEDC82), // Flax yellow
           background: const Color(0xFFFDFBF7),
           surface: const Color(0xFFFAF6E9),
           onBackground: const Color(0xFF3E2723),
@@ -102,6 +109,44 @@ class AppTheme {
           borderRadiusCard: 4,
           borderRadiusButton: 2,
         );
+      case AppThemeType.midnightCyber:
+        return _buildTheme(
+          primary: const Color(0xFF00E5FF),
+          primaryContainer: const Color(0xFF00363A),
+          secondary: const Color(0xFF7C4DFF),
+          secondaryContainer: const Color(0xFF311B92),
+          tertiary: const Color(0xFFFFE082),
+          tertiaryContainer: const Color(0xFFFFB300),
+          background: const Color(0xFF000B0D),
+          surface: const Color(0xFF001519),
+          onBackground: Colors.white,
+          onSurface: Colors.white,
+          onPrimary: Colors.black,
+          isDark: true,
+          headlineFont: GoogleFonts.spaceGrotesk,
+          bodyFont: GoogleFonts.interTextTheme,
+          borderRadiusCard: 24,
+          borderRadiusButton: 16,
+        );
+      case AppThemeType.retroArcade:
+        return _buildTheme(
+          primary: const Color(0xFFFF0055),
+          primaryContainer: const Color(0xFF4A001A),
+          secondary: const Color(0xFF00FF9D),
+          secondaryContainer: const Color(0xFF003D24),
+          tertiary: const Color(0xFFFFFF00),
+          tertiaryContainer: const Color(0xFF3D3D00),
+          background: const Color(0xFF050005),
+          surface: const Color(0xFF100010),
+          onBackground: Colors.white,
+          onSurface: Colors.white,
+          onPrimary: Colors.white,
+          isDark: true,
+          headlineFont: GoogleFonts.spaceGrotesk,
+          bodyFont: GoogleFonts.ibmPlexSansTextTheme,
+          borderRadiusCard: 4,
+          borderRadiusButton: 0,
+        );
     }
   }
 
@@ -109,6 +154,7 @@ class AppTheme {
     required Color primary,
     required Color primaryContainer,
     required Color secondary,
+    required Color secondaryContainer,
     required Color tertiary,
     required Color tertiaryContainer,
     required Color background,
@@ -128,9 +174,10 @@ class AppTheme {
       onPrimary: onPrimary,
       primaryContainer: primaryContainer,
       secondary: secondary,
+      secondaryContainer: secondaryContainer,
       tertiary: tertiary,
       tertiaryContainer: tertiaryContainer,
-      surface: background,
+      surface: surface,
       onSurface: onSurface,
       brightness: isDark ? Brightness.dark : Brightness.light,
     );
@@ -189,6 +236,16 @@ class AppTheme {
       ),
       iconTheme: IconThemeData(color: onSurface),
       primaryIconTheme: IconThemeData(color: onPrimary),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(borderRadiusCard / 2),
+          borderSide: BorderSide.none,
+        ),
+        hintStyle: TextStyle(color: onSurface.withValues(alpha: 0.4)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      ),
     );
   }
 }

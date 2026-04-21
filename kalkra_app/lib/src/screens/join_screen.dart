@@ -53,6 +53,9 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(currentScreenIdProvider.notifier).setScreenId('JoinScreen');
+    });
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final eventAsync = ref.watch(gameEventStreamProvider);

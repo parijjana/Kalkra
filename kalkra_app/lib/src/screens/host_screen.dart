@@ -7,7 +7,7 @@ import 'package:transport_interface/transport_interface.dart';
 import 'package:game_engine/game_engine.dart';
 import '../providers/game_providers.dart';
 import 'game_screen.dart';
-import 'match_setup_screen.dart';
+import 'spectator_screen.dart';
 
 class HostScreen extends ConsumerStatefulWidget {
   const HostScreen({super.key});
@@ -20,6 +20,10 @@ class _HostScreenState extends ConsumerState<HostScreen> {
   String? _ipAddress;
   int _port = 8080;
   bool _isHosting = false;
+  bool _isSpectator = false;
+  int _totalRounds = 5;
+  Difficulty _difficulty = Difficulty.easy;
+  bool _nextRoundJeopardy = false;
 
   @override
   void initState() {
@@ -41,6 +45,7 @@ class _HostScreenState extends ConsumerState<HostScreen> {
       options: {
         'port': _port,
         'elo': career.elo,
+        'isSpectator': true, // Host stays in spectator mode during lobby
       },
     );
 
@@ -55,6 +60,9 @@ class _HostScreenState extends ConsumerState<HostScreen> {
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(currentScreenIdProvider.notifier).setScreenId('HostScreen');
+    });
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final eventAsync = ref.watch(gameEventStreamProvider);
@@ -64,13 +72,11 @@ class _HostScreenState extends ConsumerState<HostScreen> {
     eventAsync.whenData((event) {
       if (event.type == GameEventType.playerJoined) {
         final player = PlayerInfo.fromJson(event.payload);
-        session.addPlayer(player.id, player.name, elo: player.currentElo);
+        session.addPlayer(player.id, player.name, elo: player.currentElo, isHost: player.isHost);
       } else if (event.type == GameEventType.submissionReceived) {
         final playerId = event.payload['playerId'];
         final expression = event.payload['expression'];
-        final round = ref.read(roundProvider);
-        final points = round.calculatePoints(expression);
-        session.recordSubmission(playerId, expression, points);
+        session.recordSubmission(playerId, expression, 0);
       }
     });
 
@@ -87,6 +93,80 @@ class _HostScreenState extends ConsumerState<HostScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
+            const SizedBox(height: 32),
+
+            // 1. Role Selection
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _RoleButton(
+                      label: 'JOIN AS PLAYER',
+                      icon: Icons.sports_esports_rounded,
+                      isActive: !_isSpectator,
+                      onTap: () => setState(() => _isSpectator = false),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _RoleButton(
+                      label: 'REMAIN HOST',
+                      icon: Icons.visibility_rounded,
+                      isActive: _isSpectator,
+                      onTap: () => setState(() => _isSpectator = true),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 32),
+            
+            // 2. Match Settings
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(32),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.settings_rounded, size: 20),
+                        const SizedBox(width: 12),
+                        Text('MATCH SETTINGS', style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: 2)),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    _SettingRow(
+                      label: 'ROUNDS',
+                      value: '$_totalRounds',
+                      onDecrement: () => setState(() => _totalRounds = (_totalRounds - 1).clamp(1, 20)),
+                      onIncrement: () => setState(() => _totalRounds = (_totalRounds + 1).clamp(1, 20)),
+                    ),
+                    const Divider(height: 32),
+                    _SettingRow(
+                      label: 'DIFFICULTY',
+                      value: _difficulty.name.toUpperCase(),
+                      onDecrement: () => setState(() => _difficulty = Difficulty.values[(_difficulty.index - 1).clamp(0, 2)]),
+                      onIncrement: () => setState(() => _difficulty = Difficulty.values[(_difficulty.index + 1).clamp(0, 2)]),
+                    ),
+                    const Divider(height: 32),
+                    SwitchListTile(
+                      title: Text('INITIAL JEOPARDY', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      value: _nextRoundJeopardy,
+                      onChanged: (v) => setState(() => _nextRoundJeopardy = v),
+                      activeThumbColor: colorScheme.primary,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
             const SizedBox(height: 32),
             
             // QR Code Area
@@ -198,7 +278,7 @@ class _HostScreenState extends ConsumerState<HostScreen> {
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text('${player.currentElo} ELO'),
-                      trailing: index == 0 // Assuming first is host for now
+                      trailing: player.isHost
                           ? const Icon(Icons.star_rounded, color: Colors.amber)
                           : const Icon(Icons.check_circle_outline_rounded, color: Colors.green),
                     ),
@@ -216,30 +296,44 @@ class _HostScreenState extends ConsumerState<HostScreen> {
                 width: double.infinity,
                 height: 72,
                 child: ElevatedButton(
-                  onPressed: players.isNotEmpty ? () async {
-                    // Initialize match and first round
-                    final match = MatchManager(totalRounds: 5);
+                  onPressed: players.isNotEmpty || !_isSpectator ? () async {
+                    final transport = ref.read(transportProvider);
+                    final career = ref.read(careerProvider);
+
+                    if (!_isSpectator) {
+                      await transport.sendEvent(GameEvent(
+                        type: GameEventType.playerJoined,
+                        payload: PlayerInfo(id: 'host', name: career.playerName, isHost: true, currentElo: career.elo).toJson(),
+                      ));
+                    }
+
+                    final match = MatchManager(totalRounds: _totalRounds, jeopardyEnabled: _nextRoundJeopardy);
                     ref.read(matchProvider).value = match;
                     
                     final round = ref.read(roundProvider);
-                    round.startRound(difficulty: match.currentDifficulty);
+                    round.startRound(difficulty: _difficulty);
                     session.resetRoundData();
                     
-                    // Broadcast to clients
-                    final transport = ref.read(transportProvider);
                     await transport.sendEvent(GameEvent(
                       type: GameEventType.roundStarted,
                       payload: {
                         'target': round.target,
                         'numbers': round.numbers,
-                        'difficulty': match.currentDifficulty.index,
+                        'difficulty': _difficulty.index,
+                        'isSpectator': _isSpectator,
                       },
                     ));
 
                     if (mounted) {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (context) => const GameScreen()),
-                      );
+                      if (_isSpectator) {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(builder: (context) => const SpectatorScreen()),
+                        );
+                      } else {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(builder: (context) => const GameScreen()),
+                        );
+                      }
                     }
                   } : null,
                   style: ElevatedButton.styleFrom(
@@ -261,6 +355,72 @@ class _HostScreenState extends ConsumerState<HostScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _RoleButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _RoleButton({required this.label, required this.icon, required this.isActive, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: isActive ? colorScheme.primary : colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: isActive ? Colors.white : colorScheme.onSurfaceVariant),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                color: isActive ? Colors.white : colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final VoidCallback onDecrement;
+  final VoidCallback onIncrement;
+
+  const _SettingRow({required this.label, required this.value, required this.onDecrement, required this.onIncrement});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        const Spacer(),
+        IconButton(onPressed: onDecrement, icon: const Icon(Icons.remove_circle_outline)),
+        Container(
+          width: 80,
+          alignment: Alignment.center,
+          child: Text(value, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+        ),
+        IconButton(onPressed: onIncrement, icon: const Icon(Icons.add_circle_outline)),
+      ],
     );
   }
 }

@@ -1,12 +1,13 @@
 class PlayerSessionData {
   final String name;
   final int currentElo;
+  final bool isHost;
   bool isReady;
   int cumulativeScore;
   String? lastExpression;
   int? lastPoints;
 
-  PlayerSessionData(this.name, {required this.currentElo, this.isReady = false, this.cumulativeScore = 0});
+  PlayerSessionData(this.name, {required this.currentElo, this.isHost = false, this.isReady = false, this.cumulativeScore = 0});
 }
 
 class SessionManager {
@@ -16,7 +17,7 @@ class SessionManager {
 
   bool get allReady => _players.isNotEmpty && _players.values.every((p) => p.isReady);
 
-  void addPlayer(String id, String name, {int elo = 1200}) {
+  void addPlayer(String id, String name, {int elo = 1200, bool isHost = false}) {
     String uniqueName = name;
     int counter = 2;
     
@@ -27,7 +28,7 @@ class SessionManager {
       counter++;
     }
 
-    _players[id] = PlayerSessionData(uniqueName, currentElo: elo);
+    _players[id] = PlayerSessionData(uniqueName, currentElo: elo, isHost: isHost);
   }
 
   void removePlayer(String id) {

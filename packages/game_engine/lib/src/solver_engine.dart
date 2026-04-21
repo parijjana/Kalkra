@@ -7,8 +7,8 @@ class SolveResult {
 }
 
 class SolverEngine {
-  /// Solves the math puzzle with optional operator restrictions.
-  SolveResult solve(List<int> pool, int target, {List<String>? allowedOperators}) {
+  /// Solves the math puzzle with optional operator restrictions and nesting limits.
+  SolveResult solve(List<int> pool, int target, {List<String>? allowedOperators, int maxNesting = 10}) {
     if (pool.isEmpty) return SolveResult();
 
     // Default to all operators if none specified
@@ -20,11 +20,12 @@ class SolverEngine {
     }
 
     _search(
-      pool.map((e) => e.toDouble()).toList(), 
-      pool.map((e) => e.toString()).toList(), 
-      target, 
+      pool.map((e) => e.toDouble()).toList(),
+      pool.map((e) => e.toString()).toList(),
+      target,
       solutions,
       ops,
+      maxNesting,
     );
 
     if (solutions.containsKey(target)) {
@@ -46,11 +47,12 @@ class SolverEngine {
   }
 
   void _search(
-    List<double> numbers, 
-    List<String> exprs, 
-    int target, 
+    List<double> numbers,
+    List<String> exprs,
+    int target,
     Map<int, String> solutions,
     List<String> allowedOps,
+    int maxNesting,
   ) {
     if (solutions.containsKey(target)) return;
 
@@ -63,6 +65,9 @@ class SolverEngine {
         final sA = exprs[i];
         final sB = exprs[j];
 
+        // Check nesting depth of input operands
+        if (_getNestingDepth(sA) >= maxNesting || _getNestingDepth(sB) >= maxNesting) continue;
+
         final nextNumbers = <double>[];
         final nextExprs = <String>[];
         for (int k = 0; k < numbers.length; k++) {
@@ -74,43 +79,57 @@ class SolverEngine {
 
         // Try allowed operators
         if (allowedOps.contains('+')) {
-          _tryOp(a + b, '($sA + $sB)', nextNumbers, nextExprs, target, solutions, allowedOps);
+          _tryOp(a + b, '($sA + $sB)', nextNumbers, nextExprs, target, solutions, allowedOps, maxNesting);
         }
-        
+
         if (allowedOps.contains('-') && a - b > 0) {
-          _tryOp(a - b, '($sA - $sB)', nextNumbers, nextExprs, target, solutions, allowedOps);
+          _tryOp(a - b, '($sA - $sB)', nextNumbers, nextExprs, target, solutions, allowedOps, maxNesting);
         }
-        
+
         if (allowedOps.contains('*')) {
-          _tryOp(a * b, '($sA * $sB)', nextNumbers, nextExprs, target, solutions, allowedOps);
+          _tryOp(a * b, '($sA * $sB)', nextNumbers, nextExprs, target, solutions, allowedOps, maxNesting);
         }
-        
+
         if (allowedOps.contains('/') && b != 0 && a % b == 0) {
-          _tryOp(a / b, '($sA / $sB)', nextNumbers, nextExprs, target, solutions, allowedOps);
+          _tryOp(a / b, '($sA / $sB)', nextNumbers, nextExprs, target, solutions, allowedOps, maxNesting);
         }
       }
     }
   }
 
   void _tryOp(
-    double res, 
-    String sRes, 
-    List<double> nextNumbers, 
-    List<String> nextExprs, 
-    int target, 
+    double res,
+    String sRes,
+    List<double> nextNumbers,
+    List<String> nextExprs,
+    int target,
     Map<int, String> solutions,
     List<String> allowedOps,
+    int maxNesting,
   ) {
-    final iRes = res.toInt();
-    if (!solutions.containsKey(iRes)) {
-      solutions[iRes] = sRes;
+    final intRes = res.toInt();
+    if (!solutions.containsKey(intRes)) {
+      solutions[intRes] = sRes;
     }
-    
-    if (iRes == target) return;
-    if (nextNumbers.isEmpty) return;
 
-    final newNumbers = List<double>.from(nextNumbers)..add(res);
-    final newExprs = List<String>.from(nextExprs)..add(sRes);
-    _search(newNumbers, newExprs, target, solutions, allowedOps);
+    if (nextNumbers.isNotEmpty) {
+      final finalNumbers = List<double>.from(nextNumbers)..add(res);
+      final finalExprs = List<String>.from(nextExprs)..add(sRes);
+      _search(finalNumbers, finalExprs, target, solutions, allowedOps, maxNesting);
+    }
+  }
+
+  int _getNestingDepth(String expr) {
+    int maxDepth = 0;
+    int currentDepth = 0;
+    for (int i = 0; i < expr.length; i++) {
+      if (expr[i] == '(') {
+        currentDepth++;
+        if (currentDepth > maxDepth) maxDepth = currentDepth;
+      } else if (expr[i] == ')') {
+        currentDepth--;
+      }
+    }
+    return maxDepth;
   }
 }

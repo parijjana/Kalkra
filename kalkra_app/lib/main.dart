@@ -11,6 +11,8 @@ import 'src/providers/game_providers.dart';
 import 'src/theme/app_theme.dart';
 import 'src/theme/theme_provider.dart';
 
+import 'src/widgets/debug_overlay.dart';
+
 void main() async {
   // 1. Setup Logging
   Logger.root.level = Level.ALL;
@@ -92,7 +94,7 @@ class KalkraApp extends ConsumerWidget {
             ),
           );
         };
-        return widget!;
+        return DebugOverlay(child: widget!);
       },
     );
   }

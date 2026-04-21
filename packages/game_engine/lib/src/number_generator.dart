@@ -27,7 +27,8 @@ class NumberGenerator {
     pool.addAll(selectedLarge.take(largeCount));
 
     final selectedSmall = List<int>.from(_smallNumbers)..shuffle(random);
-    pool.addAll(selectedSmall.take(6 - largeCount));
+    int remainingCount = (difficulty == Difficulty.easy) ? 3 : (6 - largeCount);
+    pool.addAll(selectedSmall.take(remainingCount));
 
     return pool..shuffle(random);
   }

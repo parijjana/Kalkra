@@ -102,3 +102,33 @@ final gameEventStreamProvider = StreamProvider<GameEvent>((ref) {
   final transport = ref.watch(transportProvider);
   return transport.eventStream;
 });
+
+/// Provider for tracking the current screen ID for the debug overlay.
+final currentScreenIdProvider = NotifierProvider<ScreenIdNotifier, String>(ScreenIdNotifier.new);
+
+class ScreenIdNotifier extends Notifier<String> {
+  @override
+  String build() => 'MainScreen';
+  
+  void setScreenId(String id) => state = id;
+}
+
+/// Provider for tracking if a solo match is currently paused.
+final isPausedProvider = NotifierProvider<PauseNotifier, bool>(PauseNotifier.new);
+
+class PauseNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+  
+  void setPaused(bool value) => state = value;
+}
+
+/// Provider for tracking host-initiated jeopardy overrides for the next round.
+final jeopardyOverrideProvider = NotifierProvider<JeopardyOverrideNotifier, bool>(JeopardyOverrideNotifier.new);
+
+class JeopardyOverrideNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+  
+  void setOverride(bool value) => state = value;
+}

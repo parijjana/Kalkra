@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../providers/game_providers.dart';
+import '../widgets/responsive_layout.dart';
+import '../widgets/top_nav_bar.dart';
+import '../widgets/vector_background.dart';
+import 'account_screen.dart';
+
+import '../widgets/global_drawer.dart';
 
 class StatsScreen extends ConsumerWidget {
   const StatsScreen({super.key});
@@ -10,7 +15,7 @@ class StatsScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
         content: Text(explanation, style: const TextStyle(fontSize: 16)),
@@ -26,146 +31,201 @@ class StatsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(currentScreenIdProvider.notifier).setScreenId('StatsScreen');
+    });
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final career = ref.watch(careerProvider);
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        title: const Text('CAREER STATS'),
-        backgroundColor: colorScheme.primary,
-        foregroundColor: Colors.white,
+      drawer: GlobalDrawer(),
+      body: ResponsiveLayout(
+        mobile: _buildMobile(context, theme, colorScheme, career),
+        desktop: _buildDesktop(context, theme, colorScheme, career, ref),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Current Rank Card
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [colorScheme.primary, const Color(0xFF5E35B1)],
-                ),
-                borderRadius: BorderRadius.circular(48),
-              ),
+    );
+  }
+
+  Widget _buildMobile(BuildContext context, ThemeData theme, ColorScheme colorScheme, dynamic career) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppBar(
+          title: const Text('CAREER STATS'),
+          backgroundColor: colorScheme.primary,
+          foregroundColor: Colors.white,
+          leading: Builder(
+            builder: (context) => IconButton(
+              icon: const Icon(Icons.menu_rounded),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
+          ),
+        ),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildRankCard(colorScheme, career, theme),
+                const SizedBox(height: 32),
+                _buildStatsGrid(context, career),
+                const SizedBox(height: 80),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktop(BuildContext context, ThemeData theme, ColorScheme colorScheme, dynamic career, WidgetRef ref) {
+    return Scaffold(
+      backgroundColor: colorScheme.surface,
+      appBar: const TopNavBar(activeId: 'StatsScreen'),
+      body: VectorBackground(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(80),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1000),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'CURRENT RANK',
-                    style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w900, letterSpacing: 2),
+                  Text('CAREER ANALYTICS', style: theme.textTheme.displayMedium?.copyWith(fontWeight: FontWeight.w900, color: colorScheme.primary)),
+                  const SizedBox(height: 12),
+                  Text('QUANTIFY YOUR COGNITIVE SUPREMACY', style: TextStyle(letterSpacing: 4, color: colorScheme.onSurface.withValues(alpha: 0.4), fontWeight: FontWeight.w900, fontSize: 12)),
+                  
+                  const SizedBox(height: 80),
+
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: Column(
+                          children: [
+                            _buildRankCard(colorScheme, career, theme, isDesktop: true),
+                            const SizedBox(height: 40),
+                            _buildStatsGrid(context, career, isDesktop: true),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 80),
+                      Expanded(
+                        flex: 2,
+                        child: Container(
+                          padding: const EdgeInsets.all(48),
+                          decoration: BoxDecoration(
+                            color: colorScheme.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(48),
+                          ),
+                          child: Column(
+                            children: [
+                              Icon(Icons.military_tech_rounded, size: 100, color: colorScheme.tertiary),
+                              const SizedBox(height: 24),
+                              const Text('MILESTONE TRACKER', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2, fontSize: 14)),
+                              const SizedBox(height: 12),
+                              Text('REACH 2000 ELO FOR PLATINUM RANK', textAlign: TextAlign.center, style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.4), fontSize: 12, height: 1.4)),
+                              const SizedBox(height: 40),
+                              LinearProgressIndicator(
+                                value: career.elo / 2000,
+                                minHeight: 12,
+                                borderRadius: BorderRadius.circular(6),
+                                backgroundColor: colorScheme.surface,
+                                valueColor: AlwaysStoppedAnimation(colorScheme.tertiary),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    '${career.elo} ELO',
-                    style: theme.textTheme.displayMedium?.copyWith(color: Colors.white, fontSize: 48),
-                  ),
-                  Text(
-                    _getTier(career.elo),
-                    style: TextStyle(color: colorScheme.tertiaryContainer, fontWeight: FontWeight.bold, fontSize: 20),
-                  ),
+                  const SizedBox(height: 100),
                 ],
               ),
             ),
-
-            const SizedBox(height: 32),
-
-            // Stats Grid
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              childAspectRatio: 1.1,
-              children: [
-                _StatCard(
-                  title: 'SPEED',
-                  value: '${career.avgSpeedSeconds.toStringAsFixed(1)}s',
-                  icon: Icons.bolt_rounded,
-                  color: Colors.orange,
-                  onInfo: () => _showTooltip(context, 'SPEED', 'Average number of seconds from the moment numbers appear to when you hit SUBMIT.'),
-                ),
-                _StatCard(
-                  title: 'ACCURACY',
-                  value: '±${career.avgAccuracy.toStringAsFixed(1)}',
-                  icon: Icons.track_changes_rounded,
-                  color: Colors.redAccent,
-                  onInfo: () => _showTooltip(context, 'ACCURACY', 'The average difference between your mathematical result and the target number. Lower is better!'),
-                ),
-                _StatCard(
-                  title: 'WINS',
-                  value: '${career.matchesWon}',
-                  icon: Icons.emoji_events_rounded,
-                  color: Colors.amber,
-                  onInfo: () => _showTooltip(context, 'WINS', 'Total number of multiplayer sessions where you finished with the highest cumulative score.'),
-                ),
-                _StatCard(
-                  title: 'BEST STREAK',
-                  value: '${career.bestStreak}',
-                  icon: Icons.whatshot_rounded,
-                  color: Colors.deepOrange,
-                  onInfo: () => _showTooltip(context, 'BEST STREAK', 'The highest number of consecutive rounds where you achieved an EXACT match to the target.'),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 48),
-
-            // Recent Rivals
-            Text(
-              'RECENT RIVALS',
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w900,
-                letterSpacing: 2,
-                color: colorScheme.onSurface.withValues(alpha: 0.5),
-              ),
-            ),
-            const SizedBox(height: 16),
-            if (career.rivals.isEmpty)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(32.0),
-                  child: Text('No battle history yet!', style: TextStyle(color: Colors.black26)),
-                ),
-              )
-            else
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: career.rivals.length,
-                itemBuilder: (context, i) {
-                  final rival = career.rivals[i];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: ListTile(
-                      tileColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                      leading: CircleAvatar(
-                        backgroundColor: colorScheme.surface,
-                        child: Text(rival.name.isNotEmpty ? rival.name[0] : '?'),
-                      ),
-                      title: Text(rival.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text(DateFormat('MMM dd, HH:mm').format(rival.date)),
-                      trailing: Text(
-                        '${rival.eloShift > 0 ? "+" : ""}${rival.eloShift}',
-                        style: TextStyle(
-                          color: rival.eloShift >= 0 ? Colors.green : Colors.red,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 18,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            const SizedBox(height: 40),
-          ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildRankCard(ColorScheme colorScheme, dynamic career, ThemeData theme, {bool isDesktop = false}) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(isDesktop ? 60 : 32),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [colorScheme.primary, colorScheme.primaryContainer],
+        ),
+        borderRadius: BorderRadius.circular(isDesktop ? 60 : 48),
+        boxShadow: [BoxShadow(color: colorScheme.primary.withValues(alpha: 0.3), blurRadius: 40, offset: const Offset(0, 20))],
+      ),
+      child: Column(
+        children: [
+          Text(
+            'CURRENT RANK',
+            style: TextStyle(color: colorScheme.onPrimary.withValues(alpha: 0.6), fontWeight: FontWeight.w900, letterSpacing: 4, fontSize: isDesktop ? 14 : 10),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            '${career.elo} ELO',
+            style: theme.textTheme.displayLarge?.copyWith(color: colorScheme.onPrimary, fontSize: isDesktop ? 80 : 48),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+            child: Text(
+              _getTier(career.elo),
+              style: TextStyle(color: colorScheme.tertiaryContainer, fontWeight: FontWeight.w900, fontSize: isDesktop ? 20 : 14, letterSpacing: 2),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsGrid(BuildContext context, dynamic career, {bool isDesktop = false}) {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      mainAxisSpacing: 24,
+      crossAxisSpacing: 24,
+      childAspectRatio: isDesktop ? 1.4 : 1.1,
+      children: [
+        _StatCard(
+          title: 'SPEED',
+          value: '${career.avgSpeedSeconds.toStringAsFixed(1)}s',
+          icon: Icons.bolt_rounded,
+          color: Colors.orange,
+          onInfo: () => _showTooltip(context, 'SPEED', 'Average number of seconds from the moment numbers appear to when you hit SUBMIT.'),
+        ),
+        _StatCard(
+          title: 'ACCURACY',
+          value: '±${career.avgAccuracy.toStringAsFixed(1)}',
+          icon: Icons.track_changes_rounded,
+          color: Colors.redAccent,
+          onInfo: () => _showTooltip(context, 'ACCURACY', 'The average difference between your mathematical result and the target number. Lower is better!'),
+        ),
+        _StatCard(
+          title: 'WINS',
+          value: '${career.matchesWon}',
+          icon: Icons.emoji_events_rounded,
+          color: Colors.amber,
+          onInfo: () => _showTooltip(context, 'WINS', 'Total number of multiplayer sessions where you finished with the highest cumulative score.'),
+        ),
+        _StatCard(
+          title: 'BEST STREAK',
+          value: '${career.bestStreak}',
+          icon: Icons.whatshot_rounded,
+          color: Colors.deepOrange,
+          onInfo: () => _showTooltip(context, 'BEST STREAK', 'The highest number of consecutive rounds where you achieved an EXACT match to the target.'),
+        ),
+      ],
     );
   }
 
@@ -195,10 +255,12 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(32),
       ),
       child: Column(
@@ -206,22 +268,26 @@ class _StatCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, color: color, size: 20),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+                child: Icon(icon, color: color, size: 20),
+              ),
               const Spacer(),
-              GestureDetector(
-                onTap: onInfo,
-                child: Icon(Icons.info_outline_rounded, color: theme.colorScheme.onSurface.withValues(alpha: 0.2), size: 18),
+              IconButton(
+                onPressed: onInfo,
+                icon: Icon(Icons.info_outline_rounded, color: colorScheme.onSurface.withValues(alpha: 0.2), size: 18),
               ),
             ],
           ),
           const Spacer(),
           Text(
             value,
-            style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900, color: theme.colorScheme.onSurface),
+            style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900, color: colorScheme.onSurface),
           ),
           Text(
             title,
-            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 10, color: theme.colorScheme.onSurface.withValues(alpha: 0.4), letterSpacing: 1),
+            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 10, color: colorScheme.onSurface.withValues(alpha: 0.4), letterSpacing: 1),
           ),
         ],
       ),

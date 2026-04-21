@@ -32,8 +32,8 @@ class RoundManager {
 
   /// Starts a new round, ensuring it is solvable if a jeopardy event is active.
   void startRound({
-    int? seed, 
-    Difficulty difficulty = Difficulty.medium, 
+    int? seed,
+    Difficulty difficulty = Difficulty.medium,
     JeopardyType? jeopardy,
     String? lockedOp,
   }) {
@@ -42,15 +42,16 @@ class RoundManager {
 
     bool isSolvable = false;
     int attempts = 0;
+    int maxNesting = (difficulty == Difficulty.easy) ? 1 : 10;
 
     // Solver-Validated Generation Loop
     while (!isSolvable && attempts < 10) {
       _numbers = _numGen.generatePool(difficulty: difficulty, seed: seed != null ? seed + attempts : null);
       _target = _targetGen.generateTarget(difficulty: difficulty, seed: seed != null ? seed + attempts : null);
-      
+
       final allowedOps = _getAllowedOperators();
-      final result = _solver.solve(_numbers, _target!, allowedOperators: allowedOps);
-      
+      final result = _solver.solve(_numbers, _target!, allowedOperators: allowedOps, maxNesting: maxNesting);
+
       if (result.foundExact) {
         isSolvable = true;
       }
@@ -59,7 +60,6 @@ class RoundManager {
 
     _resetRound();
   }
-
   void startRoundWithData({
     required List<int> numbers, 
     required int target, 

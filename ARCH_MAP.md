@@ -43,14 +43,20 @@ Kalkra is a Flutter-based math game designed for local (LAN) and future cloud mu
 ### 4. Presentation Layer (Flutter App)
 - **Framework:** Flutter
 - **State Management:** Riverpod
+- **Architecture Pattern:** MVVM (Model-View-ViewModel)
+- **Key Components:**
+    - `TopNavBar`: Unified navigation across all analytical and dashboard views.
+    - `GlobalDrawer`: Centralized hamburger menu for 'Main Menu' and 'End Match' actions.
+    - `VectorBackground`: Procedural, theme-aligned background textures.
+    - `ResponsiveLayout`: Utility widget for unified Mobile/Tablet/Desktop support.
 - **Screens:**
-    - `MainScreen`: Entry point, solo/multiplayer selection.
-    - `LobbyScreen`: Session setup, QR display.
-    - `JoinScreen`: QR scanner.
-    - `GameScreen`: Interactive board, live player list (Responsive: Mobile/Tablet/Web).
-    - `ResultsScreen`: Score summaries and solver reveal.
-    - `ProfileScreen`: (New) Identity setup and name collision preview.
-    - `StatsScreen`: (New) High-fidelity dashboard for career progression and rival history.
+    - `MainScreen`: Central dashboard with top-level navigation and performance summary.
+    - `GameScreen`: Focused battle arena (non-scrollable) with keyboard support and collapsible pro-tips.
+    - `ResultsScreen`: Centered round recap (non-scrollable) with optimal strategy comparison.
+    - `StatsScreen`: High-fidelity career analytics and tier progression tracker.
+    - `HistoryScreen`: Dedicated battle log and global news feed.
+    - `AccountScreen`: Unified identity (callsign) and visual preference (theme) management.
+    - `LobbyScreen/JoinScreen`: Multiplayer session management via QR/Discovery.
 
 ## Dependency Graph
 

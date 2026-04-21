@@ -3,9 +3,9 @@
 This document tracks all implemented features, their associated tests, and their current verification status. This suite is run in its entirety whenever a new feature is added to ensure no regressions are introduced.
 
 ## Summary
-- **Last Full Run:** 2026-04-17
-- **Total Features:** 19
-- **Total Test Cases:** 65
+- **Last Full Run:** 2026-04-18
+- **Total Features:** 23
+- **Total Test Cases:** 83
 - **Status:** 🟢 ALL PASSED
 
 ---
@@ -14,25 +14,30 @@ This document tracks all implemented features, their associated tests, and their
 
 | Feature | Test File | Implemented On | Last Test Run | Status | Results |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **NumberGenerator** | `packages/game_engine/test/number_generator_test.dart` | 2026-04-14 | 2026-04-17 | Active | 🟢 PASSED |
-| **TargetGenerator** | `packages/game_engine/test/target_generator_test.dart` | 2026-04-14 | 2026-04-17 | Active | 🟢 PASSED |
-| **SubmissionValidator** | `packages/game_engine/test/submission_validator_test.dart` | 2026-04-14 | 2026-04-17 | Active | 🟢 PASSED |
-| **SolverEngine** | `packages/game_engine/test/solver_engine_test.dart` | 2026-04-14 | 2026-04-17 | Active | 🟢 PASSED |
-| **ScoreKeeper** | `packages/game_engine/test/score_keeper_test.dart` | 2026-04-14 | 2026-04-17 | Active | 🟢 PASSED |
-| **RoundManager** | `packages/game_engine/test/round_manager_test.dart` | 2026-04-14 | 2026-04-17 | Active | 🟢 PASSED |
-| **GameSettings** | `packages/game_engine/test/game_settings_test.dart` | 2026-04-14 | 2026-04-17 | Active | 🟢 PASSED |
-| **SessionManager** | `packages/game_engine/test/session_manager_test.dart` | 2026-04-14 | 2026-04-17 | Active | 🟢 PASSED |
-| **MatchManager** | `packages/game_engine/test/match_manager_test.dart` | 2026-04-14 | 2026-04-17 | Active | 🟢 PASSED |
-| **Jeopardy Logic** | `packages/game_engine/test/match_manager_test.dart` | 2026-04-14 | 2026-04-17 | Active | 🟢 PASSED |
-| **CareerManager** | `packages/game_engine/test/career_manager_test.dart` | 2026-04-15 | 2026-04-17 (Streaks & Names) | Active | 🟢 PASSED |
-| **EloCalculator** | `packages/game_engine/lib/src/elo_calculator.dart` | 2026-04-15 | 2026-04-17 | Active | 🟢 PASSED |
-| **Transport Models** | `packages/transport_interface/test/models_test.dart` | 2026-04-14 | 2026-04-17 (Full PlayerInfo) | Active | 🟢 PASSED |
-| **NullTransport** | `packages/transport_interface/test/null_transport_test.dart` | 2026-04-14 | 2026-04-17 | Active | 🟢 PASSED |
-| **LanTransport** | `packages/transport_lan/test/lan_transport_test.dart` | 2026-04-15 | 2026-04-17 (Handshake Options) | Active | 🟢 PASSED |
-| **Career Persistence** | `kalkra_app/test/services/career_persistence_test.dart` | 2026-04-16 | 2026-04-17 | Active | 🟢 PASSED |
-| **Dynamic Themes** | `kalkra_app/lib/src/theme/app_theme.dart` | 2026-04-16 | 2026-04-17 (Visual) | Active | 🟢 VERIFIED |
-| **Android APK** | `kalkra_app/build/app/outputs/flutter-apk/` | 2026-04-16 | 2026-04-17 (Manual) | Active | 🟢 BUILT |
-| **Windows App** | `kalkra_app/build/windows/x64/runner/Release/` | 2026-04-17 | 2026-04-17 (Manual) | Active | 🟢 BUILT |
+| **NumberGenerator** | `packages/game_engine/test/number_generator_test.dart` | 2026-04-14 | 2026-04-18 | Active | 🟢 PASSED |
+| **TargetGenerator** | `packages/game_engine/test/target_generator_test.dart` | 2026-04-14 | 2026-04-18 | Active | 🟢 PASSED |
+| **SubmissionValidator** | `packages/game_engine/test/submission_validator_test.dart` | 2026-04-14 | 2026-04-18 | Active | 🟢 PASSED |
+| **SolverEngine** | `packages/game_engine/test/solver_engine_test.dart` | 2026-04-14 | 2026-04-18 | Active | 🟢 PASSED |
+| **Solver Edge Cases** | `packages/game_engine/test/solver_repro_test.dart` | 2026-04-18 | 2026-04-18 | Active | 🟢 PASSED |
+| **ScoreKeeper** | `packages/game_engine/test/score_keeper_test.dart` | 2026-04-14 | 2026-04-18 | Active | 🟢 PASSED |
+| **RoundManager** | `packages/game_engine/test/round_manager_test.dart` | 2026-04-14 | 2026-04-18 | Active | 🟢 PASSED |
+| **GameSettings** | `packages/game_engine/test/game_settings_test.dart` | 2026-04-14 | 2026-04-18 | Active | 🟢 PASSED |
+| **SessionManager** | `packages/game_engine/test/session_manager_test.dart` | 2026-04-14 | 2026-04-18 | Active | 🟢 PASSED |
+| **MatchManager** | `packages/game_engine/test/match_manager_test.dart` | 2026-04-14 | 2026-04-18 | Active | 🟢 PASSED |
+| **Jeopardy Logic** | `packages/game_engine/test/match_manager_test.dart` | 2026-04-14 | 2026-04-18 | Active | 🟢 PASSED |
+| **CareerManager** | `packages/game_engine/test/career_manager_test.dart` | 2026-04-15 | 2026-04-18 | Active | 🟢 PASSED |
+| **EloCalculator** | `packages/game_engine/lib/src/elo_calculator.dart` | 2026-04-15 | 2026-04-18 | Active | 🟢 PASSED |
+| **Transport Models** | `packages/transport_interface/test/models_test.dart` | 2026-04-14 | 2026-04-18 | Active | 🟢 PASSED |
+| **NullTransport** | `packages/transport_interface/test/null_transport_test.dart` | 2026-04-14 | 2026-04-18 | Active | 🟢 PASSED |
+| **LanTransport** | `packages/transport_lan/test/lan_transport_test.dart` | 2026-04-15 | 2026-04-18 | Active | 🟢 PASSED |
+| **Career Persistence** | `kalkra_app/test/services/career_persistence_test.dart` | 2026-04-16 | 2026-04-18 | Active | 🟢 PASSED |
+| **Solo Flow Progression**| `kalkra_app/test/screens/solo_flow_test.dart` | 2026-04-18 | 2026-04-18 | Active | 🟢 PASSED |
+| **Match Lifecycle** | `kalkra_app/test/screens/match_lifecycle_test.dart` | 2026-04-18 | 2026-04-18 | Active | 🟢 PASSED |
+| **Multi-Theme UI** | `kalkra_app/test/screens/screenshot_capture_test.dart` | 2026-04-18 | 2026-04-18 | Active | 🟢 VERIFIED |
+| **Dynamic Themes** | `kalkra_app/lib/src/theme/app_theme.dart` | 2026-04-16 | 2026-04-18 | Active | 🟢 VERIFIED |
+| **Android APK** | `kalkra_app/build/app/outputs/flutter-apk/` | 2026-04-16 | 2026-04-18 | Active | 🟢 BUILT |
+| **Windows App** | `kalkra_app/build/windows/x64/runner/Release/` | 2026-04-17 | 2026-04-18 | Active | 🟢 BUILT |
+
 
 ---
 *Generated by Gemini CLI - Integrity Guaranteed*

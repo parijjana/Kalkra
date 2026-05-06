@@ -20,9 +20,6 @@ jobs:
       - name: Enable macOS support
         run: flutter config --enable-macos-desktop
 
-      - name: Flutter Doctor
-        run: flutter doctor
-
       - name: Get Dependencies (Packages)
         run: |
           find packages -name "pubspec.yaml" -maxdepth 2 -execdir flutter pub get \;
@@ -40,12 +37,12 @@ jobs:
       - name: Build macOS Release
         run: |
           cd kalkra_app
-          flutter build macos --release --no-codesign
+          flutter build macos --release
 
       - name: Zip Build
         run: |
           cd kalkra_app/build/macos/Build/Products/Release
-          # Check if the app exists and zip it. Use wildcard to handle name differences.
+          # Check if the app exists and zip it.
           if [ -d "Kalkra.app" ]; then
             zip -r ../../../../Kalkra-macOS.zip Kalkra.app
           elif [ -d "kalkra_app.app" ]; then

@@ -4,9 +4,6 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   build:
     name: Build macOS App
@@ -20,24 +17,20 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Install Dependencies (Packages)
-        run: |
-          for dir in packages/*; do
-            if [ -d "$dir" ] && [ -f "$dir/pubspec.yaml" ]; then
-              echo "Getting dependencies for $dir"
-              cd "$dir"
-              flutter pub get
-              cd ../..
-            fi
-          done
+      - name: Enable macOS support
+        run: flutter config --enable-macos-desktop
 
-      - name: Install Dependencies (App)
+      - name: Flutter Doctor
+        run: flutter doctor
+
+      - name: Get Dependencies (Packages)
+        run: |
+          find packages -name "pubspec.yaml" -maxdepth 2 -execdir flutter pub get \;
+
+      - name: Get Dependencies (App)
         run: |
           cd kalkra_app
           flutter pub get
-
-      - name: Enable macOS support
-        run: flutter config --enable-macos-desktop
 
       - name: Refresh macOS Project
         run: |
@@ -47,12 +40,27 @@ jobs:
       - name: Build macOS Release
         run: |
           cd kalkra_app
-          flutter build macos --release --no-codesign -v
+          flutter build macos --release --no-codesign
 
       - name: Zip Build
         run: |
           cd kalkra_app/build/macos/Build/Products/Release
-          zip -r ../../../../Kalkra-macOS.zip Kalkra.app
+          # Check if the app exists and zip it. Use wildcard to handle name differences.
+          if [ -d "Kalkra.app" ]; then
+            zip -r ../../../../Kalkra-macOS.zip Kalkra.app
+          elif [ -d "kalkra_app.app" ]; then
+            zip -r ../../../../Kalkra-macOS.zip kalkra_app.app
+          else
+            echo "Searching for built .app file..."
+            APP_NAME=$(find . -name "*.app" -maxdepth 1)
+            if [ -n "$APP_NAME" ]; then
+              zip -r ../../../../Kalkra-macOS.zip "$APP_NAME"
+            else
+              echo "Error: No .app file found in $(pwd)"
+              ls -R
+              exit 1
+            fi
+          fi
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4

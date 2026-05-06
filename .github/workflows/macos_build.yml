@@ -4,6 +4,9 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     name: Build macOS App
@@ -29,34 +32,24 @@ jobs:
           cd kalkra_app
           flutter pub get
 
-      - name: Refresh macOS Project
-        run: |
-          cd kalkra_app
-          flutter create --platforms=macos .
-
       - name: Build macOS Release
         run: |
           cd kalkra_app
+          # We don't refresh the project here to keep existing settings, 
+          # but we ensure dependencies are correct.
           flutter build macos --release
 
       - name: Zip Build
         run: |
-          cd kalkra_app/build/macos/Build/Products/Release
-          # Check if the app exists and zip it.
-          if [ -d "Kalkra.app" ]; then
-            zip -r ../../../../Kalkra-macOS.zip Kalkra.app
-          elif [ -d "kalkra_app.app" ]; then
-            zip -r ../../../../Kalkra-macOS.zip kalkra_app.app
+          # Find any .app file in the build directory and zip it
+          APP_PATH=$(find kalkra_app/build/macos/Build/Products/Release -name "*.app" -maxdepth 1)
+          if [ -n "$APP_PATH" ]; then
+            echo "Found app at $APP_PATH"
+            zip -r Kalkra-macOS.zip "$APP_PATH"
           else
-            echo "Searching for built .app file..."
-            APP_NAME=$(find . -name "*.app" -maxdepth 1)
-            if [ -n "$APP_NAME" ]; then
-              zip -r ../../../../Kalkra-macOS.zip "$APP_NAME"
-            else
-              echo "Error: No .app file found in $(pwd)"
-              ls -R
-              exit 1
-            fi
+            echo "Error: No .app file found in build directory."
+            find kalkra_app/build -name "*.app"
+            exit 1
           fi
 
       - name: Upload Artifact

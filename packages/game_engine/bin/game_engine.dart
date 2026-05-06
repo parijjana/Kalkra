@@ -1,5 +1,5 @@
-import 'package:game_engine/game_engine.dart' as game_engine;
+import 'package:game_engine/game_engine.dart';
 
 void main(List<String> arguments) {
-  print('Hello world: ${game_engine.calculate()}!');
+  print('Kalkra Game Engine CLI initialized.');
 }

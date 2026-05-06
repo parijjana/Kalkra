@@ -4,6 +4,18 @@ class SolveResult {
   final bool foundExact;
 
   SolveResult({this.bestValue, this.expression, this.foundExact = false});
+
+  Map<String, dynamic> toJson() => {
+    'bestValue': bestValue,
+    'expression': expression,
+    'foundExact': foundExact,
+  };
+
+  factory SolveResult.fromJson(Map<String, dynamic> json) => SolveResult(
+    bestValue: json['bestValue'],
+    expression: json['expression'],
+    foundExact: json['foundExact'] ?? false,
+  );
 }
 
 class SolverEngine {

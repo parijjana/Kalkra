@@ -4,11 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kalkra_app/src/screens/game_screen.dart';
 import 'package:kalkra_app/src/screens/results_screen.dart';
+import 'package:kalkra_app/src/screens/solo_summary_screen.dart';
 import 'package:kalkra_app/src/providers/game_providers.dart';
 import 'package:game_engine/game_engine.dart';
 
 void main() {
-  testWidgets('Solo Practice: Match lifecycle, overrun prevention, and score tracking', (tester) async {
+  testWidgets('Solo: Match lifecycle, overrun prevention, and score tracking', (tester) async {
     tester.view.physicalSize = const Size(2560, 1440);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(() => tester.view.resetPhysicalSize());
@@ -48,7 +49,9 @@ void main() {
     expect(find.textContaining('SCORE: 0'), findsAtLeast(1));
 
     // Build simple expression and submit
-    await tester.tap(find.text('${round.numbers[0]}').first);
+    await tester.pump(const Duration(milliseconds: 500)); // Wait for entrance animations
+    final firstTile = find.byWidgetPredicate((w) => w.runtimeType.toString() == '_NumberTile').first;
+    await tester.tap(firstTile);
     await tester.pump();
     
     await tester.tap(find.text('SUBMIT'));
@@ -68,7 +71,9 @@ void main() {
     expect(find.textContaining('SCORE: '), findsAtLeast(1));
     
     // Build and submit another
-    await tester.tap(find.text('${round.numbers[0]}').first);
+    await tester.pump(const Duration(milliseconds: 500));
+    final secondTile = find.byWidgetPredicate((w) => w.runtimeType.toString() == '_NumberTile').first;
+    await tester.tap(secondTile);
     await tester.tap(find.text('SUBMIT'));
     await tester.pumpAndSettle();
 
@@ -82,8 +87,10 @@ void main() {
     await tester.tap(find.text('FINISH MATCH'));
     await tester.pumpAndSettle();
     
-    // Should be back at the start (main menu represented by empty route stack in test)
-    // or we can just verify the ResultsScreen is gone.
-    expect(find.byType(ResultsScreen), findsNothing);
+    // Now navigates to SoloSummaryScreen
+    expect(find.byType(SoloSummaryScreen), findsOneWidget);
+
+    // Clear notification timer
+    await tester.pumpAndSettle(const Duration(seconds: 5));
   });
 }

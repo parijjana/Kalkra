@@ -12,3 +12,6 @@ export 'src/match_manager.dart';
 export 'src/career_manager.dart';
 export 'src/elo_calculator.dart';
 export 'src/round_config.dart';
+export 'src/models/achievement.dart';
+export 'src/achievement_registry.dart';
+export 'src/achievement_manager.dart';

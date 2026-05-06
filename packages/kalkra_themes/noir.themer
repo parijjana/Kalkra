@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "name": "Noir",
+  "colors": {
+    "primary": "#D1D1D1",
+    "onPrimary": "#000000",
+    "secondary": "#888888",
+    "onSecondary": "#000000",
+    "surface": "#141416",
+    "onSurface": "#EBEBEB",
+    "background": "#090909",
+    "onBackground": "#EBEBEB"
+  },
+  "typography": {
+    "fontFamily": "DM Sans"
+  },
+  "effects": {
+    "roundness": 8.0
+  }
+}

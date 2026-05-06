@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "name": "Pastel",
+  "colors": {
+    "primary": "#FFB7B2",
+    "onPrimary": "#7B3100",
+    "secondary": "#E2F0CB",
+    "onSecondary": "#7B3100",
+    "surface": "#FFFFFF",
+    "onSurface": "#5D5D5D",
+    "background": "#FFF5EE",
+    "onBackground": "#5D5D5D"
+  },
+  "typography": {
+    "fontFamily": "Nunito Sans"
+  },
+  "effects": {
+    "roundness": 100.0
+  }
+}

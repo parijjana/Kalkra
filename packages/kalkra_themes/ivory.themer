@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "name": "Ivory",
+  "colors": {
+    "primary": "#5C4033",
+    "onPrimary": "#FFFFFF",
+    "secondary": "#8B4513",
+    "onSecondary": "#FFFFFF",
+    "surface": "#FAF6E9",
+    "onSurface": "#3E2723",
+    "background": "#FDFBF7",
+    "onBackground": "#3E2723"
+  },
+  "typography": {
+    "fontFamily": "Newsreader"
+  },
+  "effects": {
+    "roundness": 4.0
+  }
+}

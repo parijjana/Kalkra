@@ -32,16 +32,21 @@ void main() {
       expect(player.stats, isEmpty); // Default
     });
 
-    test('GameEvent serialization', () {
+    test('GameEvent serialization with plural targets', () {
       final event = GameEvent(
         type: GameEventType.roundStarted,
-        payload: {'target': 542, 'numbers': [1, 2, 3]},
+        payload: {
+          'targets': [100, 200], 
+          'numbers': [1, 2, 3],
+          'config': 'Two Targets',
+        },
       );
       final json = event.toJson();
       final fromJson = GameEvent.fromJson(json);
       
       expect(fromJson.type, GameEventType.roundStarted);
-      expect(fromJson.payload['target'], 542);
+      expect(fromJson.payload['targets'], equals([100, 200]));
+      expect(fromJson.payload['config'], 'Two Targets');
     });
   });
 }

@@ -24,13 +24,16 @@ void main() {
       expect(session.isPlayerReady('id1'), isTrue);
     });
 
-    test('allReady is true only when everyone is ready', () {
+    test('allAssignedReady is true only when everyone in a team is ready', () {
       session.addPlayer('id1', 'Alice');
       session.addPlayer('id2', 'Bob');
+      session.assignTeam('id1', 1);
+      session.assignTeam('id2', 2);
+      
       session.setPlayerReady('id1', true);
-      expect(session.allReady, isFalse);
+      expect(session.allAssignedReady, isFalse);
       session.setPlayerReady('id2', true);
-      expect(session.allReady, isTrue);
+      expect(session.allAssignedReady, isTrue);
     });
 
     test('calculates cumulative scores', () {

@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "name": "Soft Pastel",
+  "colors": {
+    "primary": "#FDA4AF",
+    "onPrimary": "#FFFFFF",
+    "secondary": "#F9A8D4",
+    "surface": "#FFF1F2",
+    "onSurface": "#4C0519",
+    "background": "#FFFFFF",
+    "error": "#E11D48",
+    "onError": "#FFFFFF"
+  },
+  "typography": {
+    "fontFamily": "Inter"
+  },
+  "effects": {
+    "roundness": 24.0,
+    "elevation": 1.0
+  }
+}

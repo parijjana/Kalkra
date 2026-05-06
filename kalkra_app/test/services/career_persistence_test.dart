@@ -6,8 +6,6 @@ import 'package:kalkra_app/src/services/career_persistence.dart';
 
 void main() {
   group('CareerPersistence', () {
-    const String careerKey = 'kalkra_career_data';
-
     setUp(() {
       SharedPreferences.setMockInitialValues({});
     });
@@ -16,7 +14,7 @@ void main() {
       final prefs = await SharedPreferences.getInstance();
       final persistence = CareerPersistence(prefs);
       
-      final career = persistence.load();
+      final career = await persistence.load('test-device-id');
       expect(career.elo, 1200);
       expect(career.matchesWon, 0);
     });
@@ -28,9 +26,9 @@ void main() {
       final career = CareerManager(elo: 1500, matchesWon: 10);
       career.recordRoundPerformance(secondsToSubmit: 5.0, proximityToTarget: 0);
       
-      await persistence.save(career);
+      await persistence.save(career, 'test-device-id');
       
-      final loadedCareer = persistence.load();
+      final loadedCareer = await persistence.load('test-device-id');
       expect(loadedCareer.elo, 1500);
       expect(loadedCareer.matchesWon, 10);
       expect(loadedCareer.avgSpeedSeconds, 5.0);
@@ -40,10 +38,10 @@ void main() {
       final prefs = await SharedPreferences.getInstance();
       final persistence = CareerPersistence(prefs);
       
-      await persistence.save(CareerManager(elo: 2000));
+      await persistence.save(CareerManager(elo: 2000), 'test-device-id');
       await persistence.clear();
       
-      final loaded = persistence.load();
+      final loaded = await persistence.load('test-device-id');
       expect(loaded.elo, 1200); // Default
     });
   });

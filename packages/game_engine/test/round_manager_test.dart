@@ -54,7 +54,7 @@ void main() {
     test('starts a round with explicit data', () {
       final numbers = [1, 2, 3, 4, 5, 6];
       const target = 500;
-      roundManager.startRoundWithData(numbers: numbers, target: target);
+      roundManager.startRoundWithData(numbers: numbers, targets: [target]);
       
       expect(roundManager.state, RoundState.playing);
       expect(roundManager.numbers, equals(numbers));

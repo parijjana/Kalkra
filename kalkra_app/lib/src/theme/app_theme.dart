@@ -35,16 +35,16 @@ class AppTheme {
         );
       case AppThemeType.noir:
         return _buildTheme(
-          primary: const Color(0xFFFFFFFF),
-          primaryContainer: const Color(0xFF121214), // Midnight well
-          secondary: const Color(0xFF999999),
-          secondaryContainer: const Color(0xFF333333),
-          tertiary: const Color(0xFF666666),
-          tertiaryContainer: const Color(0xFF444444),
-          background: const Color(0xFF0A0A0A),
-          surface: const Color(0xFF1A1A1C), // Sunken texture
-          onBackground: const Color(0xFFF5F5F5),
-          onSurface: const Color(0xFFF5F5F5),
+          primary: const Color(0xFFD1D1D1), // Silver-grey accent
+          primaryContainer: const Color(0xFF1E1E1F), // Darker grey
+          secondary: const Color(0xFF888888),
+          secondaryContainer: const Color(0xFF2C2C2E),
+          tertiary: const Color(0xFF555555),
+          tertiaryContainer: const Color(0xFF3A3A3C),
+          background: const Color(0xFF090909),
+          surface: const Color(0xFF141416),
+          onBackground: const Color(0xFFEBEBEB),
+          onSurface: const Color(0xFFEBEBEB),
           onPrimary: Colors.black,
           isDark: true,
           headlineFont: GoogleFonts.dmSans,

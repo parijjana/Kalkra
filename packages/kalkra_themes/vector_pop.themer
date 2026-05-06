@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "name": "Vector Pop",
+  "colors": {
+    "primary": "#652FE7",
+    "onPrimary": "#FFFFFF",
+    "secondary": "#9B3F00",
+    "onSecondary": "#FFFFFF",
+    "surface": "#FFFFFF",
+    "onSurface": "#2F2E30",
+    "background": "#F9F5F8",
+    "onBackground": "#2F2E30"
+  },
+  "typography": {
+    "fontFamily": "Space Grotesk"
+  },
+  "effects": {
+    "roundness": 48.0
+  }
+}

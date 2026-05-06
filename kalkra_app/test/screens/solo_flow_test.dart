@@ -8,7 +8,7 @@ import 'package:kalkra_app/src/providers/game_providers.dart';
 import 'package:game_engine/game_engine.dart';
 
 void main() {
-  testWidgets('Solo Practice: Next Round should generate new puzzle and allow submission', (tester) async {
+  testWidgets('Solo: Next Round should generate new puzzle and allow submission', (tester) async {
     // Set a large desktop-like screen size to avoid hit-test issues with the new layout
     tester.view.physicalSize = const Size(2560, 1440);
     tester.view.devicePixelRatio = 1.0;
@@ -81,5 +81,8 @@ void main() {
 
     // If it worked, we should be back on ResultsScreen
     expect(find.byType(ResultsScreen), findsOneWidget);
+
+    // Clear notification timer
+    await tester.pumpAndSettle(const Duration(seconds: 5));
   });
 }

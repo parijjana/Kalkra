@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "name": "Neon Jungle",
+  "colors": {
+    "primary": "#10B981",
+    "onPrimary": "#FFFFFF",
+    "secondary": "#059669",
+    "surface": "#1F2937",
+    "onSurface": "#F9FAFB",
+    "background": "#111827",
+    "error": "#EF4444",
+    "onError": "#FFFFFF"
+  },
+  "typography": {
+    "fontFamily": "Inter"
+  },
+  "effects": {
+    "roundness": 12.0,
+    "elevation": 4.0
+  }
+}

@@ -1,0 +1,14 @@
+name: gatekeeper_rate_limit
+description: A robust, industry-standard rate limiting library for Dart/Flutter using the Token Bucket algorithm.
+version: 1.0.0
+homepage: https://github.com/gatekeeper/rate_limit
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  meta: ^1.11.0
+
+dev_dependencies:
+  test: ^1.24.0

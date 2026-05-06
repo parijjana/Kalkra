@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_engine/game_engine.dart';
@@ -5,15 +6,18 @@ import 'package:transport_interface/transport_interface.dart';
 import 'package:transport_lan/transport_lan.dart';
 import '../providers/game_providers.dart';
 import '../widgets/responsive_layout.dart';
-import 'game_screen.dart';
 import '../widgets/global_drawer.dart';
-import 'main_screen.dart';
+import 'game_screen.dart';
+import 'match_summary_screen.dart';
+import 'solo_summary_screen.dart';
 
-class ResultsScreen extends ConsumerWidget {
+class ResultsScreen extends ConsumerStatefulWidget {
   final String playerExpression;
   final num? playerValue;
   final int playerPoints;
   final Map<String, dynamic>? multiplayerResults;
+  final Map<int, int>? teamPoints;
+  final Map<int, int>? teamTotalScores;
   final Map<String, int>? eloShifts;
 
   const ResultsScreen({
@@ -22,21 +26,71 @@ class ResultsScreen extends ConsumerWidget {
     required this.playerValue,
     required this.playerPoints,
     this.multiplayerResults,
+    this.teamPoints,
+    this.teamTotalScores,
     this.eloShifts,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ResultsScreen> createState() => _ResultsScreenState();
+}
+
+class _ResultsScreenState extends ConsumerState<ResultsScreen> {
+  int _lockoutSeconds = 0;
+  Timer? _lockoutTimer;
+  bool _showIndividual = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final transport = ref.read(transportProvider);
+    final isHost = transport is LanHostTransport;
+    final isHostPlaying = !ref.read(isHostOnlyProvider);
+
+    if (isHost && isHostPlaying) {
+      _lockoutSeconds = 15;
+      _lockoutTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (_lockoutSeconds > 0) {
+          setState(() => _lockoutSeconds--);
+        } else {
+          _lockoutTimer?.cancel();
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _lockoutTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(currentScreenIdProvider.notifier).setScreenId('ResultsScreen');
     });
+
+    // Watch session updates
+    ref.watch(sessionUpdateProvider);
+    ref.listen<MatchStatus>(matchStatusProvider, (prev, next) {
+      if (next == MatchStatus.playing) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => GameScreen()),
+        );
+      }
+    });
+
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final round = ref.read(roundProvider);
     final solverResult = round.bestSolution;
     final match = ref.watch(matchProvider).value;
     final session = ref.watch(sessionProvider);
-    final myScore = session.getPlayerScore(ref.read(transportProvider) is LanHostTransport ? 'host' : 'solo');
+    
+    final transport = ref.watch(transportProvider);
+    final myId = transport is LanHostTransport ? 'host' : 'me';
+    final myScore = session.getPlayerScore(transport is NullTransport ? 'solo' : myId);
 
     return Scaffold(
       drawer: const GlobalDrawer(),
@@ -57,7 +111,7 @@ class ResultsScreen extends ConsumerWidget {
         child: SafeArea(
           child: Column(
             children: [
-              // 1. Top Status Row (Fixed)
+              // 1. Top Status Row
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 20, 40, 0),
                 child: Row(
@@ -77,7 +131,7 @@ class ResultsScreen extends ConsumerWidget {
                           style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2, color: colorScheme.onSurface.withValues(alpha: 0.4), fontSize: 10),
                         ),
                         Text(
-                          'TOTAL SCORE: $myScore',
+                          'YOUR TOTAL: $myScore',
                           style: TextStyle(fontWeight: FontWeight.w900, color: colorScheme.primary, fontSize: 16),
                         ),
                       ],
@@ -86,20 +140,39 @@ class ResultsScreen extends ConsumerWidget {
                 ),
               ),
 
-              // 2. Main Analytics Area (Viewport-Focused)
+              // 2. Main Analytics Area
               Expanded(
                 child: SingleChildScrollView(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 20),
-                    child: _HeroRecap(
-                      target: round.target ?? 0,
-                      playerExpression: playerExpression,
-                      playerValue: playerValue?.toInt() ?? 0,
-                      playerPoints: playerPoints,
-                      solverExpression: solverResult?.expression ?? 'N/A',
-                      leaderboard: multiplayerResults != null 
-                        ? _buildLeaderboard(context, multiplayerResults!) 
-                        : null,
+                    child: Column(
+                      children: [
+                        if (widget.multiplayerResults != null) ...[
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 40),
+                            child: _buildTeamLeaderboard(context),
+                          ),
+                          const SizedBox(height: 16),
+                          TextButton.icon(
+                            onPressed: () => setState(() => _showIndividual = !_showIndividual),
+                            icon: Icon(_showIndividual ? Icons.expand_less : Icons.expand_more),
+                            label: Text(_showIndividual ? 'HIDE INDIVIDUALS' : 'SHOW INDIVIDUALS'),
+                          ),
+                          if (_showIndividual)
+                             Padding(
+                               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                               child: _buildIndividualBreakdown(context),
+                             ),
+                          const SizedBox(height: 32),
+                        ],
+                        _HeroRecap(
+                          target: round.target ?? 0,
+                          playerExpression: widget.playerExpression,
+                          playerValue: widget.playerValue?.toInt() ?? 0,
+                          playerPoints: widget.playerPoints,
+                          solverExpression: solverResult?.expression ?? 'N/A',
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -120,59 +193,59 @@ class ResultsScreen extends ConsumerWidget {
   Widget _buildNavigationRow(BuildContext context, ColorScheme colorScheme, WidgetRef ref) {
     final match = ref.read(matchProvider).value;
     final isLastRound = match != null && (match.isMatchOver || (match.gameMode != GameMode.endless && match.currentRound >= match.totalRounds));
-    final buttonText = isLastRound ? 'FINISH MATCH' : 'NEXT ROUND';
+    final isHost = ref.read(transportProvider) is LanHostTransport;
+    final isLocked = _lockoutSeconds > 0;
+    
+    String buttonText = isLastRound ? 'FINISH MATCH' : 'NEXT ROUND';
+    if (isLocked) buttonText = 'WAIT... ${_lockoutSeconds}s';
+    else if (!isHost && widget.multiplayerResults != null) buttonText = 'WAITING FOR HOST';
 
     return SizedBox(
       width: 350,
       height: 64,
       child: ElevatedButton(
-        onPressed: (multiplayerResults != null && ref.read(transportProvider) is! LanHostTransport) 
+        onPressed: (isLocked || (!isHost && widget.multiplayerResults != null)) 
           ? null 
           : () async {
             if (isLastRound) {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => const MainScreen()),
-                (route) => false,
-              );
+              if (context.mounted) {
+                final transport = ref.read(transportProvider);
+                if (transport is NullTransport) {
+                  final session = ref.read(sessionProvider);
+                  final score = session.getPlayerScore('solo');
+                  final match = ref.read(matchProvider).value;
+                  ref.read(careerProvider.notifier).recordSoloMatch(
+                    score: score,
+                    mode: match?.gameMode.name.toUpperCase() ?? 'SOLO',
+                  );
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => const SoloSummaryScreen()),
+                  );
+                } else {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (context) => MatchSummaryScreen(
+                        teamTotalScores: widget.teamTotalScores ?? {},
+                        multiplayerResults: widget.multiplayerResults,
+                      ),
+                    ),
+                  );
+                }
+              }
               return;
             }
 
             final transport = ref.read(transportProvider);
             if (transport is LanHostTransport) {
-              if (match != null && !match.isMatchOver) {
-                final forceJeopardy = ref.read(jeopardyOverrideProvider);
-                match.nextRound(forceJeopardy: forceJeopardy);
-                ref.read(jeopardyOverrideProvider.notifier).setOverride(false);
-
-                final round = ref.read(roundProvider);
-                round.startRound(
-                  difficulty: match.currentDifficulty,
-                  jeopardy: match.activeJeopardy,
-                  lockedOp: match.lockedOperator,
-                );
-                ref.read(sessionProvider).resetRoundData();
-                
-                await transport.sendEvent(GameEvent(
-                  type: GameEventType.roundStarted,
-                  payload: {
-                    'target': round.target,
-                    'numbers': round.numbers,
-                    'difficulty': match.currentDifficulty.index,
-                    'jeopardy': match.activeJeopardy?.index,
-                    'lockedOperator': match.lockedOperator,
-                  },
-                ));
-              }
+               // Next round logic handled in SpectatorScreen via events? 
+               // Actually we need to trigger it here too.
+               _triggerNextRound(ref, transport, match);
             } else if (transport is NullTransport) {
-              if (match != null && !match.isMatchOver) {
-                match.nextRound();
-                final round = ref.read(roundProvider);
-                round.startRound(
-                  difficulty: match.currentDifficulty,
-                  jeopardy: match.activeJeopardy,
-                  lockedOp: match.lockedOperator,
-                );
-              }
+               if (match != null) {
+                  match.nextRound();
+                  final round = ref.read(roundProvider);
+                  round.startRound(difficulty: match.currentDifficulty, jeopardy: match.activeJeopardy, lockedOp: match.lockedOperator);
+               }
             }
             
             if (context.mounted) {
@@ -192,30 +265,54 @@ class ResultsScreen extends ConsumerWidget {
             return colorScheme.primary;
           }),
         ),
-        child: Text(
-          (multiplayerResults != null && ref.read(transportProvider) is! LanHostTransport) 
-            ? 'WAITING FOR HOST' 
-            : buttonText, 
-          style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 4, fontSize: 18)
-        ),
+        child: Text(buttonText, style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 4, fontSize: 18)),
       ),
     );
   }
 
-  Widget _buildLeaderboard(BuildContext context, Map<String, dynamic> results) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final sortedEntries = results.entries.toList()
-      ..sort((a, b) {
-        // Primary sort: Points (Winner takes all)
-        final pA = a.value['points'] as int;
-        final pB = b.value['points'] as int;
-        if (pA != pB) return pB.compareTo(pA);
+  Future<void> _triggerNextRound(WidgetRef ref, IGameTransport transport, MatchManager? match) async {
+    if (match != null && !match.isMatchOver) {
+      final forceJeopardy = ref.read(jeopardyOverrideProvider);
+      match.nextRound(forceJeopardy: forceJeopardy);
+      ref.read(jeopardyOverrideProvider.notifier).setOverride(false);
 
-        // Secondary sort: Proximity (lowest is better)
-        final proxA = a.value['proximity'] as int? ?? 1000000;
-        final proxB = b.value['proximity'] as int? ?? 1000000;
-        return proxA.compareTo(proxB);
-      });
+      final round = ref.read(roundProvider);
+      round.startRound(difficulty: match.currentDifficulty, jeopardy: match.activeJeopardy, lockedOp: match.lockedOperator);
+      ref.read(sessionProvider).resetRoundData();
+      
+      await transport.sendEvent(GameEvent(
+        type: GameEventType.roundStarted,
+        payload: {
+          'target': round.target,
+          'numbers': round.numbers,
+          'difficulty': match.currentDifficulty.index,
+          'jeopardy': match.activeJeopardy?.index,
+          'lockedOperator': match.lockedOperator,
+          'totalRounds': match.totalRounds,
+          'gameMode': match.gameMode.index,
+          'currentRound': match.currentRound,
+        },
+      ));
+    }
+  }
+
+  Widget _buildTeamLeaderboard(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final session = ref.watch(sessionProvider);
+    final teamColors = [Colors.blue, Colors.orange, Colors.purple, Colors.teal];
+    
+    // Only show teams that have at least one player assigned
+    final activeTeams = [1, 2, 3, 4].where((tId) => 
+      session.players.values.any((p) => p.teamId == tId)
+    ).toList();
+
+    final sortedTeams = activeTeams..sort((a, b) {
+       final sA = widget.teamTotalScores?[a] ?? 0;
+       final sB = widget.teamTotalScores?[b] ?? 0;
+       return sB.compareTo(sA);
+    });
+
+    if (sortedTeams.isEmpty) return const SizedBox.shrink();
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -225,58 +322,32 @@ class ResultsScreen extends ConsumerWidget {
         border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.05), width: 1),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Text('ROUND CLASSIFICATION', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 4, fontSize: 10, color: colorScheme.primary.withValues(alpha: 0.5))),
+          Text('TEAM STANDINGS', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 4, fontSize: 10, color: colorScheme.primary.withValues(alpha: 0.5))),
           const SizedBox(height: 24),
-          ...sortedEntries.map((entry) {
-            final data = entry.value;
-            final eloShift = eloShifts?[entry.key];
-            final points = data['points'] as int;
-            final isWinner = points > 0;
-            final expression = data['expression'] as String;
-            final value = data['value'] as int;
+          ...sortedTeams.map((tId) {
+            final total = widget.teamTotalScores?[tId] ?? 0;
+            final roundPts = widget.teamPoints?[tId] ?? 0;
+            final color = teamColors[tId - 1];
 
             return Container(
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isWinner ? colorScheme.primary.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.5),
+                color: color.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(20),
-                border: isWinner ? Border.all(color: colorScheme.primary.withValues(alpha: 0.2)) : null,
+                border: Border.all(color: color.withValues(alpha: 0.1)),
               ),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 18,
-                    backgroundColor: isWinner ? colorScheme.primary : colorScheme.surfaceContainerHighest,
-                    child: Text(data['name'][0].toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                  ),
+                  CircleAvatar(backgroundColor: color, radius: 14, child: Text('$tId', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))),
                   const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(data['name'].toUpperCase(), style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: isWinner ? colorScheme.primary : colorScheme.onSurface)),
-                        if (expression.isNotEmpty)
-                          Text(
-                            '$expression = $value',
-                            style: TextStyle(fontFamily: 'monospace', fontSize: 10, color: colorScheme.onSurface.withValues(alpha: 0.6)),
-                          )
-                        else
-                          const Text('NO SUBMISSION', style: TextStyle(fontSize: 10, color: Colors.grey, fontStyle: FontStyle.italic)),
-                      ],
-                    ),
-                  ),
+                  Expanded(child: Text('TEAM $tId', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14))),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text('$points PTS', style: TextStyle(fontWeight: FontWeight.w900, color: isWinner ? Colors.amber : Colors.grey, fontSize: 16)),
-                      if (eloShift != null)
-                        Text(
-                          '${eloShift >= 0 ? "+" : ""}$eloShift ELO',
-                          style: TextStyle(color: eloShift >= 0 ? Colors.green : Colors.redAccent, fontSize: 9, fontWeight: FontWeight.bold),
-                        ),
+                      Text('$total TOTAL', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: colorScheme.onSurface)),
+                      if (roundPts > 0) Text('+$roundPts ROUND', style: const TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ],
@@ -287,6 +358,43 @@ class ResultsScreen extends ConsumerWidget {
       ),
     );
   }
+
+  Widget _buildIndividualBreakdown(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final results = widget.multiplayerResults!;
+    final teamColors = [Colors.blue, Colors.orange, Colors.purple, Colors.teal];
+
+    return Column(
+      children: results.entries.map((entry) {
+        final data = entry.value;
+        final teamId = data['teamId'] as int;
+        final color = teamId > 0 ? teamColors[teamId - 1] : Colors.grey;
+        final expr = data['expression'] as String;
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(color: colorScheme.surfaceContainerHigh, borderRadius: BorderRadius.circular(16)),
+          child: Row(
+            children: [
+              CircleAvatar(radius: 12, backgroundColor: color.withValues(alpha: 0.1), child: Text(data['name'][0].toUpperCase(), style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold))),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(data['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    Text(expr.isEmpty ? 'NO SUBMISSION' : '$expr = ${data['value']}', style: TextStyle(fontFamily: 'monospace', fontSize: 10, color: colorScheme.onSurface.withValues(alpha: 0.5))),
+                  ],
+                ),
+              ),
+              if (data['proximity'] != null) Text('PROX: ${data['proximity']}', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
 }
 
 class _HeroRecap extends StatelessWidget {
@@ -295,7 +403,6 @@ class _HeroRecap extends StatelessWidget {
   final int playerValue;
   final int playerPoints;
   final String solverExpression;
-  final Widget? leaderboard;
 
   const _HeroRecap({
     required this.target,
@@ -303,7 +410,6 @@ class _HeroRecap extends StatelessWidget {
     required this.playerValue,
     required this.playerPoints,
     required this.solverExpression,
-    this.leaderboard,
   });
 
   @override
@@ -315,14 +421,6 @@ class _HeroRecap extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (leaderboard != null) ...[
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: leaderboard!,
-          ),
-          const SizedBox(height: 32),
-        ],
-
         // 1. Target Header
         Text('TARGET NUMBER', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 4, color: colorScheme.onSurface.withValues(alpha: 0.2), fontSize: 10)),
         FittedBox(
@@ -332,32 +430,18 @@ class _HeroRecap extends StatelessWidget {
         
         const SizedBox(height: 24),
         
-        // 2. Strategy Card (Full Width & Massive Font)
+        // 2. Strategy Card
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 20),
-          decoration: BoxDecoration(
-            color: colorScheme.secondary,
-            boxShadow: [
-              BoxShadow(color: colorScheme.secondary.withValues(alpha: 0.4), blurRadius: 40, offset: const Offset(0, 15)),
-            ],
-          ),
+          decoration: BoxDecoration(color: colorScheme.secondary),
           child: Column(
             children: [
               Text('OPTIMAL STRATEGY', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 8, color: colorScheme.onSecondary.withValues(alpha: 0.5), fontSize: 14)),
               const SizedBox(height: 24),
               FittedBox(
                 fit: BoxFit.scaleDown,
-                child: Text(
-                  solverExpression, 
-                  style: TextStyle(
-                    fontFamily: 'monospace', 
-                    fontWeight: FontWeight.w900, 
-                    fontSize: 80, 
-                    color: colorScheme.onSecondary, 
-                    letterSpacing: 4,
-                  ),
-                ),
+                child: Text(solverExpression, style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.w900, fontSize: 80, color: colorScheme.onSecondary, letterSpacing: 4)),
               ),
             ],
           ),
@@ -365,7 +449,7 @@ class _HeroRecap extends StatelessWidget {
         
         const SizedBox(height: 32),
 
-        // 3. User Results (Compact)
+        // 3. User Results
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 40),
           child: Column(
@@ -382,14 +466,8 @@ class _HeroRecap extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isExact ? Colors.green : colorScheme.onSurface,
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    if (isExact) BoxShadow(color: Colors.green.withValues(alpha: 0.3), blurRadius: 30, offset: const Offset(0, 8)),
-                  ],
                 ),
-                child: Text(
-                  'RESULT: $playerValue',
-                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22, color: Colors.white),
-                ),
+                child: Text('RESULT: $playerValue', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22, color: Colors.white)),
               ),
             ],
           ),
@@ -397,31 +475,17 @@ class _HeroRecap extends StatelessWidget {
 
         const SizedBox(height: 48),
 
-        // 4. Points Display (Vibrant & Scaled)
+        // 4. Points Display
         FittedBox(
           fit: BoxFit.scaleDown,
           child: Column(
             children: [
               Text(
                 '$playerPoints PTS',
-                style: TextStyle(
-                  fontSize: 90, 
-                  fontWeight: FontWeight.w900, 
-                  color: playerPoints > 0 ? Colors.amber : Colors.grey.withValues(alpha: 0.5),
-                  letterSpacing: -2,
-                  height: 1,
-                ),
+                style: TextStyle(fontSize: 90, fontWeight: FontWeight.w900, color: playerPoints > 0 ? Colors.amber : Colors.grey.withValues(alpha: 0.5), letterSpacing: -2, height: 1),
               ),
               const SizedBox(height: 4),
-              Text(
-                'EARNED THIS ROUND',
-                style: TextStyle(
-                  fontWeight: FontWeight.w900, 
-                  letterSpacing: 6, 
-                  fontSize: 10, 
-                  color: colorScheme.onSurface.withValues(alpha: 0.3),
-                ),
-              ),
+              Text('EARNED THIS ROUND', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 6, fontSize: 10, color: colorScheme.onSurface.withValues(alpha: 0.3))),
             ],
           ),
         ),

@@ -6,9 +6,13 @@ import '../providers/game_providers.dart';
 import '../widgets/responsive_layout.dart';
 import '../widgets/top_nav_bar.dart';
 import '../widgets/vector_background.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'game_screen.dart';
 
 import 'package:transport_lan/transport_lan.dart';
+
+import '../widgets/global_drawer.dart';
+import 'main_screen.dart';
 
 enum MatchSetupMode { solo, host }
 
@@ -31,9 +35,20 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(currentScreenIdProvider.notifier).setScreenId('MatchSetupScreen');
     });
-    return ResponsiveLayout(
-      mobile: _buildMobile(context),
-      desktop: _buildDesktop(context),
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+          (route) => false,
+        );
+      },
+      child: ResponsiveLayout(
+        mobile: _buildMobile(context),
+        desktop: _buildDesktop(context),
+      ),
     );
   }
 
@@ -41,7 +56,28 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(title: const Text('ARENA CONFIGURATION'), centerTitle: true),
+      drawer: const GlobalDrawer(),
+      appBar: AppBar(
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SvgPicture.asset(
+              'assets/images/app_icon.svg',
+              width: 32,
+              height: 32,
+            ),
+            const SizedBox(width: 12),
+            const Flexible(child: Text('ARENA CONFIGURATION', overflow: TextOverflow.ellipsis)),
+          ],
+        ),
+        centerTitle: true,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu_rounded),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -273,8 +309,15 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
 
     if (widget.mode == MatchSetupMode.solo) {
       ref.read(transportProvider.notifier).setTransport(NullTransport());
-      session.addPlayer('solo', ref.read(careerProvider).playerName);
-      ref.read(roundProvider).startRoundWithData(numbers: round.numbers, target: round.target!, jeopardy: match.activeJeopardy, lockedOp: match.lockedOperator);
+      final career = await ref.read(careerProvider.future);
+      session.addPlayer('solo', career.playerName);
+      ref.read(roundProvider).startRoundWithData(
+        numbers: round.numbers, 
+        targets: round.targets, 
+        jeopardy: match.activeJeopardy, 
+        lockedOp: match.lockedOperator,
+        config: match.currentConfig,
+      );
     } else if (widget.mode == MatchSetupMode.host) {
       final transport = ref.read(transportProvider);
       await transport.sendEvent(GameEvent(type: GameEventType.roundStarted, payload: {'target': round.target, 'numbers': round.numbers, 'difficulty': match.currentDifficulty.index, 'jeopardy': match.activeJeopardy?.index, 'lockedOperator': match.lockedOperator}));

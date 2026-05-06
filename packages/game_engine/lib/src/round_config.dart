@@ -1,5 +1,5 @@
-enum PoolType { standard, smallOnly, primesOnly }
-enum TargetType { standard, ascending, fixed100 }
+enum PoolType { standard, smallOnly, primesOnly, expanding }
+enum TargetType { standard, ascending, fixed100, countdown }
 
 abstract class RoundConstraint {
   String get description;
@@ -32,6 +32,22 @@ class MandatoryNumberConstraint extends RoundConstraint {
   }
 }
 
+class OperationsBlackoutConstraint extends RoundConstraint {
+  final List<String> blacklistedOperators;
+  OperationsBlackoutConstraint(this.blacklistedOperators);
+
+  @override
+  String get description => 'Operators ${blacklistedOperators.join(", ")} are BANNED!';
+
+  @override
+  bool validate(List<int> usedNumbers, List<String> operations) {
+    for (final op in operations) {
+      if (blacklistedOperators.contains(op)) return false;
+    }
+    return true;
+  }
+}
+
 class RoundConfig {
   final String title;
   final int durationSeconds;
@@ -39,6 +55,7 @@ class RoundConfig {
   final TargetType targetType;
   final List<RoundConstraint> constraints;
   final int rewardBump; // Extra points for exact match
+  final bool isDualTarget;
 
   const RoundConfig({
     required this.title,
@@ -47,6 +64,7 @@ class RoundConfig {
     this.targetType = TargetType.standard,
     this.constraints = const [],
     this.rewardBump = 0,
+    this.isDualTarget = false,
   });
 
   static const classic = RoundConfig(title: 'Classic Round');
@@ -61,5 +79,39 @@ class RoundConfig {
     title: 'The Gauntlet',
     durationSeconds: 20,
     rewardBump: 3,
+  );
+
+  static const forbiddenNumber = RoundConfig(
+    title: 'Forbidden Number',
+    rewardBump: 2,
+  );
+
+  static const twoTargets = RoundConfig(
+    title: 'Two Targets',
+    rewardBump: 10,
+    isDualTarget: true,
+  );
+
+  static const mandatoryNumber = RoundConfig(
+    title: 'Mandatory Number',
+    rewardBump: 3,
+  );
+
+  static const operationsBlackout = RoundConfig(
+    title: 'Operations Blackout',
+    rewardBump: 3,
+  );
+
+  static const expandingPool = RoundConfig(
+    title: 'Expanding Pool',
+    poolType: PoolType.expanding,
+    rewardBump: 5,
+  );
+
+  static const countdownMode = RoundConfig(
+    title: 'Countdown Mode',
+    targetType: TargetType.countdown,
+    rewardBump: 5,
+    durationSeconds: 60,
   );
 }

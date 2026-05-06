@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "name": "Midnight Cyber",
+  "colors": {
+    "primary": "#00E5FF",
+    "onPrimary": "#000000",
+    "secondary": "#7C4DFF",
+    "onSecondary": "#000000",
+    "surface": "#001519",
+    "onSurface": "#FFFFFF",
+    "background": "#000B0D",
+    "onBackground": "#FFFFFF"
+  },
+  "typography": {
+    "fontFamily": "Space Grotesk"
+  },
+  "effects": {
+    "roundness": 24.0
+  }
+}

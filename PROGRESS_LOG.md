@@ -70,5 +70,38 @@
 - [x] Generate synchronized Windows and Android production binaries.
 - [x] Configure GitHub MCP server with PAT for CI/CD readiness.
 
+### Phase 10: Progression Overhaul (Tiered Logic)
+- [x] Implemented `OperationsBlackoutConstraint` for operator banning.
+- [x] Added `PoolType` support (Small Only, Primes Only) in `NumberGenerator`.
+- [x] Implemented Multi-Target generation and dual-target UI support.
+- [x] Realized the 8-round "Round Ladder" in `MatchManager`.
+- [x] Updated `ScoreKeeper` with proximity-based multi-scoring and reward bumps.
+- [x] Verified full regression suite (75+ tests).
+
+### Phase 11: Reactive Visuals & Meta-Progression
+- [x] Implemented `ReactiveAura` widget with procedural `CustomPainter` logic.
+- [x] Bound Aura to timer progress, proximity score, and operator-specific impact animations.
+- [x] Developed comprehensive Achievement system with `AchievementManager` and `AchievementRegistry`.
+- [x] Populated registry with 100+ unique, initially hidden achievements across 5 categories.
+- [x] Integrated achievement persistence into `CareerManager` and Riverpod providers.
+- [x] Added `AchievementNotification` overlay for real-time unlock feedback.
+- [x] Created Achievements tab in `AccountScreen` with hidden/unlocked state handling.
+- [x] Updated `SubmissionValidator` to provide rich metadata (intermediates, used ops) for achievement evaluation.
+- [x] Verified zero regressions in core engine (64+ tests green).
+
+### Phase 12: Unified Navigation & Persistent Hub
+- [x] Reimagined `GlobalDrawer` as a content-rich navigation hub.
+- [x] Added deep links to all game modes (Solo, Host, Join) and metrics (Analytics, Achievements, Host History) into the drawer.
+- [x] Restored burger menu persistence on the Dashboard for both mobile and desktop.
+- [x] Implemented Branding Header in drawer with real-time ELO and name synchronization.
+- [x] Unified navigation logic across `TopNavBar` and `GlobalDrawer` for 100% consistency.
+- [x] Verified deployment on Windows and Android (moto g57).
+
+### Phase 13: Solo Player Experience & UI Refinement
+- [x] Created dedicated `SoloSummaryScreen` for post-match performance review.
+- [x] Implemented conditional navigation in `ResultsScreen` to distinguish between Solo and Multiplayer completion.
+- [x] Verified Solo Match Summary flow with TDD (`solo_summary_flow_test.dart`).
+- [x] Refactored global navigation to use `navigatorKeyProvider` for better testability and error recovery.
+
 ---
-*Last Updated: 2026-04-20*
+*Last Updated: 2026-05-04*

@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "name": "Retro Arcade",
+  "colors": {
+    "primary": "#FF0055",
+    "onPrimary": "#FFFFFF",
+    "secondary": "#00FF9D",
+    "onSecondary": "#FFFFFF",
+    "surface": "#100010",
+    "onSurface": "#FFFFFF",
+    "background": "#050005",
+    "onBackground": "#FFFFFF"
+  },
+  "typography": {
+    "fontFamily": "Space Grotesk"
+  },
+  "effects": {
+    "roundness": 4.0
+  }
+}

@@ -14,7 +14,7 @@ void main() {
       // Setup a basic round: target 100, numbers [50, 50, 10, 5]
       round.startRoundWithData(
         numbers: [50, 50, 10, 5],
-        target: 100,
+        targets: [100],
       );
     });
 

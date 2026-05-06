@@ -13,14 +13,14 @@ Kalkra is a Flutter-based math game designed for local (LAN) and future cloud mu
 - **Dependencies:** None (Zero Flutter, Zero I/O)
 - **Responsibility:** Core game logic, number generation, expression validation, and solving.
 - **Key Modules:**
-    - `NumberGenerator`: Generates number pools based on difficulty/presets.
+    - `NumberGenerator`: Generates number pools based on difficulty/presets. (Easy mode: 4 tokens).
     - `TargetGenerator`: Generates target numbers.
     - `SubmissionValidator`: Validates player mathematical expressions.
-    - `SolverEngine`: Finds optimal solutions for the given numbers/target.
+    - `SolverEngine`: Finds optimal solutions with configurable nesting depth constraints.
     - `ScoreKeeper`: Calculates points based on performance.
     - `RoundManager`: Manages game rounds and timing.
-    - `MatchManager`: Scales difficulty and applies Jeopardy across multiple rounds.
-    - `CareerManager`: (New) Manages persistent player identity, performance metrics (Speed, Accuracy), and local Elo rankings.
+    - `MatchManager`: Manages Game Modes (Solo, Endless, Progressive, Multiplayer) and life system.
+    - `CareerManager`: Manages persistent identity, performance metrics, and 50-entry match history logs.
 
 ### 2. Transport Layer (`transport_interface`)
 - **Type:** Shared Dart Package
@@ -38,7 +38,7 @@ Kalkra is a Flutter-based math game designed for local (LAN) and future cloud mu
     - **Client**: WebSocket client.
     - **Discovery**: QR code containing host IP/Port.
 - **Null Transport (`null_transport`)**:
-    - No-op implementation for solo practice mode.
+    - Local-only transport implementation for Solo mode.
 
 ### 4. Presentation Layer (Flutter App)
 - **Framework:** Flutter
@@ -51,10 +51,10 @@ Kalkra is a Flutter-based math game designed for local (LAN) and future cloud mu
     - `ResponsiveLayout`: Utility widget for unified Mobile/Tablet/Desktop support.
 - **Screens:**
     - `MainScreen`: Central dashboard with top-level navigation and performance summary.
-    - `GameScreen`: Focused battle arena (non-scrollable) with keyboard support and collapsible pro-tips.
-    - `ResultsScreen`: Centered round recap (non-scrollable) with optimal strategy comparison.
-    - `StatsScreen`: High-fidelity career analytics and tier progression tracker.
-    - `HistoryScreen`: Dedicated battle log and global news feed.
+    - `GameScreen`: Focused battle arena with keyboard support and dynamic life/timer indicators.
+    - `ResultsScreen`: Centered round recap with ranked classification list and massive strategy display.
+    - `StatsScreen`: Unified career analytics and match logs.
+    - `SpectatorScreen`: Host command center with real-time blind player grid.
     - `AccountScreen`: Unified identity (callsign) and visual preference (theme) management.
     - `LobbyScreen/JoinScreen`: Multiplayer session management via QR/Discovery.
 

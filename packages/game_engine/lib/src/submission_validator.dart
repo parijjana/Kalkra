@@ -5,9 +5,22 @@ class ValidationResult {
   final bool isValid;
   final num? value;
   final String? error;
+  final List<int> usedNumbers;
+  final List<String> operators;
+  final List<num> intermediateResults;
 
-  ValidationResult.success(this.value) : isValid = true, error = null;
-  ValidationResult.failure(this.error) : isValid = false, value = null;
+  ValidationResult.success(this.value, {
+    this.usedNumbers = const [],
+    this.operators = const [],
+    this.intermediateResults = const [],
+  }) : isValid = true, error = null;
+
+  ValidationResult.failure(this.error)
+      : isValid = false,
+        value = null,
+        usedNumbers = const [],
+        operators = const [],
+        intermediateResults = const [];
 }
 
 class SubmissionValidator {
@@ -35,8 +48,15 @@ class SubmissionValidator {
       }
 
       // 3. Evaluate and check rules (positive integers)
-      final value = _evaluateAndCheckRules(exp);
-      return ValidationResult.success(value);
+      final intermediates = <num>[];
+      final value = _evaluateAndCheckRules(exp, intermediates);
+      
+      return ValidationResult.success(
+        value,
+        usedNumbers: usedNumbers,
+        operators: operations,
+        intermediateResults: intermediates,
+      );
     } catch (e) {
       return ValidationResult.failure(e.toString());
     }
@@ -68,14 +88,14 @@ class SubmissionValidator {
     return numbers;
   }
 
-  num _evaluateAndCheckRules(Expression exp) {
+  num _evaluateAndCheckRules(Expression exp, List<num> intermediates) {
     if (exp is Number) {
       return exp.value;
     }
 
     if (exp is BinaryOperator) {
-      final left = _evaluateAndCheckRules(exp.first);
-      final right = _evaluateAndCheckRules(exp.second);
+      final left = _evaluateAndCheckRules(exp.first, intermediates);
+      final right = _evaluateAndCheckRules(exp.second, intermediates);
       num result;
 
       if (exp is Plus) {
@@ -98,22 +118,27 @@ class SubmissionValidator {
         throw Exception('Intermediate result ($result) must be an integer');
       }
 
-      return result.toInt();
+      final finalRes = result.toInt();
+      intermediates.add(finalRes);
+      return finalRes;
     }
     
     if (exp is UnaryOperator) {
       if (exp is UnaryMinus) {
-        final val = _evaluateAndCheckRules(exp.exp);
+        final val = _evaluateAndCheckRules(exp.exp, intermediates);
         final result = -val;
         if (result <= 0) {
           throw Exception('Intermediate result ($result) must be positive');
         }
+        intermediates.add(result);
         return result;
       }
-      return _evaluateAndCheckRules(exp.exp);
+      return _evaluateAndCheckRules(exp.exp, intermediates);
     }
 
     // Default evaluation for anything else
-    return exp.evaluate(EvaluationType.REAL, ContextModel());
+    final val = exp.evaluate(EvaluationType.REAL, ContextModel());
+    intermediates.add(val);
+    return val;
   }
 }

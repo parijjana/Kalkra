@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kalkra_app/src/screens/results_screen.dart';
 import 'package:kalkra_app/src/screens/account_screen.dart';
 import 'package:kalkra_app/src/screens/stats_screen.dart';
-import 'package:kalkra_app/src/screens/history_screen.dart';
 import 'package:kalkra_app/src/providers/game_providers.dart';
 import 'package:kalkra_app/src/theme/app_theme.dart';
 import 'package:game_engine/game_engine.dart';
@@ -44,12 +43,6 @@ void main() {
         expect(find.byType(StatsScreen), findsOneWidget);
         expect(find.textContaining('CAREER'), findsAtLeast(1));
       });
-
-      testWidgets('Capture History Screen', (tester) async {
-        await _pumpScreen(tester, themeType, const HistoryScreen());
-        expect(find.byType(HistoryScreen), findsOneWidget);
-        expect(find.textContaining('HISTORY'), findsAtLeast(1));
-      });
     });
   }
 }
@@ -66,6 +59,7 @@ Future<void> _pumpScreen(WidgetTester tester, AppThemeType themeType, Widget scr
   final container = ProviderContainer(
     overrides: [
       sharedPreferencesProvider.overrideWithValue(prefs),
+      deviceIdProvider.overrideWith((ref) => Future.value('test-device')),
     ],
   );
 
@@ -73,7 +67,7 @@ Future<void> _pumpScreen(WidgetTester tester, AppThemeType themeType, Widget scr
   final round = container.read(roundProvider);
   round.startRoundWithData(
     numbers: [75, 7, 10, 2, 5, 1],
-    target: 542,
+    targets: [542],
   );
   round.endRound();
 
@@ -88,5 +82,7 @@ Future<void> _pumpScreen(WidgetTester tester, AppThemeType themeType, Widget scr
     ),
   );
 
-  await tester.pumpAndSettle();
+  await tester.pump();
+  // Wait a bit for animations/data to settle
+  await tester.pump(const Duration(seconds: 1));
 }

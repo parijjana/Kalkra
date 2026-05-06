@@ -4,7 +4,7 @@ import '../providers/game_providers.dart';
 import '../screens/main_screen.dart';
 import '../screens/stats_screen.dart';
 import '../screens/account_screen.dart';
-import '../screens/history_screen.dart';
+import '../screens/achievements_screen.dart';
 
 class TopNavBar extends ConsumerWidget implements PreferredSizeWidget {
   final String activeId;
@@ -17,7 +17,7 @@ class TopNavBar extends ConsumerWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
-    final career = ref.watch(careerProvider);
+    final careerAsync = ref.watch(careerProvider);
 
     return Container(
       height: 100,
@@ -55,31 +55,30 @@ class TopNavBar extends ConsumerWidget implements PreferredSizeWidget {
           // Navigation Tabs
           _NavTab(label: 'DASHBOARD', id: 'MainScreen', activeId: activeId, onTap: () => _navTo(context, const MainScreen())),
           _NavTab(label: 'ANALYTICS', id: 'StatsScreen', activeId: activeId, onTap: () => _navTo(context, const StatsScreen())),
-          _NavTab(label: 'HISTORY', id: 'HistoryScreen', activeId: activeId, onTap: () => _navTo(context, const HistoryScreen())),
+          _NavTab(label: 'ACHIEVEMENTS', id: 'AchievementsScreen', activeId: activeId, onTap: () => _navTo(context, const AchievementsScreen())),
           _NavTab(label: 'ACCOUNT', id: 'AccountScreen', activeId: activeId, onTap: () => _navTo(context, const AccountScreen())),
           
           const Spacer(),
           
           // Quick Profile Info
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            decoration: BoxDecoration(
-              color: colorScheme.primary.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 14,
-                  backgroundColor: colorScheme.primary,
-                  child: Text(career.playerName[0].toUpperCase(), style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold)),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  '${career.elo} ELO',
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: colorScheme.primary),
-                ),
-              ],
+          careerAsync.when(
+            loading: () => const SizedBox(width: 32, height: 32, child: CircularProgressIndicator(strokeWidth: 2)),
+            error: (err, stack) => const Icon(Icons.error_outline, color: Colors.red, size: 24),
+            data: (career) => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 14,
+                    backgroundColor: colorScheme.primary,
+                    child: Text(career.playerName[0].toUpperCase(), style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -113,20 +112,20 @@ class _NavTab extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        height: 100,
-        padding: const EdgeInsets.symmetric(horizontal: 32),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
-          border: isActive ? Border(bottom: BorderSide(color: colorScheme.primary, width: 4)) : null,
+          color: isActive ? colorScheme.primary.withValues(alpha: 0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
         ),
-        alignment: Alignment.center,
         child: Text(
           label,
           style: TextStyle(
             fontWeight: FontWeight.w900,
             fontSize: 12,
             letterSpacing: 2,
-            color: isActive ? colorScheme.onSurface : colorScheme.onSurface.withValues(alpha: 0.3),
+            color: isActive ? colorScheme.primary : colorScheme.onSurface.withValues(alpha: 0.4),
           ),
         ),
       ),

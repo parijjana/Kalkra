@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../providers/game_providers.dart';
 import '../widgets/responsive_layout.dart';
 import '../widgets/top_nav_bar.dart';
 import '../widgets/vector_background.dart';
 import 'account_screen.dart';
+import 'hosted_history_screen.dart';
+import 'package:intl/intl.dart';
 
 import '../widgets/global_drawer.dart';
 
@@ -36,116 +39,117 @@ class StatsScreen extends ConsumerWidget {
     });
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final career = ref.watch(careerProvider);
+    final careerAsync = ref.watch(careerProvider);
+    final isDesktop = ResponsiveLayout.isDesktop(context);
 
-    return Scaffold(
-      drawer: GlobalDrawer(),
-      body: ResponsiveLayout(
-        mobile: _buildMobile(context, theme, colorScheme, career),
-        desktop: _buildDesktop(context, theme, colorScheme, career, ref),
+    return careerAsync.when(
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (err, stack) => Scaffold(body: Center(child: Text('Vault Error: $err'))),
+      data: (career) => Scaffold(
+        backgroundColor: colorScheme.surface,
+        drawer: const GlobalDrawer(),
+        appBar: isDesktop 
+          ? const TopNavBar(activeId: 'StatsScreen', showMenu: true) 
+          : AppBar(
+              title: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SvgPicture.asset(
+                    'assets/images/app_icon.svg',
+                    width: 32,
+                    height: 32,
+                  ),
+                  const SizedBox(width: 12),
+                  const Flexible(
+                    child: Text(
+                      'CAREER ANALYTICS', 
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2, fontSize: 18),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: colorScheme.primary,
+              foregroundColor: Colors.white,
+              leading: Builder(
+                builder: (context) => IconButton(
+                  icon: const Icon(Icons.menu_rounded),
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                ),
+              ),
+            ),
+        body: VectorBackground(
+          child: ResponsiveLayout(
+            mobile: _buildMobile(context, theme, colorScheme, career),
+            desktop: _buildDesktop(context, theme, colorScheme, career, ref),
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildMobile(BuildContext context, ThemeData theme, ColorScheme colorScheme, dynamic career) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        AppBar(
-          title: const Text('CAREER STATS'),
-          backgroundColor: colorScheme.primary,
-          foregroundColor: Colors.white,
-          leading: Builder(
-            builder: (context) => IconButton(
-              icon: const Icon(Icons.menu_rounded),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            ),
-          ),
-        ),
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildRankCard(colorScheme, career, theme),
-                const SizedBox(height: 32),
-                _buildStatsGrid(context, career),
-                const SizedBox(height: 80),
-              ],
-            ),
-          ),
-        ),
-      ],
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildRankCard(colorScheme, career, theme),
+          const SizedBox(height: 32),
+          _buildStatsGrid(context, career),
+          const SizedBox(height: 48),
+          _buildHistoryHeader(context, colorScheme),
+          const SizedBox(height: 16),
+          _buildHistoryList(career, colorScheme),
+          const SizedBox(height: 80),
+        ],
+      ),
     );
   }
 
   Widget _buildDesktop(BuildContext context, ThemeData theme, ColorScheme colorScheme, dynamic career, WidgetRef ref) {
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      appBar: const TopNavBar(activeId: 'StatsScreen'),
-      body: VectorBackground(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(80),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1000),
-              child: Column(
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(80),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('CAREER ANALYTICS', style: theme.textTheme.displayMedium?.copyWith(fontWeight: FontWeight.w900, color: colorScheme.primary)),
+              const SizedBox(height: 12),
+              Text('QUANTIFY YOUR COGNITIVE SUPREMACY', style: TextStyle(letterSpacing: 4, color: colorScheme.onSurface.withValues(alpha: 0.4), fontWeight: FontWeight.w900, fontSize: 12)),
+              
+              const SizedBox(height: 80),
+
+              Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('CAREER ANALYTICS', style: theme.textTheme.displayMedium?.copyWith(fontWeight: FontWeight.w900, color: colorScheme.primary)),
-                  const SizedBox(height: 12),
-                  Text('QUANTIFY YOUR COGNITIVE SUPREMACY', style: TextStyle(letterSpacing: 4, color: colorScheme.onSurface.withValues(alpha: 0.4), fontWeight: FontWeight.w900, fontSize: 12)),
-                  
-                  const SizedBox(height: 80),
-
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: Column(
-                          children: [
-                            _buildRankCard(colorScheme, career, theme, isDesktop: true),
-                            const SizedBox(height: 40),
-                            _buildStatsGrid(context, career, isDesktop: true),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 80),
-                      Expanded(
-                        flex: 2,
-                        child: Container(
-                          padding: const EdgeInsets.all(48),
-                          decoration: BoxDecoration(
-                            color: colorScheme.surfaceContainerLow,
-                            borderRadius: BorderRadius.circular(48),
-                          ),
-                          child: Column(
-                            children: [
-                              Icon(Icons.military_tech_rounded, size: 100, color: colorScheme.tertiary),
-                              const SizedBox(height: 24),
-                              const Text('MILESTONE TRACKER', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2, fontSize: 14)),
-                              const SizedBox(height: 12),
-                              Text('REACH 2000 ELO FOR PLATINUM RANK', textAlign: TextAlign.center, style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.4), fontSize: 12, height: 1.4)),
-                              const SizedBox(height: 40),
-                              LinearProgressIndicator(
-                                value: career.elo / 2000,
-                                minHeight: 12,
-                                borderRadius: BorderRadius.circular(6),
-                                backgroundColor: colorScheme.surface,
-                                valueColor: AlwaysStoppedAnimation(colorScheme.tertiary),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+                  Expanded(
+                    flex: 3,
+                    child: Column(
+                      children: [
+                        _buildRankCard(colorScheme, career, theme, isDesktop: true),
+                        const SizedBox(height: 40),
+                        _buildStatsGrid(context, career, isDesktop: true),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 100),
+                  const SizedBox(width: 60),
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      children: [
+                        _buildHistoryHeader(context, colorScheme),
+                        const SizedBox(height: 24),
+                        _buildHistoryList(career, colorScheme),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-            ),
+              const SizedBox(height: 100),
+            ],
           ),
         ),
       ),
@@ -226,6 +230,99 @@ class StatsScreen extends ConsumerWidget {
           onInfo: () => _showTooltip(context, 'BEST STREAK', 'The highest number of consecutive rounds where you achieved an EXACT match to the target.'),
         ),
       ],
+    );
+  }
+
+  Widget _buildHistoryHeader(BuildContext context, ColorScheme colorScheme) {
+    return Row(
+      children: [
+        Text(
+          'MATCH LOGS',
+          style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2, color: colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 14),
+        ),
+        const Spacer(),
+        TextButton.icon(
+          onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const HostedHistoryScreen())),
+          icon: const Icon(Icons.dns_rounded, size: 14),
+          label: const Text('HOSTED LOGS', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          'LAST 50',
+          style: TextStyle(fontWeight: FontWeight.w900, color: colorScheme.primary.withValues(alpha: 0.3), fontSize: 10),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHistoryList(dynamic career, ColorScheme colorScheme) {
+    final history = career.rivals;
+    if (history.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(48),
+        decoration: BoxDecoration(color: colorScheme.surfaceContainerLow, borderRadius: BorderRadius.circular(32)),
+        child: Column(
+          children: [
+            Icon(Icons.history_toggle_off_rounded, size: 48, color: colorScheme.onSurface.withValues(alpha: 0.1)),
+            const SizedBox(height: 16),
+            Text('NO BATTLES RECORDED', style: TextStyle(fontWeight: FontWeight.w900, color: colorScheme.onSurface.withValues(alpha: 0.2), fontSize: 12, letterSpacing: 2)),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: history.length,
+      itemBuilder: (context, index) {
+        final item = history[index];
+        final isPositive = item.eloShift > 0;
+        final isNeutral = item.eloShift == 0;
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(color: (item.wasSolo ? colorScheme.primary : colorScheme.secondary).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+                child: Icon(item.wasSolo ? Icons.person_rounded : Icons.groups_rounded, color: item.wasSolo ? colorScheme.primary : colorScheme.secondary, size: 18),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(item.name.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+                    Text(DateFormat('MMM dd • HH:mm').format(item.date), style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.4), fontSize: 10, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${isPositive ? "+" : ""}${item.eloShift}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900, 
+                      color: isNeutral ? Colors.grey : (isPositive ? Colors.green : Colors.redAccent),
+                      fontSize: 18,
+                    ),
+                  ),
+                  const Text('ELO', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 8, color: Colors.black26)),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

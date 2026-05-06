@@ -7,9 +7,13 @@ environment:
   sdk: ^3.11.4
 
 dependencies:
+  crypto: ^3.0.7
+  device_info_plus: ^12.4.0
+  encrypt: ^5.0.3
   flutter:
     sdk: flutter
   flutter_riverpod: ^3.3.1
+  flutter_svg: ^2.2.4
   game_engine:
     path: ../packages/game_engine
   google_fonts: ^8.0.2
@@ -17,6 +21,7 @@ dependencies:
   logging: ^1.3.0
   mobile_scanner: ^7.2.0
   network_info_plus: 6.1.2
+  nsd: ^5.0.1
   qr_flutter: ^4.1.0
   riverpod_annotation: ^4.0.2
   shared_preferences: ^2.5.5
@@ -24,6 +29,8 @@ dependencies:
     path: ../packages/transport_interface
   transport_lan:
     path: ../packages/transport_lan
+  gatekeeper_rate_limit:
+    path: ../packages/gatekeeper_rate_limit
   window_manager: ^0.5.1
 
 dev_dependencies:
@@ -34,6 +41,19 @@ dev_dependencies:
   build_runner: ^2.13.1
   flutter_driver:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  windows:
+    generate: true
+    image_path: "assets/images/app_icon.png"
+  image_path: "assets/images/app_icon.png"
+  adaptive_icon_background: "#121212"
+  adaptive_icon_foreground: "assets/images/app_icon.png"

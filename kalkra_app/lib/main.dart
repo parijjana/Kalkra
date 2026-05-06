@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logging/logging.dart';
 import 'package:window_manager/window_manager.dart';
+import 'src/config/navigator_key.dart';
 import 'src/screens/main_screen.dart';
 import 'src/providers/game_providers.dart';
 import 'src/theme/app_theme.dart';
@@ -47,7 +48,7 @@ void main() async {
       center: true,
       backgroundColor: Colors.transparent,
       skipTaskbar: false,
-      title: 'Kalkra',
+      title: 'KALKRA',
       titleBarStyle: TitleBarStyle.normal,
     );
     
@@ -74,9 +75,13 @@ class KalkraApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Initialize session synchronization listener
+    ref.watch(sessionSyncProvider);
+    
     final themeType = ref.watch(themeProvider);
 
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'Kalkra',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.getTheme(themeType),

@@ -4,6 +4,7 @@ import 'submission_validator.dart';
 import 'solver_engine.dart';
 import 'score_keeper.dart';
 import 'match_manager.dart';
+import 'round_config.dart';
 
 enum RoundState { idle, playing, scoring, completed }
 
@@ -16,17 +17,20 @@ class RoundManager {
 
   RoundState _state = RoundState.idle;
   List<int> _numbers = [];
-  int? _target;
+  List<int> _targets = [];
   JeopardyType? _jeopardyType;
   String? _lockedOperator;
+  RoundConfig _config = RoundConfig.classic;
   final List<String> _submissions = [];
   SolveResult? _bestSolution;
 
   RoundState get state => _state;
   List<int> get numbers => _numbers;
-  int? get target => _target;
+  List<int> get targets => _targets;
+  int? get target => _targets.isNotEmpty ? _targets.first : null;
   JeopardyType? get jeopardyType => _jeopardyType;
   String? get lockedOperator => _lockedOperator;
+  RoundConfig get config => _config;
   List<String> get submissions => _submissions;
   SolveResult? get bestSolution => _bestSolution;
 
@@ -36,9 +40,11 @@ class RoundManager {
     Difficulty difficulty = Difficulty.medium,
     JeopardyType? jeopardy,
     String? lockedOp,
+    RoundConfig config = RoundConfig.classic,
   }) {
     _jeopardyType = jeopardy;
     _lockedOperator = lockedOp;
+    _config = config;
 
     bool isSolvable = false;
     int attempts = 0;
@@ -46,11 +52,32 @@ class RoundManager {
 
     // Solver-Validated Generation Loop
     while (!isSolvable && attempts < 10) {
-      _numbers = _numGen.generatePool(difficulty: difficulty, seed: seed != null ? seed + attempts : null);
-      _target = _targetGen.generateTarget(difficulty: difficulty, seed: seed != null ? seed + attempts : null);
+      _numbers = _numGen.generatePool(
+        difficulty: difficulty, 
+        seed: seed != null ? seed + attempts : null,
+        poolType: config.poolType,
+      );
+      
+      _targets = _targetGen.generateTargets(
+        count: config.isDualTarget ? 2 : 1,
+        difficulty: difficulty, 
+        seed: seed != null ? seed + attempts : null
+      );
+
+      // Special case for single targets that need a specific type (like countdown)
+      if (!config.isDualTarget) {
+        _targets = [
+          _targetGen.generateTarget(
+            difficulty: difficulty, 
+            seed: seed != null ? seed + attempts : null,
+            type: config.targetType,
+          )
+        ];
+      }
 
       final allowedOps = _getAllowedOperators();
-      final result = _solver.solve(_numbers, _target!, allowedOperators: allowedOps, maxNesting: maxNesting);
+      // Solve for the first target primarily to ensure at least one is solvable
+      final result = _solver.solve(_numbers, _targets.first, allowedOperators: allowedOps, maxNesting: maxNesting);
 
       if (result.foundExact) {
         isSolvable = true;
@@ -62,14 +89,16 @@ class RoundManager {
   }
   void startRoundWithData({
     required List<int> numbers, 
-    required int target, 
+    required List<int> targets, 
     JeopardyType? jeopardy,
     String? lockedOp,
+    RoundConfig config = RoundConfig.classic,
   }) {
     _numbers = numbers;
-    _target = target;
+    _targets = targets;
     _jeopardyType = jeopardy;
     _lockedOperator = lockedOp;
+    _config = config;
     _resetRound();
   }
 
@@ -98,10 +127,16 @@ class RoundManager {
     if (_state != RoundState.playing) return;
     _state = RoundState.scoring;
 
-    if (_numbers.isNotEmpty && _target != null) {
+    if (_numbers.isNotEmpty && _targets.isNotEmpty) {
       final allowedOps = _getAllowedOperators();
-      _bestSolution = _solver.solve(_numbers, _target!, allowedOperators: allowedOps);
+      // For now, solve for the first target in results display
+      // TODO: Solve for both targets in dual mode
+      _bestSolution = _solver.solve(_numbers, _targets.first, allowedOperators: allowedOps);
     }
+  }
+
+  void setBestSolution(SolveResult solution) {
+    _bestSolution = solution;
   }
 
   void completeRound() {
@@ -109,14 +144,29 @@ class RoundManager {
   }
 
   int calculatePoints(String expression) {
-    if (_target == null) return 0;
-    final validation = _validator.validate(expression, _numbers);
+    if (_targets.isEmpty) return 0;
+    
+    final validation = _validator.validate(
+      expression, 
+      _numbers, 
+      constraints: _config.constraints
+    );
+    
     if (!validation.isValid) return 0;
     
+    if (_config.isDualTarget) {
+      return _scoreKeeper.calculateDualTargetScore(
+        targets: _targets, 
+        result: validation.value?.toInt(),
+        rewardBump: _config.rewardBump,
+      );
+    }
+
     return _scoreKeeper.calculateScore(
-      target: _target!, 
+      target: _targets.first, 
       result: validation.value?.toInt(),
       jeopardy: _jeopardyType,
+      rewardBump: _config.rewardBump,
     );
   }
 }

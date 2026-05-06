@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "name": "Neon",
+  "colors": {
+    "primary": "#39FF14",
+    "onPrimary": "#000000",
+    "secondary": "#FF00FF",
+    "onSecondary": "#000000",
+    "surface": "#050505",
+    "onSurface": "#FFFFFF",
+    "background": "#000000",
+    "onBackground": "#FFFFFF"
+  },
+  "typography": {
+    "fontFamily": "Space Grotesk"
+  },
+  "effects": {
+    "roundness": 16.0
+  }
+}

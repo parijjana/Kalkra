@@ -4,6 +4,8 @@ import '../providers/game_providers.dart';
 import '../widgets/responsive_layout.dart';
 import '../widgets/vector_background.dart';
 import '../widgets/top_nav_bar.dart';
+import '../widgets/global_drawer.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'game_screen.dart';
 import 'host_screen.dart';
 import 'join_screen.dart';
@@ -33,93 +35,121 @@ class _MainScreenMobile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final career = ref.watch(careerProvider);
+    final careerAsync = ref.watch(careerProvider);
 
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Hero Section
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(24, 80, 24, 60),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [colorScheme.primary, colorScheme.primary.withValues(alpha: 0.8), colorScheme.primaryContainer],
-                ),
-                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(56)),
-                boxShadow: [
-                  BoxShadow(color: colorScheme.primary.withValues(alpha: 0.3), blurRadius: 40, offset: const Offset(0, 20)),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+    return careerAsync.when(
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (err, stack) => Scaffold(body: Center(child: Text('Vault Error: $err'))),
+      data: (career) => Scaffold(
+        backgroundColor: colorScheme.surface,
+        drawer: const GlobalDrawer(),
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: Builder(
+            builder: (context) => IconButton(
+              icon: const Icon(Icons.menu_rounded),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
+          ),
+        ),
+        extendBodyBehindAppBar: true,
+        body: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Hero Section
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isNarrow = constraints.maxWidth < 360;
+                  return Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.fromLTRB(24, 80, 24, isNarrow ? 40 : 60),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [colorScheme.primary, colorScheme.primary.withValues(alpha: 0.8), colorScheme.primaryContainer],
+                      ),
+                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(56)),
+                      boxShadow: [
+                        BoxShadow(color: colorScheme.primary.withValues(alpha: 0.3), blurRadius: 40, offset: const Offset(0, 20)),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Text('KALKRA', style: theme.textTheme.displayLarge?.copyWith(color: colorScheme.onPrimary, fontSize: 72, height: 0.9)),
-                            const SizedBox(height: 8),
-                            Text('MASTER THE NUMBERS', style: theme.textTheme.titleMedium?.copyWith(color: colorScheme.onPrimary.withValues(alpha: 0.7), fontWeight: FontWeight.w900, letterSpacing: 3)),
+                            SvgPicture.asset(
+                              'assets/images/app_icon.svg',
+                              width: isNarrow ? 40 : 48,
+                              height: isNarrow ? 40 : 48,
+                            ),
+                            SizedBox(width: isNarrow ? 12 : 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('KALKRA', style: theme.textTheme.displayLarge?.copyWith(color: colorScheme.onPrimary, fontSize: isNarrow ? 36 : 44, height: 0.9)),
+                                  const SizedBox(height: 4),
+                                  Text('MASTER THE NUMBERS', style: theme.textTheme.titleSmall?.copyWith(color: colorScheme.onPrimary.withValues(alpha: 0.7), fontWeight: FontWeight.w900, letterSpacing: 1.5, fontSize: isNarrow ? 8 : 9), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-                  _EloBadge(career: career),
-                ],
-              ),
-            ),
-            const SizedBox(height: 48),
-            _SectionHeader(title: 'THE ARENA'),
-            const SizedBox(height: 24),
-            _ModeCard(
-              title: 'SOLO',
-              description: ref.watch(isPausedProvider) ? 'RESUME SUSPENDED SESSION' : 'Hone your mental math skills.',
-              icon: Icons.person_rounded,
-              color: ref.watch(isPausedProvider) ? colorScheme.tertiary : colorScheme.primary,
-              onTap: () {
-                if (ref.read(isPausedProvider)) {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => const GameScreen()));
-                } else {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => const MatchSetupScreen(mode: MatchSetupMode.solo)));
+                        const SizedBox(height: 32),
+                        _EloBadge(career: career),
+                      ],
+                    ),
+                  );
                 }
-              },
-            ),
-            _ModeCard(
-              title: 'MULTIPLAYER',
-              description: 'Host or join a local session.',
-              icon: Icons.groups_rounded,
-              color: colorScheme.secondary,
-              onTap: () => _showMultiplayerDialog(context),
-            ),
-            const SizedBox(height: 32),
-            _SectionHeader(title: 'NAVIGATION'),
-            const SizedBox(height: 24),
-            _ModeCard(
-              title: 'ANALYTICS',
-              description: 'View your career metrics.',
-              icon: Icons.bar_chart_rounded,
-              color: colorScheme.tertiary,
-              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const StatsScreen())),
-            ),
-            _ModeCard(
-              title: 'ACCOUNT',
-              description: 'Preferences and identity.',
-              icon: Icons.manage_accounts_rounded,
-              color: colorScheme.primary,
-              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const AccountScreen())),
-            ),
-            const SizedBox(height: 60),
-          ],
+              ),
+              const SizedBox(height: 48),
+              _SectionHeader(title: 'THE ARENA'),
+              const SizedBox(height: 24),
+              _ModeCard(
+                title: 'SOLO',
+                description: ref.watch(isPausedProvider) ? 'RESUME SUSPENDED SESSION' : 'Hone your mental math skills.',
+                icon: Icons.person_rounded,
+                color: ref.watch(isPausedProvider) ? colorScheme.tertiary : colorScheme.primary,
+                onTap: () {
+                  if (ref.read(isPausedProvider)) {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => const GameScreen()));
+                  } else {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => const MatchSetupScreen(mode: MatchSetupMode.solo)));
+                  }
+                },
+              ),
+              _ModeCard(
+                title: 'MULTIPLAYER',
+                description: 'Host or join a local session.',
+                icon: Icons.groups_rounded,
+                color: colorScheme.secondary,
+                onTap: () => _showMultiplayerDialog(context),
+              ),
+              const SizedBox(height: 32),
+              _SectionHeader(title: 'NAVIGATION'),
+              const SizedBox(height: 24),
+              _ModeCard(
+                title: 'ANALYTICS',
+                description: 'View your career metrics.',
+                icon: Icons.bar_chart_rounded,
+                color: colorScheme.tertiary,
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const StatsScreen())),
+              ),
+              _ModeCard(
+                title: 'ACCOUNT',
+                description: 'Preferences and identity.',
+                icon: Icons.manage_accounts_rounded,
+                color: colorScheme.primary,
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const AccountScreen())),
+              ),
+              const SizedBox(height: 60),
+            ],
+          ),
         ),
       ),
     );
@@ -132,81 +162,97 @@ class _MainScreenDesktop extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final career = ref.watch(careerProvider);
+    final careerAsync = ref.watch(careerProvider);
 
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      appBar: const TopNavBar(activeId: 'MainScreen', showMenu: false),
-      body: VectorBackground(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(80),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1200),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Desktop Hero
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('DASHBOARD', style: theme.textTheme.displayMedium?.copyWith(fontWeight: FontWeight.w900, color: colorScheme.primary)),
-                          const SizedBox(height: 12),
-                          Text('ELEVATE YOUR MIND THROUGH NUMBERS', style: theme.textTheme.titleMedium?.copyWith(letterSpacing: 8, color: colorScheme.onSurface.withValues(alpha: 0.4), fontWeight: FontWeight.w900, fontSize: 12)),
-                        ],
-                      ),
-                      _EloBadge(career: career, isLarge: true),
-                    ],
-                  ),
-
-                  const SizedBox(height: 100),
-
-                  // Game Mode Grid
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _DesktopModeCard(
-                          title: 'SOLO',
-                          desc: 'Individual missions and endless survival.',
-                          icon: Icons.psychology_rounded,
-                          color: colorScheme.primary,
-                          onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const MatchSetupScreen(mode: MatchSetupMode.solo))),
+    return careerAsync.when(
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (err, stack) => Scaffold(body: Center(child: Text('Vault Error: $err'))),
+      data: (career) => Scaffold(
+        backgroundColor: colorScheme.surface,
+        drawer: const GlobalDrawer(),
+        appBar: const TopNavBar(activeId: 'MainScreen', showMenu: true),
+        body: VectorBackground(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(80),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1200),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Desktop Hero
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SvgPicture.asset(
+                              'assets/images/app_icon.svg',
+                              width: 80,
+                              height: 80,
+                            ),
+                            const SizedBox(width: 32),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('DASHBOARD', style: theme.textTheme.displayMedium?.copyWith(fontWeight: FontWeight.w900, color: colorScheme.primary)),
+                                const SizedBox(height: 8),
+                                Text('ELEVATE YOUR MIND THROUGH NUMBERS', style: theme.textTheme.titleMedium?.copyWith(letterSpacing: 8, color: colorScheme.onSurface.withValues(alpha: 0.4), fontWeight: FontWeight.w900, fontSize: 12)),
+                              ],
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(width: 40),
-                      Expanded(
-                        child: _DesktopModeCard(
-                          title: 'HOST ARENA',
-                          desc: 'Create a local room for friends to join via QR or IP.',
-                          icon: Icons.sensors_rounded,
-                          color: colorScheme.secondary,
-                          onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const HostScreen())),
-                        ),
-                      ),
-                      const SizedBox(width: 40),
-                      Expanded(
-                        child: _DesktopModeCard(
-                          title: 'JOIN BATTLE',
-                          desc: 'Find an active host on your LAN and prove your speed.',
-                          icon: Icons.bolt_rounded,
-                          color: colorScheme.tertiary,
-                          onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const JoinScreen())),
-                        ),
-                      ),
-                    ],
-                  ),
+                        _EloBadge(career: career, isLarge: true),
+                      ],
+                    ),
 
-                  const SizedBox(height: 80),
+                    const SizedBox(height: 100),
 
-                  // Performance Quick View
-                  _DesktopStatsPanel(career: career),
-                  
-                  const SizedBox(height: 100),
-                ],
+                    // Game Mode Grid
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _DesktopModeCard(
+                            title: 'SOLO',
+                            desc: 'Individual missions and endless survival.',
+                            icon: Icons.psychology_rounded,
+                            color: colorScheme.primary,
+                            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const MatchSetupScreen(mode: MatchSetupMode.solo))),
+                          ),
+                        ),
+                        const SizedBox(width: 40),
+                        Expanded(
+                          child: _DesktopModeCard(
+                            title: 'HOST ARENA',
+                            desc: 'Create a local room for friends to join via QR or IP.',
+                            icon: Icons.sensors_rounded,
+                            color: colorScheme.secondary,
+                            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const HostScreen())),
+                          ),
+                        ),
+                        const SizedBox(width: 40),
+                        Expanded(
+                          child: _DesktopModeCard(
+                            title: 'JOIN BATTLE',
+                            desc: 'Find an active host on your LAN and prove your speed.',
+                            icon: Icons.bolt_rounded,
+                            color: colorScheme.tertiary,
+                            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const JoinScreen())),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 80),
+
+                    // Performance Quick View
+                    _DesktopStatsPanel(career: career),
+                    
+                    const SizedBox(height: 100),
+                  ],
+                ),
               ),
             ),
           ),
@@ -340,12 +386,15 @@ class _EloBadge extends StatelessWidget {
         children: [
           Icon(Icons.stars_rounded, color: Colors.amber, size: isLarge ? 32 : 20),
           SizedBox(width: isLarge ? 16 : 10),
-          Text(
-            '${career.playerName} • ${career.elo} ELO',
-            style: TextStyle(
-              color: isLarge ? Theme.of(context).colorScheme.onSurface : Colors.white, 
-              fontWeight: FontWeight.w900,
-              fontSize: isLarge ? 24 : 14,
+          Flexible(
+            child: Text(
+              career.playerName,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: isLarge ? Theme.of(context).colorScheme.onSurface : Colors.white, 
+                fontWeight: FontWeight.w900,
+                fontSize: isLarge ? 24 : 14,
+              ),
             ),
           ),
         ],

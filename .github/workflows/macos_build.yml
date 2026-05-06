@@ -4,6 +4,9 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     name: Build macOS App
@@ -17,7 +20,18 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Install dependencies
+      - name: Install Dependencies (Packages)
+        run: |
+          for dir in packages/*; do
+            if [ -d "$dir" ] && [ -f "$dir/pubspec.yaml" ]; then
+              echo "Getting dependencies for $dir"
+              cd "$dir"
+              flutter pub get
+              cd ../..
+            fi
+          done
+
+      - name: Install Dependencies (App)
         run: |
           cd kalkra_app
           flutter pub get
@@ -25,10 +39,15 @@ jobs:
       - name: Enable macOS support
         run: flutter config --enable-macos-desktop
 
+      - name: Refresh macOS Project
+        run: |
+          cd kalkra_app
+          flutter create --platforms=macos .
+
       - name: Build macOS Release
         run: |
           cd kalkra_app
-          flutter build macos --release --no-codesign
+          flutter build macos --release --no-codesign -v
 
       - name: Zip Build
         run: |

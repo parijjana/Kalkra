@@ -1,0 +1,11 @@
+# Large generated folders
+**/build/
+**/.dart_tool/
+**/web/
+
+# Databases and secrets
+*.db
+.env
+
+# Tooling
+tool/

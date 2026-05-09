@@ -64,11 +64,11 @@ class ThemerCompiler {
         ),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: colors.secondary?.withOpacity(0.12) ?? colors.surface,
+        backgroundColor: colors.secondary?.withValues(alpha: 0.12) ?? colors.surface,
         labelStyle: TextStyle(color: colors.onSurface),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(roundness),
-          side: BorderSide(color: colors.secondary?.withOpacity(0.2) ?? Colors.transparent),
+          side: BorderSide(color: colors.secondary?.withValues(alpha: 0.2) ?? Colors.transparent),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -79,10 +79,10 @@ class ThemerCompiler {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(roundness),
-          borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.12)),
+          borderSide: BorderSide(color: colorScheme.onSurface.withValues(alpha: 0.12)),
         ),
-        prefixIconColor: colorScheme.onSurface.withOpacity(0.5),
-        suffixIconColor: colorScheme.onSurface.withOpacity(0.5),
+        prefixIconColor: colorScheme.onSurface.withValues(alpha: 0.5),
+        suffixIconColor: colorScheme.onSurface.withValues(alpha: 0.5),
       ),
       // Add typography if present
       textTheme: _compileTextTheme(model.typography, colorScheme.onSurface),

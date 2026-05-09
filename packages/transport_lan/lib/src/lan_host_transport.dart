@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 import 'dart:typed_data';
 import 'package:nsd/nsd.dart';
 import 'package:shelf/shelf_io.dart' as io;
@@ -27,7 +26,6 @@ class LanHostTransport implements IGameTransport {
   Set<String> _bannedDeviceIds = {};
   Timer? _heartbeatTimer;
   String? _lobbySecret;
-  int _outboundSequence = 0;
 
   @override
   Stream<GameEvent> get eventStream => _eventController.stream;
@@ -48,7 +46,6 @@ class LanHostTransport implements IGameTransport {
     
     final handler = webSocketHandler((WebSocketChannel webSocket) {
       String? currentClientId;
-      String? clientIp;
 
       webSocket.stream.listen((message) {
         try {

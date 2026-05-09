@@ -1,18 +1,13 @@
-import 'number_generator.dart';
-import 'target_generator.dart';
 import 'submission_validator.dart';
-import 'solver_engine.dart';
 import 'score_keeper.dart';
 import 'match_manager.dart';
 import 'round_config.dart';
+import 'solver_engine.dart';
 
 enum RoundState { idle, playing, scoring, completed }
 
 class RoundManager {
-  final NumberGenerator _numGen = NumberGenerator();
-  final TargetGenerator _targetGen = TargetGenerator();
   final SubmissionValidator _validator = SubmissionValidator();
-  final SolverEngine _solver = SolverEngine();
   final ScoreKeeper _scoreKeeper = ScoreKeeper();
 
   RoundState _state = RoundState.idle;
@@ -34,59 +29,19 @@ class RoundManager {
   List<String> get submissions => _submissions;
   SolveResult? get bestSolution => _bestSolution;
 
-  /// Starts a new round, ensuring it is solvable if a jeopardy event is active.
-  void startRound({
-    int? seed,
-    Difficulty difficulty = Difficulty.medium,
-    JeopardyType? jeopardy,
-    String? lockedOp,
-    RoundConfig config = RoundConfig.classic,
-  }) {
-    _jeopardyType = jeopardy;
-    _lockedOperator = lockedOp;
-    _config = config;
-
-    bool isSolvable = false;
-    int attempts = 0;
-    int maxNesting = (difficulty == Difficulty.easy) ? 1 : 10;
-
-    // Solver-Validated Generation Loop
-    while (!isSolvable && attempts < 10) {
-      _numbers = _numGen.generatePool(
-        difficulty: difficulty, 
-        seed: seed != null ? seed + attempts : null,
-        poolType: config.poolType,
-      );
-      
-      _targets = _targetGen.generateTargets(
-        count: config.isDualTarget ? 2 : 1,
-        difficulty: difficulty, 
-        seed: seed != null ? seed + attempts : null
-      );
-
-      // Special case for single targets that need a specific type (like countdown)
-      if (!config.isDualTarget) {
-        _targets = [
-          _targetGen.generateTarget(
-            difficulty: difficulty, 
-            seed: seed != null ? seed + attempts : null,
-            type: config.targetType,
-          )
-        ];
-      }
-
-      final allowedOps = _getAllowedOperators();
-      // Solve for the first target primarily to ensure at least one is solvable
-      final result = _solver.solve(_numbers, _targets.first, allowedOperators: allowedOps, maxNesting: maxNesting);
-
-      if (result.foundExact) {
-        isSolvable = true;
-      }
-      attempts++;
-    }
-
-    _resetRound();
+  /// Starts a round using pre-computed data.
+  void startRound({required MatchRoundData data}) {
+    _numbers = data.numbers;
+    _targets = data.targets;
+    _jeopardyType = data.jeopardy;
+    _lockedOperator = data.lockedOperator;
+    _config = data.config;
+    _bestSolution = data.bestSolution;
+    
+    _submissions.clear();
+    _state = RoundState.playing;
   }
+
   void startRoundWithData({
     required List<int> numbers, 
     required List<int> targets, 
@@ -99,18 +54,7 @@ class RoundManager {
     _jeopardyType = jeopardy;
     _lockedOperator = lockedOp;
     _config = config;
-    _resetRound();
-  }
-
-  List<String> _getAllowedOperators() {
-    final ops = ['+', '-', '*', '/'];
-    if (_lockedOperator != null) {
-      ops.remove(_lockedOperator);
-    }
-    return ops;
-  }
-
-  void _resetRound() {
+    
     _submissions.clear();
     _bestSolution = null;
     _state = RoundState.playing;
@@ -126,13 +70,6 @@ class RoundManager {
   void endRound() {
     if (_state != RoundState.playing) return;
     _state = RoundState.scoring;
-
-    if (_numbers.isNotEmpty && _targets.isNotEmpty) {
-      final allowedOps = _getAllowedOperators();
-      // For now, solve for the first target in results display
-      // TODO: Solve for both targets in dual mode
-      _bestSolution = _solver.solve(_numbers, _targets.first, allowedOperators: allowedOps);
-    }
   }
 
   void setBestSolution(SolveResult solution) {
@@ -143,13 +80,40 @@ class RoundManager {
     _state = RoundState.completed;
   }
 
+  /// Calculates points for a list of expressions (handling Permutations deduplication).
+  int calculateTotalPoints(List<String> expressions) {
+    if (_targets.isEmpty) return 0;
+    
+    if (!_config.allowMultipleSubmissions) {
+      return calculatePoints(expressions.isEmpty ? '' : expressions.last);
+    }
+
+    final uniqueSolutions = <String>{};
+    int total = 0;
+
+    for (final expr in expressions) {
+      final canonical = _validator.getCanonicalForm(expr);
+      if (canonical == null || uniqueSolutions.contains(canonical)) continue;
+
+      final pts = calculatePoints(expr);
+      if (pts > 0) {
+        total += pts;
+        uniqueSolutions.add(canonical);
+      }
+    }
+
+    return total;
+  }
+
   int calculatePoints(String expression) {
     if (_targets.isEmpty) return 0;
     
     final validation = _validator.validate(
       expression, 
       _numbers, 
-      constraints: _config.constraints
+      constraints: _config.constraints,
+      allowNegative: _config.allowNegative,
+      allowFractions: _config.allowFractions,
     );
     
     if (!validation.isValid) return 0;
@@ -157,14 +121,14 @@ class RoundManager {
     if (_config.isDualTarget) {
       return _scoreKeeper.calculateDualTargetScore(
         targets: _targets, 
-        result: validation.value?.toInt(),
+        result: validation.value,
         rewardBump: _config.rewardBump,
       );
     }
 
     return _scoreKeeper.calculateScore(
       target: _targets.first, 
-      result: validation.value?.toInt(),
+      result: validation.value,
       jeopardy: _jeopardyType,
       rewardBump: _config.rewardBump,
     );

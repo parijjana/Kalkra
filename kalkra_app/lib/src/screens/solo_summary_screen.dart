@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/game_providers.dart';
+import '../services/playtest_service.dart';
 import '../widgets/vector_background.dart';
 import '../widgets/global_drawer.dart';
 import '../widgets/responsive_layout.dart';
 import '../widgets/top_nav_bar.dart';
+import 'calibration_screen.dart';
+import 'match_setup_screen.dart';
 import 'main_screen.dart';
 
 class SoloSummaryScreen extends ConsumerWidget {
@@ -12,16 +15,22 @@ class SoloSummaryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(currentScreenIdProvider.notifier).setScreenId('SoloSummaryScreen');
-    });
-
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final match = ref.read(matchProvider).value;
     final session = ref.watch(sessionProvider);
     final myScore = session.getPlayerScore('solo');
-    final match = ref.read(matchProvider).value;
+    
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final isDesktop = ResponsiveLayout.isDesktop(context);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(currentScreenIdProvider.notifier).setScreenId('SoloSummaryScreen');
+      
+      // Auto-submit results for playtesting
+      if (match != null) {
+        ref.read(playtestServiceProvider.notifier).submitResult(match, myScore);
+      }
+    });
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -68,25 +77,56 @@ class SoloSummaryScreen extends ConsumerWidget {
               // Navigation
               Padding(
                 padding: EdgeInsets.only(bottom: isDesktop ? 100 : 60),
-                child: SizedBox(
-                  width: isDesktop ? 400 : 300,
-                  height: isDesktop ? 80 : 64,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      session.resetScores();
-                      ref.read(matchProvider).value = null;
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (context) => const MainScreen()),
-                        (route) => false,
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.onSurface,
-                      foregroundColor: colorScheme.surface,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+                child: Column(
+                  children: [
+                    if (match != null) 
+                      SizedBox(
+                        width: isDesktop ? 400 : 300,
+                        height: isDesktop ? 80 : 64,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            session.resetScores();
+                            session.resetRoundData();
+                            Navigator.of(context).pushReplacement(MaterialPageRoute(
+                              builder: (context) => CalibrationScreen(
+                                totalRounds: match.totalRounds,
+                                jeopardyEnabled: match.jeopardyEnabled,
+                                gameMode: match.gameMode,
+                                difficulty: match.initialDifficulty,
+                                setupMode: MatchSetupMode.solo,
+                              ),
+                            ));
+                          },
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: colorScheme.primary, width: 2),
+                            foregroundColor: colorScheme.primary,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+                          ),
+                          child: Text('RESTART MATCH', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 4, fontSize: isDesktop ? 20 : 16)),
+                        ),
+                      ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: isDesktop ? 400 : 300,
+                      height: isDesktop ? 80 : 64,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          session.resetScores();
+                          ref.read(matchProvider).value = null;
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(builder: (context) => const MainScreen()),
+                            (route) => false,
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.onSurface,
+                          foregroundColor: colorScheme.surface,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+                        ),
+                        child: Text('CONTINUE', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 4, fontSize: isDesktop ? 20 : 16)),
+                      ),
                     ),
-                    child: Text('CONTINUE', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 4, fontSize: isDesktop ? 20 : 16)),
-                  ),
+                  ],
                 ),
               ),
             ],

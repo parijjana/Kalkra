@@ -223,7 +223,6 @@ class _AchievementTile extends StatelessWidget {
       case AchievementCategory.endurance: return Colors.redAccent;
       case AchievementCategory.multiplayer: return Colors.purple;
       case AchievementCategory.quirky: return Colors.amber;
-      default: return Colors.blueGrey;
     }
   }
 }

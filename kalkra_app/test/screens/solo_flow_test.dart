@@ -26,11 +26,11 @@ void main() {
 
     // Initialize the match and round
     final match = MatchManager(totalRounds: 3);
+    match.generateMatch();
     container.read(matchProvider).value = match;
     
     final round = container.read(roundProvider);
-    round.startRound(difficulty: Difficulty.easy);
-    final firstTarget = round.target;
+    round.startRound(data: MatchRoundData.mock(numbers: [1, 2, 3], targets: [6]));
     final firstNumbers = List<int>.from(round.numbers);
 
     await tester.pumpWidget(

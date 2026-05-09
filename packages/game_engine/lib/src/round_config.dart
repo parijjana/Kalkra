@@ -56,6 +56,10 @@ class RoundConfig {
   final List<RoundConstraint> constraints;
   final int rewardBump; // Extra points for exact match
   final bool isDualTarget;
+  final bool allowNegative;
+  final bool allowFractions;
+  final bool allowMultipleSubmissions;
+  final bool persistentTarget;
 
   const RoundConfig({
     required this.title,
@@ -65,6 +69,10 @@ class RoundConfig {
     this.constraints = const [],
     this.rewardBump = 0,
     this.isDualTarget = false,
+    this.allowNegative = false,
+    this.allowFractions = false,
+    this.allowMultipleSubmissions = false,
+    this.persistentTarget = false,
   });
 
   static const classic = RoundConfig(title: 'Classic Round');
@@ -113,5 +121,24 @@ class RoundConfig {
     targetType: TargetType.countdown,
     rewardBump: 5,
     durationSeconds: 60,
+  );
+
+  static const advanced = RoundConfig(
+    title: 'Advanced Round',
+    allowNegative: true,
+    allowFractions: true,
+    rewardBump: 10,
+  );
+
+  static const permutations = RoundConfig(
+    title: 'Permutations',
+    allowMultipleSubmissions: true,
+    rewardBump: 5,
+  );
+
+  static const tunnelVision = RoundConfig(
+    title: 'Tunnel Vision',
+    persistentTarget: true,
+    rewardBump: 5,
   );
 }

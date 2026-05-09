@@ -23,7 +23,6 @@ class GlobalDrawer extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final transport = ref.watch(transportProvider);
-    final match = ref.read(matchProvider).value;
     final isSolo = transport is NullTransport;
     final careerAsync = ref.watch(careerProvider);
 

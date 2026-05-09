@@ -226,7 +226,7 @@ class _HostScreenState extends ConsumerState<HostScreen> {
 
                     // 4. Transition to Staging
                     if (mounted) {
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const StagingScreen()));
+                      Navigator.of(this.context).pushReplacement(MaterialPageRoute(builder: (context) => const StagingScreen()));
                     }
                   } : null,
                   style: ElevatedButton.styleFrom(backgroundColor: colorScheme.primary, foregroundColor: Colors.white),

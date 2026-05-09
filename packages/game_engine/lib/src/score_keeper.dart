@@ -3,7 +3,7 @@ import 'match_manager.dart';
 class ScoreKeeper {
   int calculateScore({
     required int target, 
-    required int? result, 
+    required num? result, 
     JeopardyType? jeopardy,
     int rewardBump = 0,
   }) {
@@ -25,7 +25,7 @@ class ScoreKeeper {
 
   int calculateDualTargetScore({
     required List<int> targets,
-    required int? result,
+    required num? result,
     int rewardBump = 0,
   }) {
     if (result == null || targets.isEmpty) return 0;

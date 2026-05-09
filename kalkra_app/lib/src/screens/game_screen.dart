@@ -16,7 +16,6 @@ import 'main_screen.dart';
 import 'results_screen.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
-
   const GameScreen({super.key});
 
   @override
@@ -24,7 +23,7 @@ class GameScreen extends ConsumerStatefulWidget {
 }
 
 class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStateMixin {
-  late Timer _timer;
+  Timer? _timer;
   int _secondsLeft = 60;
   int _totalRoundTime = 60;
   String _currentExpression = '';
@@ -85,6 +84,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
   }
 
   void _startTimer() {
+    _timer?.cancel();
     final round = ref.read(roundProvider);
     _secondsLeft = round.config.durationSeconds;
     if (_activeJeopardy == JeopardyType.speedDemon) _secondsLeft ~/= 2;
@@ -108,7 +108,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
           }
         }); 
       } else { 
-        _timer.cancel(); 
+        _timer?.cancel(); 
         _onTimeUp(); 
       }
     });
@@ -123,9 +123,9 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
     }
 
     try {
-      final validation = SubmissionValidator().validate(expression, round.numbers);
+      final validation = SubmissionValidator().validate(expression, round.numbers, allowNegative: round.config.allowNegative, allowFractions: round.config.allowFractions);
       if (validation.isValid && validation.value != null) {
-        final val = validation.value!.toInt();
+        final val = validation.value!;
         final target = _dynamicTarget ?? round.target ?? 1;
         final diff = (target - val).abs();
         setState(() {
@@ -152,7 +152,8 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
   Future<void> _onTimeUp() async {
     if (_isRoundEnding) return;
     _isRoundEnding = true;
-    _timer.cancel();
+    _timer?.cancel(); 
+
     final round = ref.read(roundProvider);
     final transport = ref.read(transportProvider);
     final match = ref.read(matchProvider).value;
@@ -171,14 +172,14 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
       for (final id in session.players.keys) {
         final p = session.players[id]!;
         final expression = p.lastExpression ?? '';
-        final validation = validator.validate(expression, round.numbers);
+        final validation = validator.validate(expression, round.numbers, allowNegative: round.config.allowNegative, allowFractions: round.config.allowFractions);
         
-        int? val;
-        int proximity = 1000000;
+        num? val;
+        num proximity = 1000000;
         
         if (validation.isValid && validation.value != null) {
-          val = validation.value!.toInt();
-          proximity = (target - val).abs();
+          val = validation.value;
+          proximity = (target - val!).abs();
         }
 
         playerResults[id] = {
@@ -196,12 +197,12 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
         final teamPlayers = session.players.entries.where((e) => e.value.teamId == tId).map((e) => e.key).toList();
         if (teamPlayers.isEmpty) continue;
 
-        int minProx = 1000000;
-        int? bestVal;
+        num minProx = 1000000;
+        num? bestVal;
 
         for (final pId in teamPlayers) {
           final res = playerResults[pId]!;
-          final prox = res['proximity'] as int?;
+          final prox = res['proximity'] as num?;
           if (prox != null && prox < minProx) {
             minProx = prox;
             bestVal = res['value'];
@@ -210,7 +211,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
 
         if (minProx < 1000000) {
           final scoreKeeper = ScoreKeeper();
-          final pts = scoreKeeper.calculateScore(target: target, result: bestVal!, jeopardy: round.jeopardyType);
+          final pts = scoreKeeper.calculateScore(target: target, result: bestVal, jeopardy: round.jeopardyType);
           teamBestPoints[tId] = pts;
           session.awardTeamPoints(tId, pts);
         }
@@ -255,15 +256,15 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
       final expression = _currentExpression.trim();
       final roundData = ref.read(roundProvider);
       final points = roundData.calculatePoints(expression);
-      final validation = SubmissionValidator().validate(expression, roundData.numbers);
+      final validation = SubmissionValidator().validate(expression, roundData.numbers, allowNegative: roundData.config.allowNegative, allowFractions: roundData.config.allowFractions);
       
-      int proximity = 1000;
+      num proximity = 1000;
       if (validation.isValid && validation.value != null) {
-        final val = validation.value!.toInt();
+        final val = validation.value!;
         if (roundData.config.isDualTarget) {
-          proximity = roundData.targets.map((t) => (t - val).abs()).reduce((a, b) => a < b ? a : b).toInt();
+          proximity = roundData.targets.map((t) => (t - val).abs()).reduce((a, b) => a < b ? a : b);
         } else {
-          proximity = (roundData.target! - val).abs().toInt();
+          proximity = (roundData.target! - val).abs();
         }
       }
       
@@ -272,7 +273,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
       }
 
       ref.read(sessionProvider).recordSubmission('solo', expression, points);
-      ref.read(careerProvider.notifier).updatePerformance(secondsToSubmit: _secondsToSubmit ?? 60.0, proximityToTarget: proximity);
+      ref.read(careerProvider.notifier).updatePerformance(secondsToSubmit: _secondsToSubmit ?? 60.0, proximityToTarget: proximity.toDouble());
       
       final career = ref.read(careerProvider).value;
       if (career != null) {
@@ -311,10 +312,11 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('CANCEL')),
           TextButton(onPressed: () async {
+            final navigator = Navigator.of(context);
             Navigator.pop(context);
             final transport = ref.read(transportProvider);
             if (transport is! NullTransport) { await transport.sendEvent(GameEvent(type: GameEventType.playerJoined, payload: {'resigned': true})); }
-            if (mounted) { Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const MainScreen()), (route) => false); }
+            if (mounted) { navigator.pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const MainScreen()), (route) => false); }
           }, child: const Text('RESIGN', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold))),
         ],
       ),
@@ -403,25 +405,51 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
       },
     ));
 
-    if (transport is NullTransport) { round.submitExpression(expression); _onTimeUp(); }
+    if (transport is NullTransport) { 
+      round.submitExpression(expression); 
+      if (round.config.allowMultipleSubmissions) {
+        _clear();
+        if (mounted) { 
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Submission Recorded! Total: ${round.calculateTotalPoints(round.submissions)} pts'),
+            duration: const Duration(milliseconds: 500),
+            backgroundColor: Colors.green,
+          ));
+        }
+      } else {
+        _onTimeUp(); 
+      }
+    }
     else {
       String myId = transport.myId;
       await transport.sendEvent(GameEvent(type: GameEventType.submissionReceived, payload: {'expression': expression, 'playerId': myId}));
       if (mounted) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Submission sent!'), duration: Duration(seconds: 1))); }
+      if (round.config.allowMultipleSubmissions) {
+        _clear();
+      }
     }
   }
 
   void _handleKeyEvent(KeyEvent event) {
     if (event is KeyDownEvent) {
       final logicalKey = event.logicalKey;
-      if (logicalKey == LogicalKeyboardKey.keyH) _onOperatorTap('+');
-      else if (logicalKey == LogicalKeyboardKey.keyJ) _onOperatorTap('-');
-      else if (logicalKey == LogicalKeyboardKey.keyK) _onOperatorTap('*');
-      else if (logicalKey == LogicalKeyboardKey.keyL) _onOperatorTap('/');
-      else if (logicalKey == LogicalKeyboardKey.keyN) _onOperatorTap('(');
-      else if (logicalKey == LogicalKeyboardKey.keyM) _onOperatorTap(')');
-      else if (logicalKey == LogicalKeyboardKey.backspace) _backspace();
-      else if (logicalKey == LogicalKeyboardKey.enter) _submit();
+      if (logicalKey == LogicalKeyboardKey.keyH) {
+        _onOperatorTap('+');
+      } else if (logicalKey == LogicalKeyboardKey.keyJ) {
+        _onOperatorTap('-');
+      } else if (logicalKey == LogicalKeyboardKey.keyK) {
+        _onOperatorTap('*');
+      } else if (logicalKey == LogicalKeyboardKey.keyL) {
+        _onOperatorTap('/');
+      } else if (logicalKey == LogicalKeyboardKey.keyN) {
+        _onOperatorTap('(');
+      } else if (logicalKey == LogicalKeyboardKey.keyM) {
+        _onOperatorTap(')');
+      } else if (logicalKey == LogicalKeyboardKey.backspace) {
+        _backspace();
+      } else if (logicalKey == LogicalKeyboardKey.enter) {
+        _submit();
+      }
       final round = ref.read(roundProvider);
       if (logicalKey == LogicalKeyboardKey.arrowLeft) { setState(() { _focusedTokenIndex = (_focusedTokenIndex - 1).clamp(0, round.numbers.length - 1); }); }
       else if (logicalKey == LogicalKeyboardKey.arrowRight) { setState(() { _focusedTokenIndex = (_focusedTokenIndex + 1).clamp(0, round.numbers.length - 1); }); }
@@ -454,87 +482,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
   }
 
   @override
-  void dispose() { _timer.cancel(); _entranceController.dispose(); _focusNode.dispose(); super.dispose(); }
-
-  void _handleGameEvent(GameEvent event) {
-    if (event.type == GameEventType.submissionReceived) {
-      final transport = ref.read(transportProvider);
-      if (transport is LanHostTransport) {
-        final session = ref.read(sessionProvider);
-        final playerId = event.payload['playerId'] as String;
-        final expression = event.payload['expression'] as String;
-        
-        session.recordSubmission(playerId, expression, 0);
-
-        final assignedPlayers = session.players.values.where((p) => p.teamId > 0);
-        if (assignedPlayers.isNotEmpty && assignedPlayers.every((p) => p.lastExpression != null)) {
-          _onTimeUp(); 
-        }
-      }
-    } else if (event.type == GameEventType.roundResults) {
-      final results = Map<String, dynamic>.from(event.payload['playerResults']);
-      final Map<int, int>? teamPoints = event.payload['teamPoints'] != null 
-          ? Map<String, dynamic>.from(event.payload['teamPoints']).map((k, v) => MapEntry(int.parse(k), v as int)) 
-          : null;
-      final Map<int, int>? teamTotalScores = event.payload['teamTotalScores'] != null 
-          ? Map<String, dynamic>.from(event.payload['teamTotalScores']).map((k, v) => MapEntry(int.parse(k), v as int)) 
-          : null;
-      
-      final Map<String, int>? eloShifts = event.payload['eloShifts'] != null ? Map<String, int>.from(event.payload['eloShifts']) : null;
-      
-      final bestSolutionJson = event.payload['bestSolution'];
-      if (bestSolutionJson != null) {
-        ref.read(roundProvider).setBestSolution(SolveResult.fromJson(Map<String, dynamic>.from(bestSolutionJson)));
-      }
-
-      final session = ref.read(sessionProvider);
-      results.forEach((id, data) {
-         final pts = data['points'] as int? ?? 0;
-         final expr = data['expression'] as String? ?? '';
-         session.recordSubmission(id, expr, pts);
-      });
-
-      final transport = ref.read(transportProvider);
-      final myId = transport.myId;
-
-      if (eloShifts != null) {
-        if (eloShifts.containsKey(myId)) ref.read(careerProvider.notifier).applyEloShift(eloShifts[myId]!, 'Arena Rival');
-      }
-      
-      if (mounted) {
-        _navigateToResults(
-          multiplayerResults: results, 
-          teamPoints: teamPoints, 
-          teamTotalScores: teamTotalScores, 
-          eloShifts: eloShifts
-        );
-      }
-    } else if (event.type == GameEventType.roundStarted || event.type == GameEventType.hostStartedMatch) {
-      final List<int> numbers = List<int>.from(event.payload['numbers']); 
-      final List<int> targets = event.payload['targets'] != null 
-          ? List<int>.from(event.payload['targets']) 
-          : [event.payload['target'] as int];
-      final jeopardyIndex = event.payload['jeopardy']; final lockedOp = event.payload['lockedOperator'];
-      final jeopardy = jeopardyIndex != null ? JeopardyType.values[jeopardyIndex] : null;
-      ref.read(roundProvider).startRoundWithData(numbers: numbers, targets: targets, jeopardy: jeopardy, lockedOp: lockedOp);
-      setState(() {
-        _activeJeopardy = jeopardy; _lockedOperator = lockedOp; 
-        
-        if (_activeJeopardy == JeopardyType.blindPool) {
-          _revealedIndices = {};
-        } else {
-          _revealedIndices = Set.from(Iterable.generate(numbers.length));
-        }
-
-        _secondsLeft = ref.read(roundProvider).config.durationSeconds;
-        if (_activeJeopardy == JeopardyType.speedDemon) _secondsLeft ~/= 2;
-        
-        _currentExpression = ''; _usedIndices.clear(); _roundStartTime = DateTime.now(); _secondsToSubmit = null;
-        _focusedTokenIndex = 0; _isRoundEnding = false;
-      });
-      _entranceController.reset(); _entranceController.forward(); _startTimer();
-    }
-  }
+  void dispose() { _timer?.cancel(); _entranceController.dispose(); _focusNode.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
@@ -548,7 +496,8 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
       if (next != null && next > DateTime.now().millisecondsSinceEpoch) {
         setState(() {
           _showCountdown = true;
-          _timer.cancel(); // Stop any current timer
+          _timer?.cancel(); 
+ // Stop any current timer
         });
       }
     });
@@ -557,6 +506,30 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
       next.whenData((event) {
         if (event.type == GameEventType.roundEnded) {
           _onTimeUp();
+        } else if (event.type == GameEventType.roundStarted || event.type == GameEventType.hostStartedMatch) {
+          final List<int> numbers = List<int>.from(event.payload['numbers']); 
+          final List<int> targets = event.payload['targets'] != null 
+              ? List<int>.from(event.payload['targets']) 
+              : [event.payload['target'] as int];
+          final jeopardyIndex = event.payload['jeopardy']; final lockedOp = event.payload['lockedOperator'];
+          final jeopardy = jeopardyIndex != null ? JeopardyType.values[jeopardyIndex] : null;
+          ref.read(roundProvider).startRoundWithData(numbers: numbers, targets: targets, jeopardy: jeopardy, lockedOp: lockedOp);
+          setState(() {
+            _activeJeopardy = jeopardy; _lockedOperator = lockedOp; 
+            
+            if (_activeJeopardy == JeopardyType.blindPool) {
+              _revealedIndices = {};
+            } else {
+              _revealedIndices = Set.from(Iterable.generate(numbers.length));
+            }
+
+            _secondsLeft = ref.read(roundProvider).config.durationSeconds;
+            if (_activeJeopardy == JeopardyType.speedDemon) _secondsLeft ~/= 2;
+            
+            _currentExpression = ''; _usedIndices.clear(); _roundStartTime = DateTime.now(); _secondsToSubmit = null;
+            _focusedTokenIndex = 0; _isRoundEnding = false;
+          });
+          _entranceController.reset(); _entranceController.forward(); _startTimer();
         }
       });
     });
@@ -758,7 +731,6 @@ class _ControlsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context); final colorScheme = theme.colorScheme;
-    final isMobile = theme.platform == TargetPlatform.android || theme.platform == TargetPlatform.iOS;
     
     return ConstrainedBox(constraints: BoxConstraints(maxWidth: isLarge ? 950 : double.infinity), child: Padding(padding: const EdgeInsets.fromLTRB(12, 0, 12, 20), child: Column(children: [
         Row(

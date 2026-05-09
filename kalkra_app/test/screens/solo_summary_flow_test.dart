@@ -27,10 +27,11 @@ void main() {
 
     // Initialize a 1-round match for quick completion
     final match = MatchManager(totalRounds: 1);
+    match.generateMatch();
     container.read(matchProvider).value = match;
     
     final round = container.read(roundProvider);
-    round.startRound(difficulty: Difficulty.easy);
+    round.startRound(data: MatchRoundData.mock(numbers: [1, 2, 3], targets: [6]));
     final firstNumbers = List<int>.from(round.numbers);
 
     await tester.pumpWidget(

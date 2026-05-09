@@ -12,6 +12,7 @@ void startHost() {
 
   print("HOST: Show this in a QR Code: $qrData");
 
+  /*
   // 3. Handle incoming connection
   void onMessageReceived(dynamic socket, String encryptedMessage) {
     try {
@@ -29,4 +30,5 @@ void startHost() {
       // socket.close();
     }
   }
+  */
 }

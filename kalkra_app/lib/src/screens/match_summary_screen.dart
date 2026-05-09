@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:game_engine/game_engine.dart';
 import 'package:transport_interface/transport_interface.dart';
 import 'package:transport_lan/transport_lan.dart';
 import '../providers/game_providers.dart';
 import '../widgets/vector_background.dart';
 import '../widgets/global_drawer.dart';
-import 'main_screen.dart';
 import 'staging_screen.dart';
 
 class MatchSummaryScreen extends ConsumerWidget {
@@ -68,8 +66,6 @@ class MatchSummaryScreen extends ConsumerWidget {
                 child: Column(
                   children: sortedTeams.map((tId) {
                     final isWinner = tId == winnerId;
-                    final teamColors = [Colors.blue, Colors.orange, Colors.purple, Colors.teal];
-                    final color = teamColors[tId - 1];
                     return Container(
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(20),
@@ -108,7 +104,7 @@ class MatchSummaryScreen extends ConsumerWidget {
                         
                         // 2. Transition State
                         ref.read(matchStatusProvider.notifier).setStatus(MatchStatus.lobby);
-                        ref.read(roundStartTimeProvider.notifier).state = null;
+                        ref.read(roundStartTimeProvider.notifier).setTime(null);
                         
                         // 3. Broadcast return to lobby with FULL session history
                         ref.read(transportProvider).sendEvent(GameEvent(
@@ -154,11 +150,10 @@ class _BurnupChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final teamColors = [Colors.blue, Colors.orange, Colors.purple, Colors.teal];
     
     int maxScore = 1;
-    teamTotalScores.values.forEach((s) { if (s > maxScore) maxScore = s; });
+    for (var s in teamTotalScores.values) { if (s > maxScore) maxScore = s; }
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,

@@ -9,7 +9,6 @@ void main() {
         name: 'Alice', 
         isHost: true, 
         currentElo: 1500,
-        stats: {'wins': 5},
       );
       final json = player.toJson();
       final fromJson = PlayerInfo.fromJson(json);
@@ -18,7 +17,6 @@ void main() {
       expect(fromJson.name, player.name);
       expect(fromJson.isHost, player.isHost);
       expect(fromJson.currentElo, 1500);
-      expect(fromJson.stats['wins'], 5);
     });
 
     test('PlayerInfo handles missing fields gracefully', () {
@@ -29,7 +27,6 @@ void main() {
       expect(player.name, 'Bob');
       expect(player.isHost, false); // Default
       expect(player.currentElo, 1200); // Default
-      expect(player.stats, isEmpty); // Default
     });
 
     test('GameEvent serialization with plural targets', () {

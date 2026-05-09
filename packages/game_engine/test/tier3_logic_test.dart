@@ -4,12 +4,10 @@ import 'package:game_engine/game_engine.dart';
 void main() {
   group('Tier 3: Constraints & Pools', () {
     late NumberGenerator numGen;
-    late SubmissionValidator validator;
     late ScoreKeeper scoreKeeper;
 
     setUp(() {
       numGen = NumberGenerator();
-      validator = SubmissionValidator();
       scoreKeeper = ScoreKeeper();
     });
 

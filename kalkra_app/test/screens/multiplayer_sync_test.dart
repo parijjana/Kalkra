@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:kalkra_app/src/screens/main_screen.dart';
 import 'package:kalkra_app/src/screens/staging_screen.dart';
 import 'package:kalkra_app/src/screens/game_screen.dart';
 import 'package:kalkra_app/src/screens/results_screen.dart';
@@ -152,10 +151,11 @@ void main() {
       session.assignTeam('client1', 2);
       
       final match = MatchManager(totalRounds: 5, gameMode: GameMode.multiplayer);
+      match.generateMatch();
       container.read(matchProvider).value = match;
       
       final round = container.read(roundProvider);
-      round.startRound(difficulty: Difficulty.easy);
+      round.startRound(data: MatchRoundData.mock(numbers: [1, 2, 3], targets: [6]));
 
       await tester.pumpWidget(
         UncontrolledProviderScope(
@@ -239,6 +239,8 @@ void main() {
       // Verify label changed to ROUND 3/10
       expect(find.textContaining('ROUND 3/10'), findsOneWidget);
       expect(find.textContaining('SOLO'), findsNothing);
+
+      await tester.pumpWidget(Container());
     });
 
     testWidgets('GameScreen stays in countdown when startTime is in future', (tester) async {

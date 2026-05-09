@@ -18,33 +18,72 @@ class SolveResult {
   );
 }
 
+class _SolverNode {
+  final double value;
+  final int precedence;
+  final String? expression; // Null until materialized
+  final _SolverNode? left;
+  final _SolverNode? right;
+  final String? op;
+
+  _SolverNode(this.value, this.precedence, {this.expression, this.left, this.right, this.op});
+
+  String get materializedExpression {
+    if (expression != null) return expression!;
+    
+    final sA = left!.materializedExpression;
+    final sB = right!.materializedExpression;
+    final pA = left!.precedence;
+    final pB = right!.precedence;
+    final currentPrec = precedence;
+
+    final lStr = pA < currentPrec ? '($sA)' : sA;
+    final rStr = pB < currentPrec ? '($sB)' : sB;
+    return '$lStr $op $rStr';
+  }
+}
+
 class SolverEngine {
-  /// Solves the math puzzle with optional operator restrictions and nesting limits.
-  SolveResult solve(List<int> pool, int target, {List<String>? allowedOperators, int maxNesting = 10}) {
-    if (pool.isEmpty) return SolveResult();
-
-    // Default to all operators if none specified
+  /// Finds all reachable integer values from a pool and set of operators.
+  Set<int> findAllReachableValues(List<int> pool, {List<String>? allowedOperators, int maxNesting = 10, int? minTarget, int? maxTarget}) {
+    if (pool.isEmpty) return {};
     final ops = allowedOperators ?? ['+', '-', '*', '/'];
-
-    final solutions = <int, String>{};
-    for (final n in pool) {
-      solutions[n] = n.toString();
-    }
-
+    final reachable = <int, _SolverNode>{};
+    
     _search(
-      pool.map((e) => e.toDouble()).toList(),
-      pool.map((e) => e.toString()).toList(),
-      target,
-      solutions,
+      pool.map((e) => _SolverNode(e.toDouble(), 10, expression: e.toString())).toList(),
+      null, 
+      reachable,
       ops,
       maxNesting,
     );
 
-    if (solutions.containsKey(target)) {
-      return SolveResult(bestValue: target, expression: solutions[target], foundExact: true);
+    if (minTarget == null && maxTarget == null) return reachable.keys.toSet();
+
+    return reachable.keys
+        .where((v) => (minTarget == null || v >= minTarget) && (maxTarget == null || v <= maxTarget))
+        .toSet();
+  }
+
+  /// Solves the math puzzle with optional operator restrictions and nesting limits.
+  SolveResult solve(List<int> pool, int target, {List<String>? allowedOperators, int maxNesting = 10}) {
+    if (pool.isEmpty) return SolveResult();
+
+    final ops = allowedOperators ?? ['+', '-', '*', '/'];
+    final solutions = <int, _SolverNode>{};
+    
+    final initialNodes = pool.map((e) => _SolverNode(e.toDouble(), 10, expression: e.toString())).toList();
+    for (final node in initialNodes) {
+      solutions[node.value.toInt()] = node;
     }
 
-    // Find closest
+    _search(initialNodes, target, solutions, ops, maxNesting);
+
+    if (solutions.containsKey(target)) {
+      return SolveResult(bestValue: target, expression: solutions[target]!.materializedExpression, foundExact: true);
+    }
+
+    // Find closest if exact not found
     int? closest;
     int minDiff = 1000000;
     for (final val in solutions.keys) {
@@ -55,93 +94,70 @@ class SolverEngine {
       }
     }
 
-    return SolveResult(bestValue: closest, expression: solutions[closest]);
+    return SolveResult(bestValue: closest, expression: solutions[closest]?.materializedExpression);
   }
 
   void _search(
-    List<double> numbers,
-    List<String> exprs,
-    int target,
-    Map<int, String> solutions,
+    List<_SolverNode> nodes,
+    int? target,
+    Map<int, _SolverNode> solutions,
     List<String> allowedOps,
     int maxNesting,
   ) {
-    if (solutions.containsKey(target)) return;
+    if (target != null && solutions.containsKey(target)) return;
 
-    for (int i = 0; i < numbers.length; i++) {
-      for (int j = 0; j < numbers.length; j++) {
+    for (int i = 0; i < nodes.length; i++) {
+      for (int j = 0; j < nodes.length; j++) {
         if (i == j) continue;
 
-        final a = numbers[i];
-        final b = numbers[j];
-        final sA = exprs[i];
-        final sB = exprs[j];
+        final a = nodes[i];
+        final b = nodes[j];
 
-        // Check nesting depth of input operands
-        if (_getNestingDepth(sA) >= maxNesting || _getNestingDepth(sB) >= maxNesting) continue;
-
-        final nextNumbers = <double>[];
-        final nextExprs = <String>[];
-        for (int k = 0; k < numbers.length; k++) {
-          if (k != i && k != j) {
-            nextNumbers.add(numbers[k]);
-            nextExprs.add(exprs[k]);
-          }
+        final nextNodesBase = <_SolverNode>[];
+        for (int k = 0; k < nodes.length; k++) {
+          if (k != i && k != j) nextNodesBase.add(nodes[k]);
         }
 
         // Try allowed operators
         if (allowedOps.contains('+')) {
-          _tryOp(a + b, '($sA + $sB)', nextNumbers, nextExprs, target, solutions, allowedOps, maxNesting);
+          _tryOp(_SolverNode(a.value + b.value, 1, left: a, right: b, op: '+'), nextNodesBase, target, solutions, allowedOps, maxNesting);
         }
 
-        if (allowedOps.contains('-') && a - b > 0) {
-          _tryOp(a - b, '($sA - $sB)', nextNumbers, nextExprs, target, solutions, allowedOps, maxNesting);
+        if (allowedOps.contains('-') && a.value - b.value > 0) {
+          _tryOp(_SolverNode(a.value - b.value, 1, left: a, right: b, op: '-'), nextNodesBase, target, solutions, allowedOps, maxNesting);
         }
 
-        if (allowedOps.contains('*')) {
-          _tryOp(a * b, '($sA * $sB)', nextNumbers, nextExprs, target, solutions, allowedOps, maxNesting);
+        if (allowedOps.contains('*') && a.value != 1 && b.value != 1) {
+          _tryOp(_SolverNode(a.value * b.value, 2, left: a, right: b, op: '*'), nextNodesBase, target, solutions, allowedOps, maxNesting);
         }
 
-        if (allowedOps.contains('/') && b != 0 && a % b == 0) {
-          _tryOp(a / b, '($sA / $sB)', nextNumbers, nextExprs, target, solutions, allowedOps, maxNesting);
+        if (allowedOps.contains('/') && b.value != 0 && b.value != 1 && a.value % b.value == 0) {
+          _tryOp(_SolverNode(a.value / b.value, 2, left: a, right: b, op: '/'), nextNodesBase, target, solutions, allowedOps, maxNesting);
         }
+        
+        if (target != null && solutions.containsKey(target)) return;
       }
     }
   }
 
   void _tryOp(
-    double res,
-    String sRes,
-    List<double> nextNumbers,
-    List<String> nextExprs,
-    int target,
-    Map<int, String> solutions,
+    _SolverNode res,
+    List<_SolverNode> nextNodesBase,
+    int? target,
+    Map<int, _SolverNode> solutions,
     List<String> allowedOps,
     int maxNesting,
   ) {
-    final intRes = res.toInt();
+    final intRes = res.value.toInt();
     if (!solutions.containsKey(intRes)) {
-      solutions[intRes] = sRes;
+      solutions[intRes] = res;
     }
 
-    if (nextNumbers.isNotEmpty) {
-      final finalNumbers = List<double>.from(nextNumbers)..add(res);
-      final finalExprs = List<String>.from(nextExprs)..add(sRes);
-      _search(finalNumbers, finalExprs, target, solutions, allowedOps, maxNesting);
-    }
-  }
+    if (target != null && intRes == target) return;
 
-  int _getNestingDepth(String expr) {
-    int maxDepth = 0;
-    int currentDepth = 0;
-    for (int i = 0; i < expr.length; i++) {
-      if (expr[i] == '(') {
-        currentDepth++;
-        if (currentDepth > maxDepth) maxDepth = currentDepth;
-      } else if (expr[i] == ')') {
-        currentDepth--;
-      }
+    if (nextNodesBase.isNotEmpty) {
+      final nextNodes = List<_SolverNode>.from(nextNodesBase)..add(res);
+      _search(nextNodes, target, solutions, allowedOps, maxNesting);
     }
-    return maxDepth;
   }
 }

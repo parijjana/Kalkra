@@ -1,0 +1,15 @@
+# Verification Tool
+tool/
+
+# Dart/Flutter
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+build/
+pubspec.lock
+
+# Playtest Server Artifacts
+playtest_server/web/
+playtest_server/results.db
+playtest_server/build/

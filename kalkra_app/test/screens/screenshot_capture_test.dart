@@ -7,7 +7,6 @@ import 'package:kalkra_app/src/screens/account_screen.dart';
 import 'package:kalkra_app/src/screens/stats_screen.dart';
 import 'package:kalkra_app/src/providers/game_providers.dart';
 import 'package:kalkra_app/src/theme/app_theme.dart';
-import 'package:game_engine/game_engine.dart';
 
 void main() {
   const themeTypes = [

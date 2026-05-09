@@ -12,7 +12,6 @@ import 'join_screen.dart';
 import 'account_screen.dart';
 import 'match_setup_screen.dart';
 import 'stats_screen.dart';
-import 'package:transport_interface/transport_interface.dart';
 
 class MainScreen extends ConsumerWidget {
   const MainScreen({super.key});

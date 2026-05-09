@@ -11,7 +11,6 @@ import '../providers/game_providers.dart';
 import '../widgets/vector_background.dart';
 import '../widgets/global_drawer.dart';
 import '../widgets/responsive_layout.dart';
-import '../config/device_util.dart';
 import 'game_screen.dart';
 import 'spectator_screen.dart';
 
@@ -229,7 +228,8 @@ class _StagingScreenState extends ConsumerState<StagingScreen> {
             data: _connectionString!,
             version: QrVersions.auto,
             size: 80.0,
-            foregroundColor: Colors.black,
+            eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Colors.black),
+            dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Colors.black),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -263,7 +263,8 @@ class _StagingScreenState extends ConsumerState<StagingScreen> {
             data: _connectionString!,
             version: QrVersions.auto,
             size: 160.0,
-            foregroundColor: Colors.black,
+            eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Colors.black),
+            dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Colors.black),
           ),
           const SizedBox(height: 16),
           const Text('JOIN ARENA', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2, color: Colors.black)),
@@ -542,19 +543,29 @@ class _StagingScreenState extends ConsumerState<StagingScreen> {
 
     if (match == null) return;
 
-    // 1. Generate first round data
-    round.startRound(difficulty: match.currentDifficulty);
+    // 1. Pre-generate the entire match
+    // Note: In Host mode, MatchManager usually comes from MatchSetupScreen
+    // but we ensure it's generated here just in case.
+    match.generateMatch();
+
+    final roundData = match.currentRoundData;
+    if (roundData == null) return;
+
+    // 2. Load first round locally
+    round.startRound(data: roundData);
     session.resetRoundData();
 
-    // 2. Broadcast start with payload
+    // 3. Broadcast start with full payload
     await transport.sendEvent(GameEvent(
       type: GameEventType.hostStartedMatch,
       payload: {
-        'targets': round.targets,
-        'target': round.target,
-        'numbers': round.numbers,
-        'difficulty': match.currentDifficulty.index,
-        'config': round.config.title,
+        'targets': roundData.targets,
+        'target': roundData.targets.first,
+        'numbers': roundData.numbers,
+        'difficulty': 1, // Simplified
+        'config': roundData.config.title,
+        'jeopardy': roundData.jeopardy?.index,
+        'lockedOperator': roundData.lockedOperator,
         'totalRounds': match.totalRounds,
         'gameMode': match.gameMode.index,
         'currentRound': match.currentRound,

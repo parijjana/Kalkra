@@ -5,7 +5,6 @@ import 'package:game_engine/game_engine.dart';
 import 'package:transport_interface/transport_interface.dart';
 import 'package:transport_lan/transport_lan.dart';
 import '../providers/game_providers.dart';
-import '../widgets/responsive_layout.dart';
 import '../widgets/global_drawer.dart';
 import 'game_screen.dart';
 import 'match_summary_screen.dart';
@@ -168,7 +167,7 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
                         _HeroRecap(
                           target: round.target ?? 0,
                           playerExpression: widget.playerExpression,
-                          playerValue: widget.playerValue?.toInt() ?? 0,
+                          playerValue: widget.playerValue ?? 0,
                           playerPoints: widget.playerPoints,
                           solverExpression: solverResult?.expression ?? 'N/A',
                         ),
@@ -197,8 +196,11 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
     final isLocked = _lockoutSeconds > 0;
     
     String buttonText = isLastRound ? 'FINISH MATCH' : 'NEXT ROUND';
-    if (isLocked) buttonText = 'WAIT... ${_lockoutSeconds}s';
-    else if (!isHost && widget.multiplayerResults != null) buttonText = 'WAITING FOR HOST';
+    if (isLocked) {
+      buttonText = 'WAIT... ${_lockoutSeconds}s';
+    } else if (!isHost && widget.multiplayerResults != null) {
+      buttonText = 'WAITING FOR HOST';
+    }
 
     return SizedBox(
       width: 350,
@@ -237,14 +239,15 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
 
             final transport = ref.read(transportProvider);
             if (transport is LanHostTransport) {
-               // Next round logic handled in SpectatorScreen via events? 
-               // Actually we need to trigger it here too.
                _triggerNextRound(ref, transport, match);
             } else if (transport is NullTransport) {
                if (match != null) {
                   match.nextRound();
                   final round = ref.read(roundProvider);
-                  round.startRound(difficulty: match.currentDifficulty, jeopardy: match.activeJeopardy, lockedOp: match.lockedOperator);
+                  final nextData = match.currentRoundData;
+                  if (nextData != null) {
+                    round.startRound(data: nextData);
+                  }
                }
             }
             
@@ -272,25 +275,26 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
 
   Future<void> _triggerNextRound(WidgetRef ref, IGameTransport transport, MatchManager? match) async {
     if (match != null && !match.isMatchOver) {
-      final forceJeopardy = ref.read(jeopardyOverrideProvider);
-      match.nextRound(forceJeopardy: forceJeopardy);
-      ref.read(jeopardyOverrideProvider.notifier).setOverride(false);
-
+      match.nextRound();
+      final roundData = match.currentRoundData ?? MatchRoundData.mock();
+      
       final round = ref.read(roundProvider);
-      round.startRound(difficulty: match.currentDifficulty, jeopardy: match.activeJeopardy, lockedOp: match.lockedOperator);
+      round.startRound(data: roundData);
       ref.read(sessionProvider).resetRoundData();
       
       await transport.sendEvent(GameEvent(
         type: GameEventType.roundStarted,
         payload: {
-          'target': round.target,
-          'numbers': round.numbers,
-          'difficulty': match.currentDifficulty.index,
-          'jeopardy': match.activeJeopardy?.index,
-          'lockedOperator': match.lockedOperator,
+          'target': roundData.targets.first,
+          'targets': roundData.targets,
+          'numbers': roundData.numbers,
+          'difficulty': 1, 
+          'jeopardy': roundData.jeopardy?.index,
+          'lockedOperator': roundData.lockedOperator,
           'totalRounds': match.totalRounds,
           'gameMode': match.gameMode.index,
           'currentRound': match.currentRound,
+          'config': roundData.config.title,
         },
       ));
     }
@@ -400,7 +404,7 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
 class _HeroRecap extends StatelessWidget {
   final int target;
   final String playerExpression;
-  final int playerValue;
+  final num playerValue;
   final int playerPoints;
   final String solverExpression;
 

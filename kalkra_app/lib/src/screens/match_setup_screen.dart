@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_engine/game_engine.dart';
-import 'package:transport_interface/transport_interface.dart';
 import '../providers/game_providers.dart';
 import '../widgets/responsive_layout.dart';
 import '../widgets/top_nav_bar.dart';
 import '../widgets/vector_background.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'game_screen.dart';
-
-import 'package:transport_lan/transport_lan.dart';
-
+import 'calibration_screen.dart';
 import '../widgets/global_drawer.dart';
 import 'main_screen.dart';
 
@@ -91,7 +87,7 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
               const SizedBox(height: 16),
               _buildDifficultyDial(),
             ],
-            if (_gameMode == GameMode.practice) ...[
+            if (_gameMode == GameMode.practice || _gameMode == GameMode.permutations || _gameMode == GameMode.tunnelVision) ...[
               const SizedBox(height: 32),
               _buildSectionHeader('TOTAL ROUNDS'),
               const SizedBox(height: 16),
@@ -151,7 +147,7 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
                           ),
                         ),
                       if (_gameMode != GameMode.progressive) const SizedBox(width: 80),
-                      if (_gameMode == GameMode.practice)
+                      if (_gameMode == GameMode.practice || _gameMode == GameMode.permutations || _gameMode == GameMode.tunnelVision)
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,35 +179,37 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
   Widget _buildModeSelector() {
     final colorScheme = Theme.of(context).colorScheme;
     final modes = [
-      (mode: GameMode.practice, label: 'PRACTICE', icon: Icons.model_training_rounded),
+      (mode: GameMode.practice, label: 'CLASSIC', icon: Icons.model_training_rounded),
       if (widget.mode == MatchSetupMode.solo)
         (mode: GameMode.endless, label: 'ENDLESS', icon: Icons.loop_rounded),
       (mode: GameMode.progressive, label: 'PROGRESSIVE', icon: Icons.trending_up_rounded),
+      (mode: GameMode.tunnelVision, label: 'TUNNEL', icon: Icons.filter_center_focus_rounded),
+      (mode: GameMode.permutations, label: 'MULTI', icon: Icons.layers_rounded),
     ];
 
-    return Row(
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
       children: modes.map((m) {
         final isSelected = _gameMode == m.mode;
-        return Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(right: m == modes.last ? 0 : 12),
-            child: GestureDetector(
-              onTap: () => setState(() => _gameMode = m.mode),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                padding: const EdgeInsets.symmetric(vertical: 24),
-                decoration: BoxDecoration(
-                  color: isSelected ? colorScheme.primary : colorScheme.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(32),
-                  boxShadow: isSelected ? [BoxShadow(color: colorScheme.primary.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 8))] : [],
-                ),
-                child: Column(
-                  children: [
-                    Icon(m.icon, color: isSelected ? Colors.white : colorScheme.primary),
-                    const SizedBox(height: 12),
-                    Text(m.label, style: TextStyle(fontWeight: FontWeight.w900, color: isSelected ? Colors.white : colorScheme.onSurface, fontSize: 10, letterSpacing: 1)),
-                  ],
-                ),
+        return SizedBox(
+          width: (MediaQuery.of(context).size.width - 60) / 2, // 2 columns on mobile
+          child: GestureDetector(
+            onTap: () => setState(() => _gameMode = m.mode),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              decoration: BoxDecoration(
+                color: isSelected ? colorScheme.primary : colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: isSelected ? [BoxShadow(color: colorScheme.primary.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 8))] : [],
+              ),
+              child: Column(
+                children: [
+                  Icon(m.icon, color: isSelected ? Colors.white : colorScheme.primary),
+                  const SizedBox(height: 12),
+                  Text(m.label, style: TextStyle(fontWeight: FontWeight.w900, color: isSelected ? Colors.white : colorScheme.onSurface, fontSize: 10, letterSpacing: 1)),
+                ],
               ),
             ),
           ),
@@ -294,37 +292,14 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
   }
 
   Future<void> _startMatch() async {
-    final match = MatchManager(
-      totalRounds: _gameMode == GameMode.progressive ? 10 : _rounds, 
-      jeopardyEnabled: _gameMode == GameMode.progressive ? true : _jeopardyEnabled,
-      gameMode: _gameMode,
-    );
-    ref.read(matchProvider).value = match;
-    final round = ref.read(roundProvider);
-    round.startRound(difficulty: match.currentDifficulty, jeopardy: match.activeJeopardy, lockedOp: match.lockedOperator);
-    
-    final session = ref.read(sessionProvider);
-    session.resetScores();
-    session.resetRoundData();
-
-    if (widget.mode == MatchSetupMode.solo) {
-      ref.read(transportProvider.notifier).setTransport(NullTransport());
-      final career = await ref.read(careerProvider.future);
-      session.addPlayer('solo', career.playerName);
-      ref.read(roundProvider).startRoundWithData(
-        numbers: round.numbers, 
-        targets: round.targets, 
-        jeopardy: match.activeJeopardy, 
-        lockedOp: match.lockedOperator,
-        config: match.currentConfig,
-      );
-    } else if (widget.mode == MatchSetupMode.host) {
-      final transport = ref.read(transportProvider);
-      await transport.sendEvent(GameEvent(type: GameEventType.roundStarted, payload: {'target': round.target, 'numbers': round.numbers, 'difficulty': match.currentDifficulty.index, 'jeopardy': match.activeJeopardy?.index, 'lockedOperator': match.lockedOperator}));
-    }
-
-    if (mounted) {
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const GameScreen()));
-    }
+    Navigator.of(context).pushReplacement(MaterialPageRoute(
+      builder: (context) => CalibrationScreen(
+        totalRounds: (_gameMode == GameMode.progressive) ? 10 : (_gameMode == GameMode.endless ? 100 : _rounds),
+        jeopardyEnabled: (_gameMode == GameMode.progressive || _gameMode == GameMode.endless) ? true : _jeopardyEnabled,
+        gameMode: _gameMode,
+        difficulty: _difficulty,
+        setupMode: widget.mode,
+      ),
+    ));
   }
 }

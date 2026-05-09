@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:game_engine/game_engine.dart';
 import '../providers/game_providers.dart';
 
 class AchievementNotification extends ConsumerWidget {

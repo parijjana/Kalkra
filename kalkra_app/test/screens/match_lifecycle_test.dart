@@ -26,6 +26,7 @@ void main() {
 
     // 1. Initialize a 2-round match
     final match = MatchManager(totalRounds: 2);
+    match.generateMatch();
     container.read(matchProvider).value = match;
     
     final session = container.read(sessionProvider);
@@ -33,7 +34,7 @@ void main() {
     session.addPlayer('solo', 'Tester');
 
     final round = container.read(roundProvider);
-    round.startRound(difficulty: Difficulty.easy);
+    round.startRound(data: MatchRoundData.mock(numbers: [1, 2, 3], targets: [6]));
 
     // --- ROUND 1 ---
     await tester.pumpWidget(

@@ -12,7 +12,6 @@ import '../widgets/top_nav_bar.dart';
 import '../widgets/global_drawer.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'results_screen.dart';
-import 'main_screen.dart';
 
 class SpectatorScreen extends ConsumerStatefulWidget {
   const SpectatorScreen({super.key});
@@ -22,8 +21,9 @@ class SpectatorScreen extends ConsumerStatefulWidget {
 }
 
 class _SpectatorScreenState extends ConsumerState<SpectatorScreen> with TickerProviderStateMixin {
-  late Timer _timer;
-  int _secondsLeft = 60;
+  Timer? _timer;
+  int _secondsLeft = 0;
+
   bool _isRoundEnding = false;
   JeopardyType _nextJeopardy = JeopardyType.speedDemon;
 
@@ -45,7 +45,7 @@ class _SpectatorScreenState extends ConsumerState<SpectatorScreen> with TickerPr
       if (_secondsLeft > 0) {
         setState(() => _secondsLeft--);
       } else {
-        _timer.cancel();
+        _timer?.cancel();
         _onTimeUp();
       }
     });
@@ -54,7 +54,7 @@ class _SpectatorScreenState extends ConsumerState<SpectatorScreen> with TickerPr
   Future<void> _onTimeUp() async {
     if (_isRoundEnding) return;
     _isRoundEnding = true;
-    _timer.cancel();
+    _timer?.cancel();
 
     final round = ref.read(roundProvider);
     final transport = ref.read(transportProvider);
@@ -154,25 +154,6 @@ class _SpectatorScreenState extends ConsumerState<SpectatorScreen> with TickerPr
           ),
         ));
       }
-    }
-  }
-
-  void _handleGameEvent(GameEvent event) {
-    if (event.type == GameEventType.roundStarted) {
-      final List<int> numbers = List<int>.from(event.payload['numbers']);
-      final List<int> targets = event.payload['targets'] != null 
-          ? List<int>.from(event.payload['targets']) 
-          : [event.payload['target'] as int];
-      final jeopardyIndex = event.payload['jeopardy'];
-      final lockedOp = event.payload['lockedOperator'];
-      final jeopardy = jeopardyIndex != null ? JeopardyType.values[jeopardyIndex] : null;
-      ref.read(roundProvider).startRoundWithData(numbers: numbers, targets: targets, jeopardy: jeopardy, lockedOp: lockedOp);
-      setState(() { 
-        _secondsLeft = ref.read(roundProvider).config.durationSeconds;
-        if (jeopardy == JeopardyType.speedDemon) _secondsLeft ~/= 2;
-        _isRoundEnding = false; 
-      });
-      _entranceController.reset(); _entranceController.forward(); _startTimer();
     }
   }
 
@@ -340,5 +321,5 @@ class _SpectatorScreenState extends ConsumerState<SpectatorScreen> with TickerPr
   }
 
   @override
-  void dispose() { _timer.cancel(); _entranceController.dispose(); super.dispose(); }
+  void dispose() { _timer?.cancel(); _entranceController.dispose(); super.dispose(); }
 }

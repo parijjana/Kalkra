@@ -79,7 +79,7 @@ class CareerManager {
     _unlockedAchievements.add(id);
   }
 
-  void recordRoundPerformance({required double secondsToSubmit, required int proximityToTarget}) {
+  void recordRoundPerformance({required double secondsToSubmit, required double proximityToTarget}) {
     _avgSpeedSeconds = ((_avgSpeedSeconds * _roundsTracked) + secondsToSubmit) / (_roundsTracked + 1);
     _avgAccuracy = ((_avgAccuracy * _roundsTracked) + proximityToTarget) / (_roundsTracked + 1);
     _roundsTracked++;
@@ -110,7 +110,7 @@ class CareerManager {
     }
   }
 
-  void recordMultiplayerPerformance({required double secondsToSubmit, required int proximityToTarget, required String opponentName, int eloShift = 0}) {
+  void recordMultiplayerPerformance({required double secondsToSubmit, required double proximityToTarget, required String opponentName, int eloShift = 0}) {
     _avgSpeedSeconds = ((_avgSpeedSeconds * _roundsTracked) + secondsToSubmit) / (_roundsTracked + 1);
     _avgAccuracy = ((_avgAccuracy * _roundsTracked) + proximityToTarget) / (_roundsTracked + 1);
     _roundsTracked++;

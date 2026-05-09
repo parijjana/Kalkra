@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:transport_interface/transport_interface.dart';
@@ -78,7 +77,14 @@ class CareerNotifier extends AsyncNotifier<CareerManager> {
     await _save();
   }
 
-  Future<void> updatePerformance({required double secondsToSubmit, required int proximityToTarget}) async {
+  Future<void> updateProfile({String? playerName}) async {
+    final manager = state.value ?? CareerManager();
+    if (playerName != null) manager.setPlayerName(playerName);
+    state = AsyncData(manager);
+    await _save();
+  }
+
+  Future<void> updatePerformance({required double secondsToSubmit, required double proximityToTarget}) async {
     final manager = state.value ?? CareerManager();
     manager.recordRoundPerformance(secondsToSubmit: secondsToSubmit, proximityToTarget: proximityToTarget);
     state = AsyncData(manager);
@@ -292,10 +298,19 @@ final sessionSyncProvider = Provider<void>((ref) {
           final lockedOp = event.payload['lockedOperator'];
           final jeopardy = jeopardyIndex != null ? JeopardyType.values[jeopardyIndex] : null;
           final startTime = event.payload['startTime'] as int?;
+          final configTitle = event.payload['config'] ?? 'Classic Round';
+
+          ref.read(roundStartTimeProvider.notifier).setTime(startTime);
           
-          ref.read(roundStartTimeProvider.notifier).state = startTime;
-          
-          round.startRoundWithData(numbers: numbers, targets: targets, jeopardy: jeopardy, lockedOp: lockedOp);
+          final reconstructedData = MatchRoundData.mock(
+            numbers: numbers,
+            targets: targets,
+            jeopardy: jeopardy,
+            lockedOperator: lockedOp,
+            config: RoundConfig(title: configTitle), // Rough reconstruction
+          );
+
+          round.startRound(data: reconstructedData);
           session.resetRoundData();
           
           ref.read(roundUpdateProvider.notifier).trigger();

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:transport_lan/transport_lan.dart';
-import 'package:transport_interface/transport_interface.dart';
 import 'package:nsd/nsd.dart';
 import '../providers/game_providers.dart';
 import '../widgets/responsive_layout.dart';
@@ -13,7 +12,6 @@ import '../widgets/top_nav_bar.dart';
 import '../widgets/global_drawer.dart';
 import '../config/device_util.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'game_screen.dart';
 import 'staging_screen.dart';
 
 class JoinScreen extends ConsumerStatefulWidget {
@@ -77,7 +75,7 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
       );
 
       ref.read(transportProvider.notifier).setTransport(clientTransport);
-      ref.read(isHostOnlyProvider.notifier).state = false;
+      ref.read(isHostOnlyProvider.notifier).setState(false);
 
       if (mounted) {
         Navigator.of(context).pushReplacement(

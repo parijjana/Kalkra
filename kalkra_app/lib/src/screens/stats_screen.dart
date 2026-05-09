@@ -5,7 +5,6 @@ import '../providers/game_providers.dart';
 import '../widgets/responsive_layout.dart';
 import '../widgets/top_nav_bar.dart';
 import '../widgets/vector_background.dart';
-import 'account_screen.dart';
 import 'hosted_history_screen.dart';
 import 'package:intl/intl.dart';
 

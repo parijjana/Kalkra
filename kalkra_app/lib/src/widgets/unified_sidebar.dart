@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/game_providers.dart';
-import 'package:intl/intl.dart';
 import 'package:game_engine/game_engine.dart';
 
 class UnifiedSidebar extends ConsumerStatefulWidget {
@@ -35,7 +34,6 @@ class _UnifiedSidebarState extends ConsumerState<UnifiedSidebar> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final session = ref.watch(sessionProvider);
     final careerAsync = ref.watch(careerProvider);
 
     return AnimatedContainer(

@@ -9,6 +9,10 @@ environment:
 # Add regular dependencies here.
 dependencies:
   encrypt: ^5.0.3
+  flutter:
+    sdk: flutter
+  gatekeeper_rate_limit:
+    path: ../gatekeeper_rate_limit
   nsd: ^5.0.1
   path: ^1.9.0
   shelf: ^1.4.1
@@ -18,5 +22,7 @@ dependencies:
   web_socket_channel: ^3.0.3
 
 dev_dependencies:
+  flutter_test:
+    sdk: flutter
   lints: ^6.0.0
   test: ^1.25.6

@@ -1,6 +1,5 @@
 import 'package:test/test.dart';
 import 'package:game_engine/src/submission_validator.dart';
-import 'package:game_engine/src/round_config.dart';
 
 void main() {
   group('SubmissionValidator', () {
@@ -35,16 +34,16 @@ void main() {
       expect(validator.validate('10 / 2', pool).value, 5);
     });
 
-    test('fails if intermediate result is not a positive integer (division)', () {
+    test('fails if intermediate result is a fraction (by default)', () {
       final result = validator.validate('3 / 2', pool);
       expect(result.isValid, isFalse);
-      expect(result.error, contains('integer'));
+      expect(result.error, contains('must be an integer'));
     });
 
-    test('fails if intermediate result is negative', () {
+    test('allows negative intermediate results (by default)', () {
       final result = validator.validate('1 - 5', pool);
-      expect(result.isValid, isFalse);
-      expect(result.error, contains('positive'));
+      expect(result.isValid, isTrue);
+      expect(result.value, -4);
     });
 
     test('handles parentheses correctly', () {

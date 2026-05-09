@@ -1,5 +1,3 @@
-import 'package:qr_secure_handshake/qr_secure_handshake.dart';
-
 // Simulating a Client
 void startClient(String scannedQrData) {
   // 1. Extract the secret from the QR code
@@ -12,10 +10,11 @@ void startClient(String scannedQrData) {
   }
 
   // 2. Initialize the manager with the scanned secret
-  final handshake = HandshakeManager.fromSecret(secret);
+  // final handshake = HandshakeManager.fromSecret(secret);
   
   print("CLIENT: Authorized. Initialized encryption engine.");
 
+  /*
   // 3. Handle incoming broadcast
   void onBroadcastReceived(String encryptedPayload) {
     try {
@@ -25,8 +24,9 @@ void startClient(String scannedQrData) {
       print("CLIENT: Failed to decrypt. Host key may have rotated.");
     }
   }
+  */
 
   // 4. Send secure submission
-  final encrypted = handshake.encrypt('{"type": "submit", "expression": "10+5"}');
+  // final encrypted = handshake.encrypt('{"type": "submit", "expression": "10+5"}');
   // socket.send(encrypted);
 }

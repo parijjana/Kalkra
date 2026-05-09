@@ -1,9 +1,34 @@
-import 'package:test/test.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:transport_interface/transport_interface.dart';
 import 'package:transport_lan/transport_lan.dart';
 import 'dart:async';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  
+  setUp(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('com.haberey/nsd'),
+      (MethodCall methodCall) async {
+        if (methodCall.method == 'register') {
+          return {
+            'handle': 'dummy-handle',
+            'service': {
+              'name': 'Kalkra Arena',
+              'type': '_kalkra._tcp',
+              'port': 8080,
+            }
+          };
+        }
+        if (methodCall.method == 'unregister') {
+          return null;
+        }
+        return null;
+      },
+    );
+  });
+  
   group('LanTransport Integration', () {
     late LanHostTransport host;
     late LanClientTransport client;

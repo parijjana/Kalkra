@@ -43,6 +43,12 @@ class TargetGenerator {
     
     if (type == TargetType.countdown) {
       minT = 800; maxT = 999;
+    } else if (type == TargetType.powersOf2 || type == TargetType.powersOf3) {
+      switch (difficulty) {
+        case Difficulty.easy: minT = 100; maxT = 999; break;
+        case Difficulty.medium: minT = 1000; maxT = 9999; break;
+        case Difficulty.hard: minT = 1000; maxT = 9999; break;
+      }
     } else {
       switch (difficulty) {
         case Difficulty.easy: minT = 50; maxT = 250; break;
@@ -57,14 +63,32 @@ class TargetGenerator {
     int? bestCandidate;
     int minDistance = 1000000;
 
-    for (int i = 0; i < 20; i++) {
-      final candidate = minT + random.nextInt(maxT - minT + 1);
+    final powerPool = type == TargetType.powersOf2 
+        ? [128, 256, 512, 1024, 2048, 4096, 8192]
+        : (type == TargetType.powersOf3 ? [243, 729, 2187, 6561] : null);
+
+    final attempts = (powerPool != null) ? powerPool.length * 2 : 20;
+
+    for (int i = 0; i < attempts; i++) {
+      int candidate;
+      if (powerPool != null) {
+        candidate = powerPool[random.nextInt(powerPool.length)];
+        // Filter by range
+        if (candidate < minT || candidate > maxT) continue;
+      } else {
+        candidate = minT + random.nextInt(maxT - minT + 1);
+      }
+      
       if (excludedTargets != null && excludedTargets.contains(candidate)) continue;
 
       final res = _solver.solve(pool, candidate, allowedOperators: allowedOperators);
       if (res.foundExact) return candidate;
 
       final resultVal = res.bestValue ?? pool.first;
+      
+      // If themed, resultVal must also be a power of N
+      if (powerPool != null && !powerPool.contains(resultVal)) continue;
+
       final dist = (resultVal - candidate).abs();
       
       // Keep track of the closest reachable value that isn't excluded
@@ -78,6 +102,12 @@ class TargetGenerator {
 
     // If we found a non-excluded reachable candidate, use it.
     if (bestCandidate != null) return bestCandidate;
+
+    // Themed Fallback: Random power within range
+    if (powerPool != null) {
+      final inRange = powerPool.where((p) => p >= minT && p <= maxT).toList();
+      if (inRange.isNotEmpty) return inRange[random.nextInt(inRange.length)];
+    }
 
     // Last resort fallback: find ANY value in the pool not excluded
     for (final p in pool) {

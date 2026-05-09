@@ -38,7 +38,6 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
 
   double _proximity = 0.0;
   AuraOperator _lastAuraOp = AuraOperator.none;
-  Set<int> _revealedIndices = {};
 
   late AnimationController _entranceController;
   int _focusedTokenIndex = 0;
@@ -55,12 +54,6 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
     _activeJeopardy = round.jeopardyType;
     _lockedOperator = round.lockedOperator;
     
-    if (_activeJeopardy == JeopardyType.blindPool) {
-      _revealedIndices = {};
-    } else {
-      _revealedIndices = Set.from(Iterable.generate(6));
-    }
-
     if (round.config.poolType == PoolType.expanding) {
       _visibleNumberCount = 3;
     } else {
@@ -99,7 +92,6 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
             final elapsed = _totalRoundTime - _secondsLeft;
             if (elapsed > 0 && elapsed % 5 == 0) {
               _visibleNumberCount++;
-              if (_activeJeopardy != JeopardyType.blindPool) _revealedIndices.add(_visibleNumberCount - 1);
             }
           }
 
@@ -304,19 +296,36 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
   void _onExit() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: Theme.of(context).colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
         title: const Text('END MATCH?', style: TextStyle(fontWeight: FontWeight.w900)),
         content: const Text('Are you sure you want to resign and return to the main menu?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('CANCEL')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('CANCEL')),
           TextButton(onPressed: () async {
-            final navigator = Navigator.of(context);
-            Navigator.pop(context);
+            // 1. Close Dialog
+            Navigator.pop(dialogContext);
+
+            // 2. Clear State
             final transport = ref.read(transportProvider);
-            if (transport is! NullTransport) { await transport.sendEvent(GameEvent(type: GameEventType.playerJoined, payload: {'resigned': true})); }
-            if (mounted) { navigator.pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const MainScreen()), (route) => false); }
+            if (transport is! NullTransport) { 
+              await transport.sendEvent(GameEvent(type: GameEventType.playerJoined, payload: {'resigned': true})); 
+              transport.disconnect();
+              ref.read(transportProvider.notifier).setTransport(NullTransport());
+            }
+            ref.read(matchProvider).value = null;
+            ref.read(matchStatusProvider.notifier).setStatus(MatchStatus.lobby);
+            ref.read(isPausedProvider.notifier).setPaused(false);
+
+            // 3. Navigate
+            if (mounted) {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const MainScreen()),
+                (route) => false,
+              );
+            }
           }, child: const Text('RESIGN', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold))),
         ],
       ),
@@ -325,11 +334,6 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
 
   void _onNumberTap(int index, int value) {
     if (_usedIndices.contains(index)) return;
-    
-    if (_activeJeopardy == JeopardyType.blindPool && !_revealedIndices.contains(index)) {
-      setState(() => _revealedIndices.add(index));
-      return; 
-    }
 
     setState(() {
       if (_currentExpression.isNotEmpty && RegExp(r'\d$').hasMatch(_currentExpression.trim())) { 
@@ -517,12 +521,6 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
           setState(() {
             _activeJeopardy = jeopardy; _lockedOperator = lockedOp; 
             
-            if (_activeJeopardy == JeopardyType.blindPool) {
-              _revealedIndices = {};
-            } else {
-              _revealedIndices = Set.from(Iterable.generate(numbers.length));
-            }
-
             _secondsLeft = ref.read(roundProvider).config.durationSeconds;
             if (_activeJeopardy == JeopardyType.speedDemon) _secondsLeft ~/= 2;
             
@@ -635,11 +633,11 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
     return SingleChildScrollView(
       child: Column(
         children: [
-          _AnimatedTarget(targets: round.targets, isHighStakes: _activeJeopardy == JeopardyType.doubleOrNothing, isObfuscated: _activeJeopardy == JeopardyType.targetObfuscation, entrance: _entranceController, isDesktop: ResponsiveLayout.isDesktop(context), match: match),
+          _AnimatedTarget(targets: round.targets, isHighStakes: _activeJeopardy == JeopardyType.doubleOrNothing, entrance: _entranceController, isDesktop: ResponsiveLayout.isDesktop(context), match: match),
           LayoutBuilder(builder: (context, constraints) {
             final isDesktop = ResponsiveLayout.isDesktop(context);
             return Padding(padding: EdgeInsets.symmetric(horizontal: isDesktop ? 60 : 20, vertical: 32), child: Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-              _NumbersSection(numbers: round.numbers, usedIndices: _usedIndices, revealedIndices: _revealedIndices, onNumberTap: _onNumberTap, entranceAnimation: _entranceController, focusedIndex: _focusedTokenIndex, isHorizontal: isDesktop),
+              _NumbersSection(numbers: round.numbers, usedIndices: _usedIndices, onNumberTap: _onNumberTap, entranceAnimation: _entranceController, focusedIndex: _focusedTokenIndex, isHorizontal: isDesktop),
               const SizedBox(height: 24),
               _ExpressionSection(currentExpression: _currentExpression, onBackspace: _backspace, isLarge: isDesktop),
               const SizedBox(height: 24),
@@ -653,36 +651,30 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
 }
 
 class _AnimatedTarget extends StatelessWidget {
-  final List<int> targets; final bool isHighStakes; final bool isObfuscated; final AnimationController entrance; final bool isDesktop; final MatchManager? match;
-  const _AnimatedTarget({required this.targets, required this.isHighStakes, this.isObfuscated = false, required this.entrance, this.isDesktop = false, this.match});
+  final List<int> targets; final bool isHighStakes; final AnimationController entrance; final bool isDesktop; final MatchManager? match;
+  const _AnimatedTarget({required this.targets, required this.isHighStakes, required this.entrance, this.isDesktop = false, this.match});
   
-  String _getObfuscatedTarget(int target) {
-     if (target < 50) return '???';
-     final parts = [target ~/ 2, target - (target ~/ 2)];
-     return '${parts[0]} + ${parts[1]}';
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context); final colorScheme = theme.colorScheme;
     final isDual = targets.length > 1;
     return FadeTransition(opacity: entrance, child: SlideTransition(position: Tween<Offset>(begin: const Offset(0, -0.2), end: Offset.zero).animate(CurvedAnimation(parent: entrance, curve: Curves.easeOutBack)), child: Container(width: double.infinity, alignment: Alignment.center, decoration: BoxDecoration(color: isHighStakes ? Colors.red.withValues(alpha: 0.1) : colorScheme.surfaceContainerLow, borderRadius: BorderRadius.vertical(bottom: Radius.circular(isDesktop ? 80 : 56)), boxShadow: [BoxShadow(color: isHighStakes ? Colors.red.withValues(alpha: 0.2) : colorScheme.onSurface.withValues(alpha: 0.05), blurRadius: 50, offset: const Offset(0, 20))]), child: Stack(children: [
       Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Text(isHighStakes ? 'DOUBLE OR NOTHING' : (isObfuscated ? 'CALCULATE TARGET' : (isDual ? 'TWO TARGETS' : 'TARGET')), style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: 10, color: isHighStakes ? Colors.red : colorScheme.onSurface.withValues(alpha: 0.3), fontSize: isDesktop ? 14 : 10)),
+        Text(isHighStakes ? 'DOUBLE OR NOTHING' : (isDual ? 'TWO TARGETS' : 'TARGET'), style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: 10, color: isHighStakes ? Colors.red : colorScheme.onSurface.withValues(alpha: 0.3), fontSize: isDesktop ? 14 : 10)),
         if (isDual)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                FittedBox(fit: BoxFit.scaleDown, child: Text(isObfuscated ? _getObfuscatedTarget(targets[0]) : '${targets[0]}', style: theme.textTheme.displayLarge?.copyWith(color: colorScheme.primary, fontSize: isDesktop ? 120 : 80, height: 1, fontWeight: FontWeight.w900))),
+                FittedBox(fit: BoxFit.scaleDown, child: Text('${targets[0]}', style: theme.textTheme.displayLarge?.copyWith(color: colorScheme.primary, fontSize: isDesktop ? 120 : 80, height: 1, fontWeight: FontWeight.w900))),
                 const SizedBox(width: 40),
-                FittedBox(fit: BoxFit.scaleDown, child: Text(isObfuscated ? _getObfuscatedTarget(targets[1]) : '${targets[1]}', style: theme.textTheme.displayLarge?.copyWith(color: colorScheme.secondary, fontSize: isDesktop ? 120 : 80, height: 1, fontWeight: FontWeight.w900))),
+                FittedBox(fit: BoxFit.scaleDown, child: Text('${targets[1]}', style: theme.textTheme.displayLarge?.copyWith(color: colorScheme.secondary, fontSize: isDesktop ? 120 : 80, height: 1, fontWeight: FontWeight.w900))),
               ],
             ),
           )
         else
-          FittedBox(fit: BoxFit.scaleDown, child: Text(isObfuscated ? _getObfuscatedTarget(targets.first) : '${targets.isNotEmpty ? targets.first : 0}', style: theme.textTheme.displayLarge?.copyWith(color: isHighStakes ? Colors.redAccent : colorScheme.primary, fontSize: isDesktop ? 120 : 110, height: 1, fontWeight: FontWeight.w900)))
+          FittedBox(fit: BoxFit.scaleDown, child: Text('${targets.isNotEmpty ? targets.first : 0}', style: theme.textTheme.displayLarge?.copyWith(color: isHighStakes ? Colors.redAccent : colorScheme.primary, fontSize: isDesktop ? 120 : 110, height: 1, fontWeight: FontWeight.w900)))
       ]),
       if (match?.gameMode == GameMode.endless) Positioned(top: 24, left: 24, child: Row(children: List.generate(3, (i) => Padding(padding: const EdgeInsets.only(right: 8), child: Icon(i < (match?.lives ?? 0) ? Icons.favorite_rounded : Icons.favorite_border_rounded, size: 28, color: i < (match?.lives ?? 0) ? Colors.redAccent : colorScheme.onSurface.withValues(alpha: 0.1))))))
     ]))));
@@ -690,25 +682,24 @@ class _AnimatedTarget extends StatelessWidget {
 }
 
 class _NumbersSection extends StatelessWidget {
-  final List<int> numbers; final List<int> usedIndices; final Set<int> revealedIndices; final Function(int, int) onNumberTap; final Animation<double> entranceAnimation; final int focusedIndex; final bool isHorizontal;
-  const _NumbersSection({required this.numbers, required this.usedIndices, required this.revealedIndices, required this.onNumberTap, required this.entranceAnimation, required this.focusedIndex, this.isHorizontal = false});
+  final List<int> numbers; final List<int> usedIndices; final Function(int, int) onNumberTap; final Animation<double> entranceAnimation; final int focusedIndex; final bool isHorizontal;
+  const _NumbersSection({required this.numbers, required this.usedIndices, required this.onNumberTap, required this.entranceAnimation, required this.focusedIndex, this.isHorizontal = false});
   @override
   Widget build(BuildContext context) {
     return Padding(padding: const EdgeInsets.symmetric(horizontal: 24), child: Wrap(spacing: isHorizontal ? 32 : 16, runSpacing: 16, alignment: WrapAlignment.center, children: List.generate(numbers.length, (i) {
       final isUsed = usedIndices.contains(i); final isFocused = i == focusedIndex;
-      final isRevealed = revealedIndices.contains(i);
-      return ScaleTransition(scale: CurvedAnimation(parent: entranceAnimation, curve: Interval(0.2 + (i * 0.1), 1.0, curve: Curves.elasticOut)), child: _NumberTile(value: numbers[i], isUsed: isUsed, isFocused: isFocused, isRevealed: isRevealed, onTap: () => onNumberTap(i, numbers[i]), small: !isHorizontal));
+      return ScaleTransition(scale: CurvedAnimation(parent: entranceAnimation, curve: Interval(0.2 + (i * 0.1), 1.0, curve: Curves.elasticOut)), child: _NumberTile(value: numbers[i], isUsed: isUsed, isFocused: isFocused, onTap: () => onNumberTap(i, numbers[i]), small: !isHorizontal));
     })));
   }
 }
 
 class _NumberTile extends StatelessWidget {
-  final int value; final bool isUsed; final bool isFocused; final bool isRevealed; final VoidCallback onTap; final bool small;
-  const _NumberTile({required this.value, required this.isUsed, required this.isFocused, required this.isRevealed, required this.onTap, this.small = false});
+  final int value; final bool isUsed; final bool isFocused; final VoidCallback onTap; final bool small;
+  const _NumberTile({required this.value, required this.isUsed, required this.isFocused, required this.onTap, this.small = false});
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context); final colorScheme = theme.colorScheme; final size = small ? 72.0 : 88.0;
-    return GestureDetector(onTap: isUsed ? null : onTap, child: AnimatedContainer(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut, width: size, height: size, decoration: BoxDecoration(color: isUsed ? colorScheme.surfaceContainerHighest : (isRevealed ? colorScheme.tertiaryContainer : colorScheme.primaryContainer), borderRadius: BorderRadius.circular(small ? 24 : 32), border: isFocused ? Border.all(color: colorScheme.primary, width: 4) : null, boxShadow: [BoxShadow(color: isUsed ? Colors.transparent : colorScheme.tertiary.withValues(alpha: 0.3), blurRadius: isUsed ? 0 : 25, offset: isUsed ? Offset.zero : const Offset(0, 10))]), alignment: Alignment.center, child: Text(isRevealed ? '$value' : '?', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900, color: isUsed ? colorScheme.onSurfaceVariant.withValues(alpha: 0.2) : (isRevealed ? colorScheme.onTertiaryContainer : colorScheme.onPrimaryContainer), fontSize: small ? 24 : 32))));
+    return GestureDetector(onTap: isUsed ? null : onTap, child: AnimatedContainer(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut, width: size, height: size, decoration: BoxDecoration(color: isUsed ? colorScheme.surfaceContainerHighest : colorScheme.primaryContainer, borderRadius: BorderRadius.circular(small ? 24 : 32), border: isFocused ? Border.all(color: colorScheme.primary, width: 4) : null, boxShadow: [BoxShadow(color: isUsed ? Colors.transparent : colorScheme.primary.withValues(alpha: 0.3), blurRadius: isUsed ? 0 : 25, offset: isUsed ? Offset.zero : const Offset(0, 10))]), alignment: Alignment.center, child: Text('$value', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900, color: isUsed ? colorScheme.onSurfaceVariant.withValues(alpha: 0.2) : colorScheme.onPrimaryContainer, fontSize: small ? 24 : 32))));
   }
 }
 

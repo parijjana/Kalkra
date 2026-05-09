@@ -434,48 +434,66 @@ class _HeroRecap extends StatelessWidget {
         
         const SizedBox(height: 24),
         
-        // 2. Strategy Card
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 20),
-          decoration: BoxDecoration(color: colorScheme.secondary),
-          child: Column(
-            children: [
-              Text('OPTIMAL STRATEGY', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 8, color: colorScheme.onSecondary.withValues(alpha: 0.5), fontSize: 14)),
-              const SizedBox(height: 24),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(solverExpression, style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.w900, fontSize: 80, color: colorScheme.onSecondary, letterSpacing: 4)),
-              ),
-            ],
-          ),
-        ),
-        
-        const SizedBox(height: 32),
-
-        // 3. User Results
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 40),
-          child: Column(
-            children: [
-              Text('YOUR SUBMISSION', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2, color: colorScheme.onSurface.withValues(alpha: 0.2), fontSize: 10)),
-              const SizedBox(height: 8),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(playerExpression.isEmpty ? 'NO SUBMISSION' : playerExpression, style: theme.textTheme.headlineMedium?.copyWith(fontFamily: 'monospace', fontWeight: FontWeight.w900, fontSize: 32)),
-              ),
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                decoration: BoxDecoration(
-                  color: isExact ? Colors.green : colorScheme.onSurface,
-                  borderRadius: BorderRadius.circular(20),
+        // 2. Main Solution Card (Dynamic based on outcome)
+        if (isExact)
+          // Success Highlight: Player's Solution is the Hero
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 20),
+            decoration: const BoxDecoration(color: Colors.green),
+            child: Column(
+              children: [
+                const Text('TARGET REACHED!', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 8, color: Colors.white70, fontSize: 14)),
+                const SizedBox(height: 24),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(playerExpression, style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.w900, fontSize: 80, color: Colors.white, letterSpacing: 4)),
                 ),
-                child: Text('RESULT: $playerValue', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22, color: Colors.white)),
-              ),
-            ],
+              ],
+            ),
+          )
+        else ...[
+          // Solver's "Possible Solution" shown as a guide
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 20),
+            decoration: BoxDecoration(color: colorScheme.secondary),
+            child: Column(
+              children: [
+                Text('POSSIBLE SOLUTION', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 8, color: colorScheme.onSecondary.withValues(alpha: 0.5), fontSize: 14)),
+                const SizedBox(height: 24),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(solverExpression, style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.w900, fontSize: 80, color: colorScheme.onSecondary, letterSpacing: 4)),
+                ),
+              ],
+            ),
           ),
-        ),
+          const SizedBox(height: 32),
+          // User Results (only if not exact, to show how close they were)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Column(
+              children: [
+                Text('YOUR SUBMISSION', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2, color: colorScheme.onSurface.withValues(alpha: 0.2), fontSize: 10)),
+                const SizedBox(height: 8),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(playerExpression.isEmpty ? 'NO SUBMISSION' : playerExpression, style: theme.textTheme.headlineMedium?.copyWith(fontFamily: 'monospace', fontWeight: FontWeight.w900, fontSize: 32)),
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                  decoration: BoxDecoration(
+                    color: colorScheme.onSurface,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text('RESULT: $playerValue', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22, color: Colors.white)),
+                ),
+              ],
+            ),
+          ),
+        ],
 
         const SizedBox(height: 48),
 

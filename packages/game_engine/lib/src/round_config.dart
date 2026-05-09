@@ -1,5 +1,5 @@
-enum PoolType { standard, smallOnly, primesOnly, expanding }
-enum TargetType { standard, ascending, fixed100, countdown }
+enum PoolType { standard, smallOnly, primesOnly, expanding, powersOf2, powersOf3 }
+enum TargetType { standard, ascending, fixed100, countdown, powersOf2, powersOf3 }
 
 abstract class RoundConstraint {
   String get description;
@@ -140,5 +140,17 @@ class RoundConfig {
     title: 'Tunnel Vision',
     persistentTarget: true,
     rewardBump: 5,
+  );
+
+  static const powersOf2 = RoundConfig(
+    title: "2's Powers",
+    poolType: PoolType.powersOf2,
+    targetType: TargetType.powersOf2,
+  );
+
+  static const powersOf3 = RoundConfig(
+    title: "3's Powers",
+    poolType: PoolType.powersOf3,
+    targetType: TargetType.powersOf3,
   );
 }

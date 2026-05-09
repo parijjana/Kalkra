@@ -106,7 +106,17 @@ class GlobalDrawer extends ConsumerWidget {
                     ),
                   ]),
 
-                  if (!isSolo) ...[
+                  if (ref.watch(matchProvider).value != null) ...[
+                    const Divider(height: 40, indent: 24, endIndent: 24),
+                    _buildDrawerSection(context, 'ACTIVE MATCH', [
+                      _DrawerItem(
+                        icon: Icons.stop_circle_rounded,
+                        label: 'END MATCH',
+                        onTap: () => _endMatch(context, ref, isSolo),
+                        color: Colors.redAccent,
+                      ),
+                    ]),
+                  ] else if (!isSolo) ...[
                     const Divider(height: 40, indent: 24, endIndent: 24),
                     _buildDrawerSection(context, 'MULTIPLAYER CONTROL', [
                       _DrawerItem(
@@ -131,6 +141,50 @@ class GlobalDrawer extends ConsumerWidget {
   void _navTo(BuildContext context, Widget screen) {
     Navigator.pop(context);
     Navigator.of(context).push(MaterialPageRoute(builder: (context) => screen));
+  }
+
+  void _endMatch(BuildContext context, WidgetRef ref, bool isSolo) {
+    // 1. Close the drawer first
+    Navigator.pop(context);
+    
+    final transport = ref.read(transportProvider);
+    final isHost = transport is LanHostTransport;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(isSolo ? 'END MISSION?' : 'TERMINATE ARENA?'),
+        content: Text(isSolo 
+          ? 'Current progress will be lost.' 
+          : (isHost ? 'This will kick all players and close the lobby.' : 'You will be removed from the active match.')),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('CANCEL')),
+          TextButton(
+            onPressed: () {
+              // 1. Close Dialog
+              Navigator.pop(dialogContext);
+
+              // 2. Reset Game State
+              if (!isSolo) {
+                transport.disconnect();
+                ref.read(transportProvider.notifier).setTransport(NullTransport());
+              }
+              ref.read(matchProvider).value = null;
+              ref.read(matchStatusProvider.notifier).setStatus(MatchStatus.lobby);
+              ref.read(isPausedProvider.notifier).setPaused(false);
+
+              // 3. Navigate back to Main Screen
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const MainScreen()),
+                (route) => false,
+              );
+            }, 
+            child: Text(isSolo ? 'END' : 'TERMINATE', style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
   }
 
   void _resign(BuildContext context, WidgetRef ref, bool isHost) {

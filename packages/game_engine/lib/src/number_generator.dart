@@ -7,6 +7,8 @@ class NumberGenerator {
   static const _smallNumbers = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10];
   static const _largeNumbers = [25, 50, 75, 100];
   static const _primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47];
+  static const _powersOf2 = [2, 4, 8, 16, 32, 64, 128, 256];
+  static const _powersOf3 = [3, 9, 27, 81, 243, 729];
 
   List<int> generatePool({
     Difficulty difficulty = Difficulty.medium, 
@@ -15,6 +17,16 @@ class NumberGenerator {
   }) {
     final random = Random(seed);
     
+    if (poolType == PoolType.powersOf2) {
+      final selected = List<int>.from(_powersOf2)..shuffle(random);
+      return selected.take(6).toList()..shuffle(random);
+    }
+
+    if (poolType == PoolType.powersOf3) {
+      final selected = List<int>.from(_powersOf3)..shuffle(random);
+      return selected.take(6).toList()..shuffle(random);
+    }
+
     if (poolType == PoolType.smallOnly) {
       final selectedSmall = List<int>.from(_smallNumbers)..shuffle(random);
       return selectedSmall.take(6).toList()..shuffle(random);

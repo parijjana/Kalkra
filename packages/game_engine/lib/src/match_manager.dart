@@ -8,11 +8,9 @@ enum JeopardyType {
   speedDemon,      // 50% less time
   operatorLockout, // Disables one random operator (+, -, *, /)
   doubleOrNothing, // Exact match gives 20 points, off-by-1 gives 0.
-  targetObfuscation, // Target is displayed as an expression
-  blindPool,       // Numbers are hidden until tapped
 }
 
-enum GameMode { practice, endless, progressive, multiplayer, tunnelVision, permutations }
+enum GameMode { practice, endless, progressive, multiplayer, tunnelVision, permutations, powersOf2, powersOf3 }
 
 class MatchRoundData {
   final List<int> numbers;
@@ -168,6 +166,10 @@ class MatchManager {
           config = RoundConfig.permutations;
         } else if (args.gameMode == GameMode.tunnelVision) {
           config = RoundConfig.tunnelVision;
+        } else if (args.gameMode == GameMode.powersOf2) {
+          config = RoundConfig.powersOf2;
+        } else if (args.gameMode == GameMode.powersOf3) {
+          config = RoundConfig.powersOf3;
         }
         
         if (jeopardyIndices.contains(args.gameMode == GameMode.endless ? relativeIndex : absoluteRoundIndex - 1)) {

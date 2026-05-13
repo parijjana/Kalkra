@@ -20,7 +20,9 @@ class MatchSummaryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(currentScreenIdProvider.notifier).setScreenId('MatchSummaryScreen');
+      ref
+          .read(currentScreenIdProvider.notifier)
+          .setScreenId('MatchSummaryScreen');
     });
 
     final theme = Theme.of(context);
@@ -28,12 +30,19 @@ class MatchSummaryScreen extends ConsumerWidget {
     final session = ref.watch(sessionProvider);
     final isHost = ref.read(transportProvider) is LanHostTransport;
 
-    final sortedTeams = [1, 2, 3, 4].where((tId) => 
-      session.players.values.any((p) => p.teamId == tId)
-    ).toList()..sort((a, b) => (teamTotalScores[b] ?? 0).compareTo(teamTotalScores[a] ?? 0));
+    final sortedTeams =
+        [1, 2, 3, 4]
+            .where((tId) => session.players.values.any((p) => p.teamId == tId))
+            .toList()
+          ..sort(
+            (a, b) =>
+                (teamTotalScores[b] ?? 0).compareTo(teamTotalScores[a] ?? 0),
+          );
 
     final winnerId = sortedTeams.isNotEmpty ? sortedTeams.first : null;
-    final winnerName = winnerId != null ? (session.teamNames[winnerId] ?? 'Team $winnerId') : 'Unknown';
+    final winnerName = winnerId != null
+        ? (session.teamNames[winnerId] ?? 'Team $winnerId')
+        : 'Unknown';
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -43,18 +52,43 @@ class MatchSummaryScreen extends ConsumerWidget {
           child: Column(
             children: [
               const SizedBox(height: 40),
-              Text('MATCH COMPLETE', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 8, color: colorScheme.primary.withValues(alpha: 0.5), fontSize: 12)),
+              Text(
+                'MATCH COMPLETE',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 8,
+                  color: colorScheme.primary.withValues(alpha: 0.5),
+                  fontSize: 12,
+                ),
+              ),
               const SizedBox(height: 8),
-              Text(winnerName.toUpperCase(), style: theme.textTheme.displayMedium?.copyWith(fontWeight: FontWeight.w900, color: colorScheme.onSurface)),
-              const Text('VICTORY', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 12, color: Colors.amber, fontSize: 24)),
-              
+              Text(
+                winnerName.toUpperCase(),
+                style: theme.textTheme.displayMedium?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              const Text(
+                'VICTORY',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 12,
+                  color: Colors.amber,
+                  fontSize: 24,
+                ),
+              ),
+
               const SizedBox(height: 48),
-              
+
               // Burnup Chart
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
-                  child: _BurnupChart(teamTotalScores: teamTotalScores, teamNames: session.teamNames),
+                  child: _BurnupChart(
+                    teamTotalScores: teamTotalScores,
+                    teamNames: session.teamNames,
+                  ),
                 ),
               ),
 
@@ -70,16 +104,45 @@ class MatchSummaryScreen extends ConsumerWidget {
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: isWinner ? Colors.amber.withValues(alpha: 0.1) : colorScheme.surfaceContainerHigh,
+                        color: isWinner
+                            ? Colors.amber.withValues(alpha: 0.1)
+                            : colorScheme.surfaceContainerHigh,
                         borderRadius: BorderRadius.circular(24),
-                        border: isWinner ? Border.all(color: Colors.amber, width: 2) : null,
+                        border: isWinner
+                            ? Border.all(color: Colors.amber, width: 2)
+                            : null,
                       ),
                       child: Row(
                         children: [
-                          Text('#${sortedTeams.indexOf(tId) + 1}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.grey)),
+                          Text(
+                            '#${sortedTeams.indexOf(tId) + 1}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 18,
+                              color: Colors.grey,
+                            ),
+                          ),
                           const SizedBox(width: 20),
-                          Expanded(child: Text(session.teamNames[tId]?.toUpperCase() ?? 'TEAM $tId', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16))),
-                          Text('${teamTotalScores[tId]} PTS', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: isWinner ? Colors.amber : colorScheme.primary)),
+                          Expanded(
+                            child: Text(
+                              session.teamNames[tId]?.toUpperCase() ??
+                                  'TEAM $tId',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '${teamTotalScores[tId]} PTS',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 20,
+                              color: isWinner
+                                  ? Colors.amber
+                                  : colorScheme.primary,
+                            ),
+                          ),
                         ],
                       ),
                     );
@@ -99,38 +162,62 @@ class MatchSummaryScreen extends ConsumerWidget {
                     onPressed: () {
                       if (isHost) {
                         // 1. Record Outcome locally
-                        if (winnerId != null) session.recordMatchOutcome(winnerId);
+                        if (winnerId != null)
+                          session.recordMatchOutcome(winnerId);
                         session.resetScores();
-                        
+
                         // 2. Transition State
-                        ref.read(matchStatusProvider.notifier).setStatus(MatchStatus.lobby);
+                        ref
+                            .read(matchStatusProvider.notifier)
+                            .setStatus(MatchStatus.lobby);
                         ref.read(roundStartTimeProvider.notifier).setTime(null);
-                        
+
                         // 3. Broadcast return to lobby with FULL session history
-                        ref.read(transportProvider).sendEvent(GameEvent(
-                          type: GameEventType.matchEnded,
-                          payload: {
-                            'matchHistory': session.matchHistory.map((m) => {
-                              'date': m.date.toIso8601String(),
-                              'winnerTeamId': m.winnerTeamId,
-                              'winnerName': m.winnerName,
-                              'teamScores': m.teamScores.map((k, v) => MapEntry(k.toString(), v)),
-                            }).toList(),
-                            'sessionTeamScores': session.sessionTeamScores.map((k, v) => MapEntry(k.toString(), v)),
-                          },
-                        ));
+                        ref
+                            .read(transportProvider)
+                            .sendEvent(
+                              GameEvent(
+                                type: GameEventType.matchEnded,
+                                payload: {
+                                  'matchHistory': session.matchHistory
+                                      .map(
+                                        (m) => {
+                                          'date': m.date.toIso8601String(),
+                                          'winnerTeamId': m.winnerTeamId,
+                                          'winnerName': m.winnerName,
+                                          'teamScores': m.teamScores.map(
+                                            (k, v) => MapEntry(k.toString(), v),
+                                          ),
+                                        },
+                                      )
+                                      .toList(),
+                                  'sessionTeamScores': session.sessionTeamScores
+                                      .map((k, v) => MapEntry(k.toString(), v)),
+                                },
+                              ),
+                            );
                       }
                       Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (context) => const StagingScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => const StagingScreen(),
+                        ),
                         (route) => false,
                       );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.onSurface,
                       foregroundColor: colorScheme.surface,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(32),
+                      ),
                     ),
-                    child: const Text('RETURN TO LOBBY', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 4)),
+                    child: const Text(
+                      'RETURN TO LOBBY',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 4,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -151,9 +238,11 @@ class _BurnupChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final teamColors = [Colors.blue, Colors.orange, Colors.purple, Colors.teal];
-    
+
     int maxScore = 1;
-    for (var s in teamTotalScores.values) { if (s > maxScore) maxScore = s; }
+    for (var s in teamTotalScores.values) {
+      if (s > maxScore) maxScore = s;
+    }
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -170,7 +259,14 @@ class _BurnupChart extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Text('$score', style: TextStyle(fontWeight: FontWeight.w900, color: color, fontSize: 12)),
+                Text(
+                  '$score',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    color: color,
+                    fontSize: 12,
+                  ),
+                ),
                 const SizedBox(height: 8),
                 AnimatedContainer(
                   duration: const Duration(seconds: 1),
@@ -183,14 +279,29 @@ class _BurnupChart extends StatelessWidget {
                       end: Alignment.bottomCenter,
                       colors: [color, color.withValues(alpha: 0.3)],
                     ),
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                    boxShadow: [BoxShadow(color: color.withValues(alpha: 0.2), blurRadius: 15, offset: const Offset(0, 5))],
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(12),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withValues(alpha: 0.2),
+                        blurRadius: 15,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 12),
                 FittedBox(
                   fit: BoxFit.scaleDown,
-                  child: Text(teamNames[tId]?.toUpperCase() ?? 'T$tId', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 1)),
+                  child: Text(
+                    teamNames[tId]?.toUpperCase() ?? 'T$tId',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 10,
+                      letterSpacing: 1,
+                    ),
+                  ),
                 ),
               ],
             ),

@@ -9,15 +9,26 @@ class HostedSessionParticipant {
   final int elo;
   final int score;
 
-  HostedSessionParticipant({required this.name, required this.deviceId, required this.elo, required this.score});
+  HostedSessionParticipant({
+    required this.name,
+    required this.deviceId,
+    required this.elo,
+    required this.score,
+  });
 
-  Map<String, dynamic> toJson() => {'name': name, 'deviceId': deviceId, 'elo': elo, 'score': score};
-  factory HostedSessionParticipant.fromJson(Map<String, dynamic> json) => HostedSessionParticipant(
-    name: json['name'],
-    deviceId: json['deviceId'],
-    elo: json['elo'],
-    score: json['score'],
-  );
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'deviceId': deviceId,
+    'elo': elo,
+    'score': score,
+  };
+  factory HostedSessionParticipant.fromJson(Map<String, dynamic> json) =>
+      HostedSessionParticipant(
+        name: json['name'],
+        deviceId: json['deviceId'],
+        elo: json['elo'],
+        score: json['score'],
+      );
 }
 
 class HostedSessionRecord {
@@ -26,7 +37,12 @@ class HostedSessionRecord {
   final String difficulty;
   final int rounds;
 
-  HostedSessionRecord({required this.date, required this.participants, required this.difficulty, required this.rounds});
+  HostedSessionRecord({
+    required this.date,
+    required this.participants,
+    required this.difficulty,
+    required this.rounds,
+  });
 
   Map<String, dynamic> toJson() => {
     'date': date.toIso8601String(),
@@ -35,18 +51,21 @@ class HostedSessionRecord {
     'rounds': rounds,
   };
 
-  factory HostedSessionRecord.fromJson(Map<String, dynamic> json) => HostedSessionRecord(
-    date: DateTime.parse(json['date']),
-    participants: (json['participants'] as List).map((p) => HostedSessionParticipant.fromJson(p)).toList(),
-    difficulty: json['difficulty'],
-    rounds: json['rounds'],
-  );
+  factory HostedSessionRecord.fromJson(Map<String, dynamic> json) =>
+      HostedSessionRecord(
+        date: DateTime.parse(json['date']),
+        participants: (json['participants'] as List)
+            .map((p) => HostedSessionParticipant.fromJson(p))
+            .toList(),
+        difficulty: json['difficulty'],
+        rounds: json['rounds'],
+      );
 }
 
 class HostedSessionManager extends Notifier<List<HostedSessionRecord>> {
   static const String _historyKey = 'kalkra_hosted_history';
   static const String _banListKey = 'kalkra_banned_devices';
-  
+
   late SharedPreferences _prefs;
 
   @override
@@ -57,14 +76,21 @@ class HostedSessionManager extends Notifier<List<HostedSessionRecord>> {
 
   List<HostedSessionRecord> _loadHistory() {
     final data = _prefs.getStringList(_historyKey) ?? [];
-    return data.map((s) => HostedSessionRecord.fromJson(jsonDecode(s))).toList().reversed.toList();
+    return data
+        .map((s) => HostedSessionRecord.fromJson(jsonDecode(s)))
+        .toList()
+        .reversed
+        .toList();
   }
 
   Future<void> recordSession(HostedSessionRecord record) async {
     final current = _loadHistory().reversed.toList();
     current.add(record);
     if (current.length > 50) current.removeAt(0); // Pragmatic limit
-    await _prefs.setStringList(_historyKey, current.map((s) => jsonEncode(s.toJson())).toList());
+    await _prefs.setStringList(
+      _historyKey,
+      current.map((s) => jsonEncode(s.toJson())).toList(),
+    );
     state = current.reversed.toList();
   }
 
@@ -85,4 +111,7 @@ class HostedSessionManager extends Notifier<List<HostedSessionRecord>> {
   }
 }
 
-final hostedSessionProvider = NotifierProvider<HostedSessionManager, List<HostedSessionRecord>>(HostedSessionManager.new);
+final hostedSessionProvider =
+    NotifierProvider<HostedSessionManager, List<HostedSessionRecord>>(
+      HostedSessionManager.new,
+    );

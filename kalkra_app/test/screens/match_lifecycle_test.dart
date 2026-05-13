@@ -9,7 +9,9 @@ import 'package:kalkra_app/src/providers/game_providers.dart';
 import 'package:game_engine/game_engine.dart';
 
 void main() {
-  testWidgets('Solo: Match lifecycle, overrun prevention, and score tracking', (tester) async {
+  testWidgets('Solo: Match lifecycle, overrun prevention, and score tracking', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(2560, 1440);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(() => tester.view.resetPhysicalSize());
@@ -19,22 +21,22 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
 
     final container = ProviderContainer(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-      ],
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
     );
 
     // 1. Initialize a 2-round match
     final match = MatchManager(totalRounds: 2);
     match.generateMatch();
     container.read(matchProvider).value = match;
-    
+
     final session = container.read(sessionProvider);
     session.resetScores();
     session.addPlayer('solo', 'Tester');
 
     final round = container.read(roundProvider);
-    round.startRound(data: MatchRoundData.mock(numbers: [1, 2, 3], targets: [6]));
+    round.startRound(
+      data: MatchRoundData.mock(numbers: [1, 2, 3], targets: [6]),
+    );
 
     // --- ROUND 1 ---
     await tester.pumpWidget(
@@ -50,18 +52,22 @@ void main() {
     expect(find.textContaining('SCORE: 0'), findsAtLeast(1));
 
     // Build simple expression and submit
-    await tester.pump(const Duration(milliseconds: 500)); // Wait for entrance animations
-    final firstTile = find.byWidgetPredicate((w) => w.runtimeType.toString() == '_NumberTile').first;
+    await tester.pump(
+      const Duration(milliseconds: 500),
+    ); // Wait for entrance animations
+    final firstTile = find
+        .byWidgetPredicate((w) => w.runtimeType.toString() == '_NumberTile')
+        .first;
     await tester.tap(firstTile);
     await tester.pump();
-    
+
     await tester.tap(find.text('SUBMIT'));
     await tester.pumpAndSettle();
 
     expect(find.byType(ResultsScreen), findsOneWidget);
     // Score should be > 0 now (exact match gives points)
     expect(find.textContaining('PTS'), findsAtLeast(1));
-    
+
     // --- ROUND 2 ---
     expect(find.text('NEXT ROUND'), findsOneWidget);
     await tester.tap(find.text('NEXT ROUND'));
@@ -70,10 +76,12 @@ void main() {
     expect(find.textContaining('ROUND 2/2'), findsAtLeast(1));
     // Verify cumulative score is shown (non-zero)
     expect(find.textContaining('SCORE: '), findsAtLeast(1));
-    
+
     // Build and submit another
     await tester.pump(const Duration(milliseconds: 500));
-    final secondTile = find.byWidgetPredicate((w) => w.runtimeType.toString() == '_NumberTile').first;
+    final secondTile = find
+        .byWidgetPredicate((w) => w.runtimeType.toString() == '_NumberTile')
+        .first;
     await tester.tap(secondTile);
     await tester.tap(find.text('SUBMIT'));
     await tester.pumpAndSettle();
@@ -87,7 +95,7 @@ void main() {
 
     await tester.tap(find.text('FINISH MATCH'));
     await tester.pumpAndSettle();
-    
+
     // Now navigates to SoloSummaryScreen
     expect(find.byType(SoloSummaryScreen), findsOneWidget);
 

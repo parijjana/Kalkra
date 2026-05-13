@@ -10,7 +10,7 @@ class DebugOverlay extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (!AppConfig.showDebugOverlay) return child;
-    
+
     final screenId = ref.watch(currentScreenIdProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -27,7 +27,10 @@ class DebugOverlay extends ConsumerWidget {
               decoration: BoxDecoration(
                 color: Colors.black.withValues(alpha: 0.8),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: colorScheme.primary.withValues(alpha: 0.5), width: 1),
+                border: Border.all(
+                  color: colorScheme.primary.withValues(alpha: 0.5),
+                  width: 1,
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: colorScheme.primary.withValues(alpha: 0.2),

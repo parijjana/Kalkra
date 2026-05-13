@@ -15,7 +15,8 @@ class CountdownOverlay extends StatefulWidget {
   State<CountdownOverlay> createState() => _CountdownOverlayState();
 }
 
-class _CountdownOverlayState extends State<CountdownOverlay> with TickerProviderStateMixin {
+class _CountdownOverlayState extends State<CountdownOverlay>
+    with TickerProviderStateMixin {
   late Timer _timer;
   int _secondsRemaining = 3;
   late AnimationController _controller;
@@ -29,14 +30,16 @@ class _CountdownOverlayState extends State<CountdownOverlay> with TickerProvider
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    
-    _scaleAnimation = Tween<double>(begin: 0.5, end: 2.5).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
-    
-    _opacityAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
-    );
+
+    _scaleAnimation = Tween<double>(
+      begin: 0.5,
+      end: 2.5,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+
+    _opacityAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
 
     _startCountdown();
   }
@@ -48,7 +51,7 @@ class _CountdownOverlayState extends State<CountdownOverlay> with TickerProvider
     _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       final now = DateTime.now().millisecondsSinceEpoch;
       final diff = widget.targetTimeMillis - now;
-      
+
       final newSeconds = (diff / 1000).ceil();
       if (newSeconds != _secondsRemaining) {
         if (newSeconds <= 0) {

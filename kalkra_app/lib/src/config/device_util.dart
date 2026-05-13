@@ -10,18 +10,18 @@ class DeviceIdUtil {
   static Future<String> getDeviceId() async {
     final prefs = await SharedPreferences.getInstance();
     String? storedId = prefs.getString(_storageKey);
-    
+
     if (storedId != null) {
       return storedId;
     }
 
     String deviceId = const Uuid().v4();
-    
+
     if (kIsWeb) {
       await prefs.setString(_storageKey, deviceId);
       return deviceId;
     }
-    
+
     try {
       final deviceInfo = DeviceInfoPlugin();
       if (Platform.isAndroid) {

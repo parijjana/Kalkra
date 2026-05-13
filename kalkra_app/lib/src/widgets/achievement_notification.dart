@@ -31,10 +31,16 @@ class AchievementNotification extends ConsumerWidget {
                 );
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.black.withValues(alpha: 0.9), Colors.grey.shade900.withValues(alpha: 0.9)],
+                    colors: [
+                      Colors.black.withValues(alpha: 0.9),
+                      Colors.grey.shade900.withValues(alpha: 0.9),
+                    ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -51,7 +57,11 @@ class AchievementNotification extends ConsumerWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.emoji_events_rounded, color: Colors.amber, size: 40),
+                    const Icon(
+                      Icons.emoji_events_rounded,
+                      color: Colors.amber,
+                      size: 40,
+                    ),
                     const SizedBox(width: 20),
                     Flexible(
                       child: Column(

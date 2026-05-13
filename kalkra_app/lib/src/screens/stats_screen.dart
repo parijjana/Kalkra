@@ -24,7 +24,10 @@ class StatsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('GOT IT', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text(
+              'GOT IT',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -42,41 +45,47 @@ class StatsScreen extends ConsumerWidget {
     final isDesktop = ResponsiveLayout.isDesktop(context);
 
     return careerAsync.when(
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (err, stack) => Scaffold(body: Center(child: Text('Vault Error: $err'))),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (err, stack) =>
+          Scaffold(body: Center(child: Text('Vault Error: $err'))),
       data: (career) => Scaffold(
         backgroundColor: colorScheme.surface,
         drawer: const GlobalDrawer(),
-        appBar: isDesktop 
-          ? const TopNavBar(activeId: 'StatsScreen', showMenu: true) 
-          : AppBar(
-              title: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SvgPicture.asset(
-                    'assets/images/app_icon.svg',
-                    width: 32,
-                    height: 32,
-                  ),
-                  const SizedBox(width: 12),
-                  const Flexible(
-                    child: Text(
-                      'CAREER ANALYTICS', 
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2, fontSize: 18),
+        appBar: isDesktop
+            ? const TopNavBar(activeId: 'StatsScreen', showMenu: true)
+            : AppBar(
+                title: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SvgPicture.asset(
+                      'assets/images/app_icon.svg',
+                      width: 32,
+                      height: 32,
                     ),
+                    const SizedBox(width: 12),
+                    const Flexible(
+                      child: Text(
+                        'CAREER ANALYTICS',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 2,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: colorScheme.primary,
+                foregroundColor: Colors.white,
+                leading: Builder(
+                  builder: (context) => IconButton(
+                    icon: const Icon(Icons.menu_rounded),
+                    onPressed: () => Scaffold.of(context).openDrawer(),
                   ),
-                ],
-              ),
-              backgroundColor: colorScheme.primary,
-              foregroundColor: Colors.white,
-              leading: Builder(
-                builder: (context) => IconButton(
-                  icon: const Icon(Icons.menu_rounded),
-                  onPressed: () => Scaffold.of(context).openDrawer(),
                 ),
               ),
-            ),
         body: VectorBackground(
           child: ResponsiveLayout(
             mobile: _buildMobile(context, theme, colorScheme, career),
@@ -87,7 +96,12 @@ class StatsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMobile(BuildContext context, ThemeData theme, ColorScheme colorScheme, dynamic career) {
+  Widget _buildMobile(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    dynamic career,
+  ) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -106,7 +120,13 @@ class StatsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildDesktop(BuildContext context, ThemeData theme, ColorScheme colorScheme, dynamic career, WidgetRef ref) {
+  Widget _buildDesktop(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    dynamic career,
+    WidgetRef ref,
+  ) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(80),
       child: Center(
@@ -115,10 +135,24 @@ class StatsScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('CAREER ANALYTICS', style: theme.textTheme.displayMedium?.copyWith(fontWeight: FontWeight.w900, color: colorScheme.primary)),
+              Text(
+                'CAREER ANALYTICS',
+                style: theme.textTheme.displayMedium?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: colorScheme.primary,
+                ),
+              ),
               const SizedBox(height: 12),
-              Text('QUANTIFY YOUR COGNITIVE SUPREMACY', style: TextStyle(letterSpacing: 4, color: colorScheme.onSurface.withValues(alpha: 0.4), fontWeight: FontWeight.w900, fontSize: 12)),
-              
+              Text(
+                'QUANTIFY YOUR COGNITIVE SUPREMACY',
+                style: TextStyle(
+                  letterSpacing: 4,
+                  color: colorScheme.onSurface.withValues(alpha: 0.4),
+                  fontWeight: FontWeight.w900,
+                  fontSize: 12,
+                ),
+              ),
+
               const SizedBox(height: 80),
 
               Row(
@@ -128,7 +162,12 @@ class StatsScreen extends ConsumerWidget {
                     flex: 3,
                     child: Column(
                       children: [
-                        _buildRankCard(colorScheme, career, theme, isDesktop: true),
+                        _buildRankCard(
+                          colorScheme,
+                          career,
+                          theme,
+                          isDesktop: true,
+                        ),
                         const SizedBox(height: 40),
                         _buildStatsGrid(context, career, isDesktop: true),
                       ],
@@ -155,7 +194,12 @@ class StatsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildRankCard(ColorScheme colorScheme, dynamic career, ThemeData theme, {bool isDesktop = false}) {
+  Widget _buildRankCard(
+    ColorScheme colorScheme,
+    dynamic career,
+    ThemeData theme, {
+    bool isDesktop = false,
+  }) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(isDesktop ? 60 : 32),
@@ -164,26 +208,48 @@ class StatsScreen extends ConsumerWidget {
           colors: [colorScheme.primary, colorScheme.primaryContainer],
         ),
         borderRadius: BorderRadius.circular(isDesktop ? 60 : 48),
-        boxShadow: [BoxShadow(color: colorScheme.primary.withValues(alpha: 0.3), blurRadius: 40, offset: const Offset(0, 20))],
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.primary.withValues(alpha: 0.3),
+            blurRadius: 40,
+            offset: const Offset(0, 20),
+          ),
+        ],
       ),
       child: Column(
         children: [
           Text(
             'CURRENT RANK',
-            style: TextStyle(color: colorScheme.onPrimary.withValues(alpha: 0.6), fontWeight: FontWeight.w900, letterSpacing: 4, fontSize: isDesktop ? 14 : 10),
+            style: TextStyle(
+              color: colorScheme.onPrimary.withValues(alpha: 0.6),
+              fontWeight: FontWeight.w900,
+              letterSpacing: 4,
+              fontSize: isDesktop ? 14 : 10,
+            ),
           ),
           const SizedBox(height: 16),
           Text(
             '${career.elo} ELO',
-            style: theme.textTheme.displayLarge?.copyWith(color: colorScheme.onPrimary, fontSize: isDesktop ? 80 : 48),
+            style: theme.textTheme.displayLarge?.copyWith(
+              color: colorScheme.onPrimary,
+              fontSize: isDesktop ? 80 : 48,
+            ),
           ),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Text(
               _getTier(career.elo),
-              style: TextStyle(color: colorScheme.tertiaryContainer, fontWeight: FontWeight.w900, fontSize: isDesktop ? 20 : 14, letterSpacing: 2),
+              style: TextStyle(
+                color: colorScheme.tertiaryContainer,
+                fontWeight: FontWeight.w900,
+                fontSize: isDesktop ? 20 : 14,
+                letterSpacing: 2,
+              ),
             ),
           ),
         ],
@@ -191,7 +257,11 @@ class StatsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatsGrid(BuildContext context, dynamic career, {bool isDesktop = false}) {
+  Widget _buildStatsGrid(
+    BuildContext context,
+    dynamic career, {
+    bool isDesktop = false,
+  }) {
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -205,28 +275,44 @@ class StatsScreen extends ConsumerWidget {
           value: '${career.avgSpeedSeconds.toStringAsFixed(1)}s',
           icon: Icons.bolt_rounded,
           color: Colors.orange,
-          onInfo: () => _showTooltip(context, 'SPEED', 'Average number of seconds from the moment numbers appear to when you hit SUBMIT.'),
+          onInfo: () => _showTooltip(
+            context,
+            'SPEED',
+            'Average number of seconds from the moment numbers appear to when you hit SUBMIT.',
+          ),
         ),
         _StatCard(
           title: 'ACCURACY',
           value: '±${career.avgAccuracy.toStringAsFixed(1)}',
           icon: Icons.track_changes_rounded,
           color: Colors.redAccent,
-          onInfo: () => _showTooltip(context, 'ACCURACY', 'The average difference between your mathematical result and the target number. Lower is better!'),
+          onInfo: () => _showTooltip(
+            context,
+            'ACCURACY',
+            'The average difference between your mathematical result and the target number. Lower is better!',
+          ),
         ),
         _StatCard(
           title: 'WINS',
           value: '${career.matchesWon}',
           icon: Icons.emoji_events_rounded,
           color: Colors.amber,
-          onInfo: () => _showTooltip(context, 'WINS', 'Total number of multiplayer sessions where you finished with the highest cumulative score.'),
+          onInfo: () => _showTooltip(
+            context,
+            'WINS',
+            'Total number of multiplayer sessions where you finished with the highest cumulative score.',
+          ),
         ),
         _StatCard(
           title: 'BEST STREAK',
           value: '${career.bestStreak}',
           icon: Icons.whatshot_rounded,
           color: Colors.deepOrange,
-          onInfo: () => _showTooltip(context, 'BEST STREAK', 'The highest number of consecutive rounds where you achieved an EXACT match to the target.'),
+          onInfo: () => _showTooltip(
+            context,
+            'BEST STREAK',
+            'The highest number of consecutive rounds where you achieved an EXACT match to the target.',
+          ),
         ),
       ],
     );
@@ -237,18 +323,34 @@ class StatsScreen extends ConsumerWidget {
       children: [
         Text(
           'MATCH LOGS',
-          style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2, color: colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 14),
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            letterSpacing: 2,
+            color: colorScheme.onSurface.withValues(alpha: 0.5),
+            fontSize: 14,
+          ),
         ),
         const Spacer(),
         TextButton.icon(
-          onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (context) => const HostedHistoryScreen())),
+          onPressed: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const HostedHistoryScreen(),
+            ),
+          ),
           icon: const Icon(Icons.dns_rounded, size: 14),
-          label: const Text('HOSTED LOGS', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+          label: const Text(
+            'HOSTED LOGS',
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+          ),
         ),
         const SizedBox(width: 12),
         Text(
           'LAST 50',
-          style: TextStyle(fontWeight: FontWeight.w900, color: colorScheme.primary.withValues(alpha: 0.3), fontSize: 10),
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            color: colorScheme.primary.withValues(alpha: 0.3),
+            fontSize: 10,
+          ),
         ),
       ],
     );
@@ -260,12 +362,27 @@ class StatsScreen extends ConsumerWidget {
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.all(48),
-        decoration: BoxDecoration(color: colorScheme.surfaceContainerLow, borderRadius: BorderRadius.circular(32)),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(32),
+        ),
         child: Column(
           children: [
-            Icon(Icons.history_toggle_off_rounded, size: 48, color: colorScheme.onSurface.withValues(alpha: 0.1)),
+            Icon(
+              Icons.history_toggle_off_rounded,
+              size: 48,
+              color: colorScheme.onSurface.withValues(alpha: 0.1),
+            ),
             const SizedBox(height: 16),
-            Text('NO BATTLES RECORDED', style: TextStyle(fontWeight: FontWeight.w900, color: colorScheme.onSurface.withValues(alpha: 0.2), fontSize: 12, letterSpacing: 2)),
+            Text(
+              'NO BATTLES RECORDED',
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                color: colorScheme.onSurface.withValues(alpha: 0.2),
+                fontSize: 12,
+                letterSpacing: 2,
+              ),
+            ),
           ],
         ),
       );
@@ -291,16 +408,42 @@ class StatsScreen extends ConsumerWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: (item.wasSolo ? colorScheme.primary : colorScheme.secondary).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                child: Icon(item.wasSolo ? Icons.person_rounded : Icons.groups_rounded, color: item.wasSolo ? colorScheme.primary : colorScheme.secondary, size: 18),
+                decoration: BoxDecoration(
+                  color:
+                      (item.wasSolo
+                              ? colorScheme.primary
+                              : colorScheme.secondary)
+                          .withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  item.wasSolo ? Icons.person_rounded : Icons.groups_rounded,
+                  color: item.wasSolo
+                      ? colorScheme.primary
+                      : colorScheme.secondary,
+                  size: 18,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(item.name.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
-                    Text(DateFormat('MMM dd • HH:mm').format(item.date), style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.4), fontSize: 10, fontWeight: FontWeight.bold)),
+                    Text(
+                      item.name.toUpperCase(),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Text(
+                      DateFormat('MMM dd • HH:mm').format(item.date),
+                      style: TextStyle(
+                        color: colorScheme.onSurface.withValues(alpha: 0.4),
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -310,12 +453,21 @@ class StatsScreen extends ConsumerWidget {
                   Text(
                     '${isPositive ? "+" : ""}${item.eloShift}',
                     style: TextStyle(
-                      fontWeight: FontWeight.w900, 
-                      color: isNeutral ? Colors.grey : (isPositive ? Colors.green : Colors.redAccent),
+                      fontWeight: FontWeight.w900,
+                      color: isNeutral
+                          ? Colors.grey
+                          : (isPositive ? Colors.green : Colors.redAccent),
                       fontSize: 18,
                     ),
                   ),
-                  const Text('ELO', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 8, color: Colors.black26)),
+                  const Text(
+                    'ELO',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 8,
+                      color: Colors.black26,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -366,24 +518,39 @@ class _StatCard extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Icon(icon, color: color, size: 20),
               ),
               const Spacer(),
               IconButton(
                 onPressed: onInfo,
-                icon: Icon(Icons.info_outline_rounded, color: colorScheme.onSurface.withValues(alpha: 0.2), size: 18),
+                icon: Icon(
+                  Icons.info_outline_rounded,
+                  color: colorScheme.onSurface.withValues(alpha: 0.2),
+                  size: 18,
+                ),
               ),
             ],
           ),
           const Spacer(),
           Text(
             value,
-            style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900, color: colorScheme.onSurface),
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w900,
+              color: colorScheme.onSurface,
+            ),
           ),
           Text(
             title,
-            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 10, color: colorScheme.onSurface.withValues(alpha: 0.4), letterSpacing: 1),
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              fontSize: 10,
+              color: colorScheme.onSurface.withValues(alpha: 0.4),
+              letterSpacing: 1,
+            ),
           ),
         ],
       ),

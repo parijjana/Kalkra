@@ -42,7 +42,11 @@ class _UnifiedSidebarState extends ConsumerState<UnifiedSidebar> {
       width: _isExpanded ? 380 : 80,
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
-        border: Border(left: BorderSide(color: colorScheme.onSurface.withValues(alpha: 0.05))),
+        border: Border(
+          left: BorderSide(
+            color: colorScheme.onSurface.withValues(alpha: 0.05),
+          ),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,7 +59,11 @@ class _UnifiedSidebarState extends ConsumerState<UnifiedSidebar> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: IconButton(
                   onPressed: () => setState(() => _isExpanded = !_isExpanded),
-                  icon: Icon(_isExpanded ? Icons.chevron_right_rounded : Icons.chevron_left_rounded),
+                  icon: Icon(
+                    _isExpanded
+                        ? Icons.chevron_right_rounded
+                        : Icons.chevron_left_rounded,
+                  ),
                 ),
               ),
             ),
@@ -74,9 +82,28 @@ class _UnifiedSidebarState extends ConsumerState<UnifiedSidebar> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(widget.roundText ?? '', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2, color: colorScheme.onSurface.withValues(alpha: 0.4), fontSize: 10)),
+                            Text(
+                              widget.roundText ?? '',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 2,
+                                color: colorScheme.onSurface.withValues(
+                                  alpha: 0.4,
+                                ),
+                                fontSize: 10,
+                              ),
+                            ),
                             const SizedBox(height: 4),
-                            Text('${widget.secondsLeft}', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 48, color: widget.secondsLeft! < 10 ? Colors.redAccent : colorScheme.onSurface)),
+                            Text(
+                              '${widget.secondsLeft}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 48,
+                                color: widget.secondsLeft! < 10
+                                    ? Colors.redAccent
+                                    : colorScheme.onSurface,
+                              ),
+                            ),
                             const SizedBox(height: 12),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -84,15 +111,43 @@ class _UnifiedSidebarState extends ConsumerState<UnifiedSidebar> {
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text('MATCH SCORE', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 8, letterSpacing: 1, color: Colors.grey)),
-                                    Text('${widget.matchScore ?? 0}', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: colorScheme.primary)),
+                                    const Text(
+                                      'MATCH SCORE',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 8,
+                                        letterSpacing: 1,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    Text(
+                                      '${widget.matchScore ?? 0}',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 20,
+                                        color: colorScheme.primary,
+                                      ),
+                                    ),
                                   ],
                                 ),
                                 if (widget.jeopardy != null)
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                    decoration: BoxDecoration(color: Colors.amber, borderRadius: BorderRadius.circular(6)),
-                                    child: Text(widget.jeopardy!.name.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 9, color: Colors.black)),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.amber,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      widget.jeopardy!.name.toUpperCase(),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 9,
+                                        color: Colors.black,
+                                      ),
+                                    ),
                                   ),
                               ],
                             ),
@@ -104,8 +159,11 @@ class _UnifiedSidebarState extends ConsumerState<UnifiedSidebar> {
 
                     // 2. Profile Quick-View
                     careerAsync.when(
-                      loading: () => const Center(child: CircularProgressIndicator()),
-                      error: (err, stack) => const Center(child: Icon(Icons.error_outline, color: Colors.red)),
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (err, stack) => const Center(
+                        child: Icon(Icons.error_outline, color: Colors.red),
+                      ),
                       data: (career) => _SidebarSection(
                         title: 'IDENTITY',
                         child: Row(
@@ -113,15 +171,35 @@ class _UnifiedSidebarState extends ConsumerState<UnifiedSidebar> {
                             CircleAvatar(
                               radius: 20,
                               backgroundColor: colorScheme.primary,
-                              child: Text(career.playerName[0].toUpperCase(), style: const TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.bold)),
+                              child: Text(
+                                career.playerName[0].toUpperCase(),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(career.playerName.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
-                                  Text('${career.elo} ELO', style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 10)),
+                                  Text(
+                                    career.playerName.toUpperCase(),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${career.elo} ELO',
+                                    style: TextStyle(
+                                      color: colorScheme.primary,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 10,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -133,23 +211,43 @@ class _UnifiedSidebarState extends ConsumerState<UnifiedSidebar> {
                     const SizedBox(height: 24),
 
                     // 3. Attempt History
-                    if (widget.attemptHistory != null && widget.attemptHistory!.isNotEmpty)
+                    if (widget.attemptHistory != null &&
+                        widget.attemptHistory!.isNotEmpty)
                       _SidebarSection(
                         title: 'RECENT LOG',
                         child: Column(
-                          children: widget.attemptHistory!.map((a) => Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Row(
-                              children: [
-                                Icon(Icons.check_circle_outline, size: 12, color: colorScheme.primary.withValues(alpha: 0.5)),
-                                const SizedBox(width: 8),
-                                Expanded(child: Text(a, style: const TextStyle(fontFamily: 'monospace', fontSize: 11, fontWeight: FontWeight.bold))),
-                              ],
-                            ),
-                          )).toList(),
+                          children: widget.attemptHistory!
+                              .map(
+                                (a) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.check_circle_outline,
+                                        size: 12,
+                                        color: colorScheme.primary.withValues(
+                                          alpha: 0.5,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          a,
+                                          style: const TextStyle(
+                                            fontFamily: 'monospace',
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                              .toList(),
                         ),
                       ),
-                    
+
                     const SizedBox(height: 48),
 
                     // 4. Resign Action
@@ -161,12 +259,21 @@ class _UnifiedSidebarState extends ConsumerState<UnifiedSidebar> {
                           child: OutlinedButton.icon(
                             onPressed: widget.onResign,
                             icon: const Icon(Icons.logout_rounded, size: 18),
-                            label: const Text('RESIGN MATCH', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1, fontSize: 11)),
+                            label: const Text(
+                              'RESIGN MATCH',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1,
+                                fontSize: 11,
+                              ),
+                            ),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.redAccent,
                               side: const BorderSide(color: Colors.redAccent),
                               padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
                           ),
                         ),
@@ -195,7 +302,15 @@ class _SidebarSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 4, fontSize: 10, color: Colors.grey)),
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.w900,
+              letterSpacing: 4,
+              fontSize: 10,
+              color: Colors.grey,
+            ),
+          ),
           const SizedBox(height: 16),
           child,
         ],

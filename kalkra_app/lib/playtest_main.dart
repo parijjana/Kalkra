@@ -7,14 +7,12 @@ import 'src/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   final prefs = await SharedPreferences.getInstance();
 
   runApp(
     ProviderScope(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-      ],
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       child: const PlaytestApp(),
     ),
   );
@@ -35,9 +33,7 @@ class PlaytestApp extends ConsumerWidget {
       home: const PlaytestLoginScreen(),
       builder: (context, child) {
         // Global overlay or constraints if needed for web
-        return SelectionArea(
-          child: child!,
-        );
+        return SelectionArea(child: child!);
       },
     );
   }

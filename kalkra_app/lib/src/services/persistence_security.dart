@@ -4,7 +4,7 @@ import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart';
 
 class PersistenceSecurity {
-  /// Internal secret salt for key derivation. 
+  /// Internal secret salt for key derivation.
   /// In a production scenario, this should be obfuscated.
   static const String _internalSalt = "KALKRA_VAULT_S01_2026";
 
@@ -38,7 +38,8 @@ class PersistenceSecurity {
   /// Throws an exception if tampering is detected.
   static String unpack(String packedData, String deviceId) {
     final parts = packedData.split(':');
-    if (parts.length != 3) throw Exception('Vault Integrity Error: Invalid Format');
+    if (parts.length != 3)
+      throw Exception('Vault Integrity Error: Invalid Format');
 
     final payload = '${parts[0]}:${parts[1]}';
     final providedSignature = parts[2];
@@ -49,7 +50,9 @@ class PersistenceSecurity {
     final expectedSignature = hmac.convert(utf8.encode(payload)).toString();
 
     if (providedSignature != expectedSignature) {
-      throw Exception('Vault Integrity Error: Data has been tampered with or moved.');
+      throw Exception(
+        'Vault Integrity Error: Data has been tampered with or moved.',
+      );
     }
 
     // 2. Decrypt

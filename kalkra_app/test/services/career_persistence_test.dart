@@ -12,7 +12,7 @@ void main() {
     test('load() returns default CareerManager if no data exists', () async {
       final prefs = await SharedPreferences.getInstance();
       final persistence = CareerPersistence(prefs);
-      
+
       final career = await persistence.load('test-device-id');
       expect(career.elo, 1200);
       expect(career.matchesWon, 0);
@@ -21,12 +21,12 @@ void main() {
     test('save() and load() persists CareerManager data', () async {
       final prefs = await SharedPreferences.getInstance();
       final persistence = CareerPersistence(prefs);
-      
+
       final career = CareerManager(elo: 1500, matchesWon: 10);
       career.recordRoundPerformance(secondsToSubmit: 5.0, proximityToTarget: 0);
-      
+
       await persistence.save(career, 'test-device-id');
-      
+
       final loadedCareer = await persistence.load('test-device-id');
       expect(loadedCareer.elo, 1500);
       expect(loadedCareer.matchesWon, 10);
@@ -36,10 +36,10 @@ void main() {
     test('clears data correctly', () async {
       final prefs = await SharedPreferences.getInstance();
       final persistence = CareerPersistence(prefs);
-      
+
       await persistence.save(CareerManager(elo: 2000), 'test-device-id');
       await persistence.clear();
-      
+
       final loaded = await persistence.load('test-device-id');
       expect(loaded.elo, 1200); // Default
     });

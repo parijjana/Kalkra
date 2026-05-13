@@ -12,6 +12,7 @@ import '../widgets/reactive_aura.dart';
 import '../widgets/achievement_notification.dart';
 import '../widgets/global_drawer.dart';
 import '../widgets/countdown_overlay.dart';
+import '../services/sound_service.dart';
 import 'main_screen.dart';
 import 'results_screen.dart';
 
@@ -335,11 +336,17 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
   void _onNumberTap(int index, int value) {
     if (_usedIndices.contains(index)) return;
 
+    final trimmed = _currentExpression.trim();
+    // Rule: Numbers can only follow Start, Operator (+-*/), or Opening Bracket '('
+    // Algebraic style (5(5) or )5) is explicitly blocked.
+    if (trimmed.isNotEmpty) {
+      final lastChar = trimmed[trimmed.length - 1];
+      if (RegExp(r'[\d\)]').hasMatch(lastChar)) return; 
+    }
+
+    SoundService().playTap();
     setState(() {
-      if (_currentExpression.isNotEmpty && RegExp(r'\d$').hasMatch(_currentExpression.trim())) { 
-        _currentExpression = '${_currentExpression.trim()} '; 
-      }
-      _currentExpression += '$value'; 
+      _currentExpression = trimmed.isEmpty ? '$value' : '$trimmed $value'; 
       _usedIndices.add(index);
     });
     _updateProximity();
@@ -347,8 +354,34 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
 
   void _onOperatorTap(String op) {
     if (op == _lockedOperator) return;
+    final trimmed = _currentExpression.trim();
+
+    // Grammar Validation
+    if (op == '(') {
+      // Rule: ( can follow Start, an Operator (+-*/), or another (
+      // algebraic like 5( is forbidden
+      if (trimmed.isNotEmpty && !RegExp(r'[+\-*/(]$').hasMatch(trimmed)) return;
+    } else if (op == ')') {
+      // Rule: ) can only follow a Number or another )
+      if (trimmed.isEmpty || !RegExp(r'[\d)]$').hasMatch(trimmed)) return;
+      // Balance check
+      int opens = '('.allMatches(trimmed).length;
+      int closes = ')'.allMatches(trimmed).length;
+      if (closes >= opens) return;
+    } else {
+      // Rule: +-*/ can only follow a Number or a closing bracket )
+      // This implicitly forbids consecutive operators like ++ or +( (if + is the second op)
+      if (trimmed.isEmpty || !RegExp(r'[\d\)]$').hasMatch(trimmed)) return;
+    }
+
+    SoundService().playTap();
     setState(() { 
-      _currentExpression = '${_currentExpression.trim()} $op '; 
+      _currentExpression = trimmed.isEmpty ? op : '$trimmed $op'; 
+      // Add trailing space for consistency except for open bracket (to hug number)
+      // or handled by _onNumberTap's trim and re-space
+      if (op != '(' && op != ')') {
+        _currentExpression += ' ';
+      }
       _lastAuraOp = _mapOp(op);
     });
     _updateProximity();
@@ -365,6 +398,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
 
   void _backspace() {
     if (_currentExpression.isEmpty) return;
+    SoundService().playTap();
     setState(() {
       final trimmed = _currentExpression.trim(); 
       if (trimmed.isEmpty) return;
@@ -394,6 +428,17 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
     _secondsToSubmit = secondsToSubmit;
 
     final validation = SubmissionValidator().validate(expression, round.numbers);
+    
+    if (validation.isValid) {
+      if (validation.value?.toInt() == round.target) {
+        SoundService().playSuccess();
+      } else {
+        SoundService().playTap();
+      }
+    } else {
+      SoundService().playError();
+    }
+
     ref.read(achievementProvider).handleEvent(AchievementEvent(
       type: AchievementEventType.expressionSubmitted,
       data: {
@@ -490,6 +535,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    SoundService().updateRef(ref);
     WidgetsBinding.instance.addPostFrameCallback((_) { ref.read(currentScreenIdProvider.notifier).setScreenId('GameScreen'); });
     
     ref.watch(sessionUpdateProvider);
@@ -527,6 +573,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
             _currentExpression = ''; _usedIndices.clear(); _roundStartTime = DateTime.now(); _secondsToSubmit = null;
             _focusedTokenIndex = 0; _isRoundEnding = false;
           });
+          SoundService().playStart();
           _entranceController.reset(); _entranceController.forward(); _startTimer();
         }
       });

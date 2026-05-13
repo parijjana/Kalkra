@@ -6,6 +6,7 @@ import 'package:transport_interface/transport_interface.dart';
 import 'package:transport_lan/transport_lan.dart';
 import '../providers/game_providers.dart';
 import '../widgets/global_drawer.dart';
+import '../services/sound_service.dart';
 import 'game_screen.dart';
 import 'match_summary_screen.dart';
 import 'solo_summary_screen.dart';
@@ -55,6 +56,13 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
           _lockoutTimer?.cancel();
         }
       });
+    }
+
+    // Sound Triggers
+    if (widget.playerPoints > 0) {
+      SoundService().playSuccess();
+    } else if (widget.playerPoints == 0 && widget.playerExpression.isNotEmpty) {
+      SoundService().playError();
     }
   }
 

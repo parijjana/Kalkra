@@ -33,6 +33,8 @@ class CareerManager {
   int _roundsTracked;
   int _currentStreak;
   int _bestStreak;
+  bool _soundEnabled;
+  bool _musicEnabled;
   final List<RivalInfo> _rivals;
   final Set<String> _unlockedAchievements;
 
@@ -46,6 +48,8 @@ class CareerManager {
     int roundsTracked = 0,
     int currentStreak = 0,
     int bestStreak = 0,
+    bool soundEnabled = true,
+    bool musicEnabled = true,
     List<RivalInfo>? rivals,
     List<String>? unlockedAchievements,
   }) : _playerName = playerName,
@@ -57,6 +61,8 @@ class CareerManager {
        _roundsTracked = roundsTracked,
        _currentStreak = currentStreak,
        _bestStreak = bestStreak,
+       _soundEnabled = soundEnabled,
+       _musicEnabled = musicEnabled,
        _rivals = rivals ?? [],
        _unlockedAchievements = (unlockedAchievements ?? []).toSet();
 
@@ -68,11 +74,21 @@ class CareerManager {
   double get avgAccuracy => _avgAccuracy;
   int get currentStreak => _currentStreak;
   int get bestStreak => _bestStreak;
+  bool get soundEnabled => _soundEnabled;
+  bool get musicEnabled => _musicEnabled;
   List<RivalInfo> get rivals => List.unmodifiable(_rivals);
   Set<String> get unlockedAchievements => Set.unmodifiable(_unlockedAchievements);
 
   void setPlayerName(String name) {
     _playerName = name;
+  }
+
+  void setSoundEnabled(bool enabled) {
+    _soundEnabled = enabled;
+  }
+
+  void setMusicEnabled(bool enabled) {
+    _musicEnabled = enabled;
   }
 
   void unlockAchievement(String id) {
@@ -173,6 +189,8 @@ class CareerManager {
     'roundsTracked': _roundsTracked,
     'currentStreak': _currentStreak,
     'bestStreak': _bestStreak,
+    'soundEnabled': _soundEnabled,
+    'musicEnabled': _musicEnabled,
     'rivals': _rivals.map((r) => r.toJson()).toList(),
     'unlockedAchievements': _unlockedAchievements.toList(),
   };
@@ -187,6 +205,8 @@ class CareerManager {
     roundsTracked: json['roundsTracked'] ?? 0,
     currentStreak: json['currentStreak'] ?? 0,
     bestStreak: json['bestStreak'] ?? 0,
+    soundEnabled: json['soundEnabled'] ?? true,
+    musicEnabled: json['musicEnabled'] ?? true,
     rivals: (json['rivals'] as List?)?.map((r) => RivalInfo.fromJson(r)).toList(),
     unlockedAchievements: (json['unlockedAchievements'] as List?)?.map((e) => e.toString()).toList(),
   );

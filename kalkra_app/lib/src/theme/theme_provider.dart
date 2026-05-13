@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/game_providers.dart'; // To reuse sharedPreferencesProvider
 import 'app_theme.dart';
 
-final themeProvider = NotifierProvider<ThemeNotifier, AppThemeType>(ThemeNotifier.new);
+final themeProvider = NotifierProvider<ThemeNotifier, AppThemeType>(
+  ThemeNotifier.new,
+);
 
 class ThemeNotifier extends Notifier<AppThemeType> {
   static const _themeKey = 'kalkra_theme';
@@ -11,7 +13,7 @@ class ThemeNotifier extends Notifier<AppThemeType> {
   AppThemeType build() {
     final prefs = ref.watch(sharedPreferencesProvider);
     final themeIndex = prefs.getInt(_themeKey) ?? 0;
-    
+
     if (themeIndex >= 0 && themeIndex < AppThemeType.values.length) {
       return AppThemeType.values[themeIndex];
     }

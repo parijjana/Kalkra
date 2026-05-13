@@ -13,6 +13,7 @@ import 'src/theme/app_theme.dart';
 import 'src/theme/theme_provider.dart';
 
 import 'src/widgets/debug_overlay.dart';
+import 'src/services/sound_service.dart';
 
 void main() async {
   // 1. Setup Logging
@@ -32,13 +33,20 @@ void main() async {
 
   // 2. Setup Global Error Handling
   FlutterError.onError = (FlutterErrorDetails details) {
-    log.severe('FLUTTER ERROR: ${details.exception}', details.exception, details.stack);
+    log.severe(
+      'FLUTTER ERROR: ${details.exception}',
+      details.exception,
+      details.stack,
+    );
     FlutterError.presentError(details);
   };
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 3. Desktop Native Initialization
+  // 3. Initialize SoundService
+  await SoundService().init();
+
+  // 4. Desktop Native Initialization
   if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
     await windowManager.ensureInitialized();
 
@@ -51,7 +59,7 @@ void main() async {
       title: 'KALKRA',
       titleBarStyle: TitleBarStyle.normal,
     );
-    
+
     await windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.show();
       await windowManager.focus();
@@ -62,9 +70,7 @@ void main() async {
 
   runApp(
     ProviderScope(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-      ],
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
       child: const KalkraApp(),
     ),
   );
@@ -77,7 +83,7 @@ class KalkraApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Initialize session synchronization listener
     ref.watch(sessionSyncProvider);
-    
+
     final themeType = ref.watch(themeProvider);
 
     return MaterialApp(
@@ -93,7 +99,11 @@ class KalkraApp extends ConsumerWidget {
             color: Colors.redAccent,
             child: Text(
               'DEBUG ERROR: ${details.exception.toString().split('\n').first}',
-              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),

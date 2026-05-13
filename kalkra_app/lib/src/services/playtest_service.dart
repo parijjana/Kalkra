@@ -57,9 +57,9 @@ class PlaytestService extends _$PlaytestService {
 
   Future<bool> submitResult(MatchManager match, int score) async {
     if (!_initialized) return false;
-    
+
     final name = playerName ?? 'Anonymous';
-    
+
     final result = PlaytestResult(
       playerName: name,
       mode: match.gameMode.name,
@@ -81,7 +81,7 @@ class PlaytestService extends _$PlaytestService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(result.toJson()),
       );
-      
+
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
       debugPrint('Failed to submit playtest result: $e');

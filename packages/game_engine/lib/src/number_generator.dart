@@ -7,8 +7,8 @@ class NumberGenerator {
   static const _smallNumbers = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10];
   static const _largeNumbers = [25, 50, 75, 100];
   static const _primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47];
-  static const _powersOf2 = [2, 4, 8, 16, 32, 64, 128, 256];
-  static const _powersOf3 = [3, 9, 27, 81, 243, 729];
+  static const _powersOf2 = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024];
+  static const _powersOf3 = [3, 9, 27, 81, 243, 729, 2187];
 
   List<int> generatePool({
     Difficulty difficulty = Difficulty.medium, 

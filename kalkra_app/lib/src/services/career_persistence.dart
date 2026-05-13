@@ -5,7 +5,8 @@ import 'persistence_security.dart';
 
 /// Service responsible for local persistence of player career data.
 class CareerPersistence {
-  static const String _careerKey = 'kalkra_career_vault'; // New key for encrypted data
+  static const String _careerKey =
+      'kalkra_career_vault'; // New key for encrypted data
   static const String _legacyKey = 'kalkra_career_data';
   final SharedPreferences _prefs;
 
@@ -15,7 +16,7 @@ class CareerPersistence {
   /// Returns a default [CareerManager] if no data is found or if parsing fails.
   Future<CareerManager> load(String deviceId) async {
     final String? packedData = _prefs.getString(_careerKey);
-    
+
     // Migration: Check for legacy plain-text data first
     if (packedData == null) {
       final legacyJson = _prefs.getString(_legacyKey);
@@ -32,7 +33,10 @@ class CareerPersistence {
     }
 
     try {
-      final String jsonString = PersistenceSecurity.unpack(packedData, deviceId);
+      final String jsonString = PersistenceSecurity.unpack(
+        packedData,
+        deviceId,
+      );
       final Map<String, dynamic> json = jsonDecode(jsonString);
       return CareerManager.fromJson(json);
     } catch (e) {

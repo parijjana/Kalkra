@@ -9,7 +9,8 @@ class PlaytestLoginScreen extends ConsumerStatefulWidget {
   const PlaytestLoginScreen({super.key});
 
   @override
-  ConsumerState<PlaytestLoginScreen> createState() => _PlaytestLoginScreenState();
+  ConsumerState<PlaytestLoginScreen> createState() =>
+      _PlaytestLoginScreenState();
 }
 
 class _PlaytestLoginScreenState extends ConsumerState<PlaytestLoginScreen> {
@@ -26,7 +27,7 @@ class _PlaytestLoginScreenState extends ConsumerState<PlaytestLoginScreen> {
     // Wait for playtest service to initialize
     await ref.read(playtestServiceProvider.future);
     final existingName = ref.read(playtestServiceProvider.notifier).playerName;
-    
+
     if (existingName != null && mounted) {
       _navigateToSetup();
     } else {
@@ -36,7 +37,9 @@ class _PlaytestLoginScreenState extends ConsumerState<PlaytestLoginScreen> {
 
   void _navigateToSetup() {
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const MatchSetupScreen(mode: MatchSetupMode.solo)),
+      MaterialPageRoute(
+        builder: (context) => const MatchSetupScreen(mode: MatchSetupMode.solo),
+      ),
     );
   }
 
@@ -46,7 +49,7 @@ class _PlaytestLoginScreenState extends ConsumerState<PlaytestLoginScreen> {
 
     setState(() => _loading = true);
     await ref.read(playtestServiceProvider.notifier).setPlayerName(name);
-    
+
     // Also update career profile for local use
     await ref.read(careerProvider.notifier).updateProfile(playerName: name);
 
@@ -99,13 +102,26 @@ class _PlaytestLoginScreenState extends ConsumerState<PlaytestLoginScreen> {
                   const SizedBox(height: 16),
                   TextField(
                     controller: _controller,
-                    style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                     textAlign: TextAlign.center,
                     decoration: InputDecoration(
                       hintText: 'YOUR NAME',
-                      hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.2)),
-                      enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
-                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: colorScheme.primary, width: 2)),
+                      hintStyle: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.2),
+                      ),
+                      enabledBorder: const UnderlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white24),
+                      ),
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(
+                          color: colorScheme.primary,
+                          width: 2,
+                        ),
+                      ),
                     ),
                     onSubmitted: (_) => _submit(),
                   ),
@@ -118,9 +134,17 @@ class _PlaytestLoginScreenState extends ConsumerState<PlaytestLoginScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
                       ),
-                      child: const Text('BEGIN SESSION', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2)),
+                      child: const Text(
+                        'BEGIN SESSION',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 2,
+                        ),
+                      ),
                     ),
                   ),
                 ],

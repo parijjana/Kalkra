@@ -45,15 +45,22 @@ class GlobalDrawer extends ConsumerWidget {
                     _DrawerItem(
                       icon: Icons.psychology_rounded,
                       label: 'SOLO MISSION',
-                      subtitle: ref.watch(isPausedProvider) ? 'RESUME SESSION' : 'Sharpen your speed',
+                      subtitle: ref.watch(isPausedProvider)
+                          ? 'RESUME SESSION'
+                          : 'Sharpen your speed',
                       onTap: () {
                         if (ref.read(isPausedProvider)) {
                           _navTo(context, const GameScreen());
                         } else {
-                          _navTo(context, const MatchSetupScreen(mode: MatchSetupMode.solo));
+                          _navTo(
+                            context,
+                            const MatchSetupScreen(mode: MatchSetupMode.solo),
+                          );
                         }
                       },
-                      color: ref.watch(isPausedProvider) ? Colors.orangeAccent : colorScheme.primary,
+                      color: ref.watch(isPausedProvider)
+                          ? Colors.orangeAccent
+                          : colorScheme.primary,
                     ),
                     _DrawerItem(
                       icon: Icons.sensors_rounded,
@@ -106,28 +113,6 @@ class GlobalDrawer extends ConsumerWidget {
                     ),
                   ]),
 
-                  if (ref.watch(matchProvider).value != null) ...[
-                    const Divider(height: 40, indent: 24, endIndent: 24),
-                    _buildDrawerSection(context, 'ACTIVE MATCH', [
-                      _DrawerItem(
-                        icon: Icons.stop_circle_rounded,
-                        label: 'END MATCH',
-                        onTap: () => _endMatch(context, ref, isSolo),
-                        color: Colors.redAccent,
-                      ),
-                    ]),
-                  ] else if (!isSolo) ...[
-                    const Divider(height: 40, indent: 24, endIndent: 24),
-                    _buildDrawerSection(context, 'MULTIPLAYER CONTROL', [
-                      _DrawerItem(
-                        icon: Icons.logout_rounded,
-                        label: transport is LanHostTransport ? 'END SESSION' : 'RESIGN MATCH',
-                        onTap: () => _resign(context, ref, transport is LanHostTransport),
-                        color: Colors.redAccent,
-                      ),
-                    ]),
-                  ],
-
                   const SizedBox(height: 40),
                 ],
               ),
@@ -146,7 +131,7 @@ class GlobalDrawer extends ConsumerWidget {
   void _endMatch(BuildContext context, WidgetRef ref, bool isSolo) {
     // 1. Close the drawer first
     Navigator.pop(context);
-    
+
     final transport = ref.read(transportProvider);
     final isHost = transport is LanHostTransport;
 
@@ -155,11 +140,18 @@ class GlobalDrawer extends ConsumerWidget {
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
         title: Text(isSolo ? 'END MISSION?' : 'TERMINATE ARENA?'),
-        content: Text(isSolo 
-          ? 'Current progress will be lost.' 
-          : (isHost ? 'This will kick all players and close the lobby.' : 'You will be removed from the active match.')),
+        content: Text(
+          isSolo
+              ? 'Current progress will be lost.'
+              : (isHost
+                    ? 'This will kick all players and close the lobby.'
+                    : 'You will be removed from the active match.'),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('CANCEL')),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('CANCEL'),
+          ),
           TextButton(
             onPressed: () {
               // 1. Close Dialog
@@ -168,10 +160,14 @@ class GlobalDrawer extends ConsumerWidget {
               // 2. Reset Game State
               if (!isSolo) {
                 transport.disconnect();
-                ref.read(transportProvider.notifier).setTransport(NullTransport());
+                ref
+                    .read(transportProvider.notifier)
+                    .setTransport(NullTransport());
               }
               ref.read(matchProvider).value = null;
-              ref.read(matchStatusProvider.notifier).setStatus(MatchStatus.lobby);
+              ref
+                  .read(matchStatusProvider.notifier)
+                  .setStatus(MatchStatus.lobby);
               ref.read(isPausedProvider.notifier).setPaused(false);
 
               // 3. Navigate back to Main Screen
@@ -179,8 +175,14 @@ class GlobalDrawer extends ConsumerWidget {
                 MaterialPageRoute(builder: (context) => const MainScreen()),
                 (route) => false,
               );
-            }, 
-            child: Text(isSolo ? 'END' : 'TERMINATE', style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+            },
+            child: Text(
+              isSolo ? 'END' : 'TERMINATE',
+              style: const TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -193,26 +195,50 @@ class GlobalDrawer extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(isHost ? 'TERMINATE SESSION?' : 'RESIGN MATCH?'),
-        content: Text(isHost ? 'This will kick all players and close the lobby.' : 'You will be removed from the arena.'),
+        content: Text(
+          isHost
+              ? 'This will kick all players and close the lobby.'
+              : 'You will be removed from the arena.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('CANCEL')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('CANCEL'),
+          ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               final transport = ref.read(transportProvider);
               transport.disconnect();
-              ref.read(transportProvider.notifier).setTransport(NullTransport());
-              ref.read(matchStatusProvider.notifier).setStatus(MatchStatus.lobby);
-              Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const MainScreen()), (route) => false);
-            }, 
-            child: Text(isHost ? 'TERMINATE' : 'RESIGN', style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+              ref
+                  .read(transportProvider.notifier)
+                  .setTransport(NullTransport());
+              ref
+                  .read(matchStatusProvider.notifier)
+                  .setStatus(MatchStatus.lobby);
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const MainScreen()),
+                (route) => false,
+              );
+            },
+            child: Text(
+              isHost ? 'TERMINATE' : 'RESIGN',
+              style: const TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDrawerHeader(BuildContext context, dynamic career, ColorScheme colorScheme) {
+  Widget _buildDrawerHeader(
+    BuildContext context,
+    dynamic career,
+    ColorScheme colorScheme,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(24, 80, 24, 40),
@@ -262,13 +288,26 @@ class GlobalDrawer extends ConsumerWidget {
               CircleAvatar(
                 radius: 14,
                 backgroundColor: colorScheme.primary,
-                child: Text(career.playerName[0].toUpperCase(), style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold)),
+                child: Text(
+                  career.playerName[0].toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(career.playerName.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+                  Text(
+                    career.playerName.toUpperCase(),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 14,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -278,7 +317,11 @@ class GlobalDrawer extends ConsumerWidget {
     );
   }
 
-  Widget _buildDrawerSection(BuildContext context, String title, List<Widget> items) {
+  Widget _buildDrawerSection(
+    BuildContext context,
+    String title,
+    List<Widget> items,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -290,7 +333,9 @@ class GlobalDrawer extends ConsumerWidget {
               fontWeight: FontWeight.w900,
               fontSize: 10,
               letterSpacing: 2,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.3),
             ),
           ),
         ),
@@ -307,17 +352,40 @@ class _DrawerItem extends StatelessWidget {
   final VoidCallback onTap;
   final Color? color;
 
-  const _DrawerItem({required this.icon, required this.label, this.subtitle, required this.onTap, this.color});
+  const _DrawerItem({
+    required this.icon,
+    required this.label,
+    this.subtitle,
+    required this.onTap,
+    this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final itemColor = color ?? colorScheme.onSurface;
-    
+
     return ListTile(
       leading: Icon(icon, color: itemColor),
-      title: Text(label, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 1, color: itemColor)),
-      subtitle: subtitle != null ? Text(subtitle!, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: itemColor.withValues(alpha: 0.4))) : null,
+      title: Text(
+        label,
+        style: TextStyle(
+          fontWeight: FontWeight.w900,
+          fontSize: 14,
+          letterSpacing: 1,
+          color: itemColor,
+        ),
+      ),
+      subtitle: subtitle != null
+          ? Text(
+              subtitle!,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 10,
+                color: itemColor.withValues(alpha: 0.4),
+              ),
+            )
+          : null,
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

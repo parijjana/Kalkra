@@ -19,15 +19,19 @@ void main() {
   for (final themeType in themeTypes) {
     group('Theme: ${themeType.name}', () {
       testWidgets('Capture Results Screen', (tester) async {
-        await _pumpScreen(tester, themeType, const ResultsScreen(
-          playerExpression: '(75 * 7) + 10',
-          playerValue: 535,
-          playerPoints: 85,
-          multiplayerResults: null,
-          eloShifts: {'me': 24},
-        ));
+        await _pumpScreen(
+          tester,
+          themeType,
+          const ResultsScreen(
+            playerExpression: '(75 * 7) + 10',
+            playerValue: 535,
+            playerPoints: 85,
+            multiplayerResults: null,
+            eloShifts: {'me': 24},
+          ),
+        );
         expect(find.byType(ResultsScreen), findsOneWidget);
-        expect(find.text('542'), findsOneWidget); 
+        expect(find.text('542'), findsOneWidget);
         expect(find.textContaining('85 PTS'), findsOneWidget);
       });
 
@@ -46,12 +50,16 @@ void main() {
   }
 }
 
-Future<void> _pumpScreen(WidgetTester tester, AppThemeType themeType, Widget screen) async {
+Future<void> _pumpScreen(
+  WidgetTester tester,
+  AppThemeType themeType,
+  Widget screen,
+) async {
   tester.view.physicalSize = const Size(2560, 1440);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(() => tester.view.resetPhysicalSize());
   addTearDown(() => tester.view.resetDevicePixelRatio());
-  
+
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
 
@@ -64,10 +72,7 @@ Future<void> _pumpScreen(WidgetTester tester, AppThemeType themeType, Widget scr
 
   // Mock data for screens
   final round = container.read(roundProvider);
-  round.startRoundWithData(
-    numbers: [75, 7, 10, 2, 5, 1],
-    targets: [542],
-  );
+  round.startRoundWithData(numbers: [75, 7, 10, 2, 5, 1], targets: [542]);
   round.endRound();
 
   await tester.pumpWidget(

@@ -21,7 +21,8 @@ class ReactiveAura extends StatefulWidget {
   State<ReactiveAura> createState() => _ReactiveAuraState();
 }
 
-class _ReactiveAuraState extends State<ReactiveAura> with SingleTickerProviderStateMixin {
+class _ReactiveAuraState extends State<ReactiveAura>
+    with SingleTickerProviderStateMixin {
   late AnimationController _opController;
 
   @override
@@ -36,7 +37,8 @@ class _ReactiveAuraState extends State<ReactiveAura> with SingleTickerProviderSt
   @override
   void didUpdateWidget(ReactiveAura oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.operator != oldWidget.operator && widget.operator != AuraOperator.none) {
+    if (widget.operator != oldWidget.operator &&
+        widget.operator != AuraOperator.none) {
       _opController.forward(from: 0.0);
     }
   }
@@ -91,15 +93,19 @@ class AuraPainter extends CustomPainter {
     final radius = size.shortestSide * 0.8;
 
     // 1. Timer Panic: Shift to red and pulse
-    final Color panicColor = Color.lerp(
-      Colors.red.withValues(alpha: 0.8),
-      baseColor,
-      timerProgress.clamp(0.0, 1.0),
-    ) ?? baseColor;
+    final Color panicColor =
+        Color.lerp(
+          Colors.red.withValues(alpha: 0.8),
+          baseColor,
+          timerProgress.clamp(0.0, 1.0),
+        ) ??
+        baseColor;
 
     // Pulse intensity increases as time runs out
     final double pulseSpeed = 1.0 + (4.0 * (1.0 - timerProgress));
-    final double pulse = 1.0 + (0.05 * (1.0 - timerProgress) * sin(timestamp / 200 * pulseSpeed));
+    final double pulse =
+        1.0 +
+        (0.05 * (1.0 - timerProgress) * sin(timestamp / 200 * pulseSpeed));
 
     // 2. Proximity Glow: Brighter as proximity nears 1.0 (exact match)
     final Paint glowPaint = Paint()
@@ -114,7 +120,14 @@ class AuraPainter extends CustomPainter {
 
     // 3. Operator Impact
     if (operator != AuraOperator.none && operatorAnimation > 0) {
-      _drawOperatorEffect(canvas, size, center, operator, operatorAnimation, panicColor);
+      _drawOperatorEffect(
+        canvas,
+        size,
+        center,
+        operator,
+        operatorAnimation,
+        panicColor,
+      );
     }
 
     // 4. Subtle Ambient Waves
@@ -134,7 +147,14 @@ class AuraPainter extends CustomPainter {
     }
   }
 
-  void _drawOperatorEffect(Canvas canvas, Size size, Offset center, AuraOperator op, double t, Color color) {
+  void _drawOperatorEffect(
+    Canvas canvas,
+    Size size,
+    Offset center,
+    AuraOperator op,
+    double t,
+    Color color,
+  ) {
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4.0 * (1.0 - t);

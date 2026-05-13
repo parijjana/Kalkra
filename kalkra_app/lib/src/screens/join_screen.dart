@@ -68,10 +68,7 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
       await clientTransport.joinSession(
         playerName: career.playerName,
         connectionInfo: connectionInfo,
-        options: {
-          'elo': career.elo,
-          'deviceId': deviceId,
-        },
+        options: {'elo': career.elo, 'deviceId': deviceId},
       );
 
       ref.read(transportProvider.notifier).setTransport(clientTransport);
@@ -84,9 +81,9 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Connection Failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Connection Failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _isConnecting = false);
@@ -111,28 +108,32 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       drawer: const GlobalDrawer(),
-      appBar: isDesktop ? const TopNavBar(activeId: 'JoinScreen') : AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SvgPicture.asset(
-              'assets/images/app_icon.svg',
-              width: 32,
-              height: 32,
+      appBar: isDesktop
+          ? const TopNavBar(activeId: 'JoinScreen')
+          : AppBar(
+              title: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SvgPicture.asset(
+                    'assets/images/app_icon.svg',
+                    width: 32,
+                    height: 32,
+                  ),
+                  const SizedBox(width: 12),
+                  const Flexible(
+                    child: Text('JOIN ARENA', overflow: TextOverflow.ellipsis),
+                  ),
+                ],
+              ),
+              backgroundColor: colorScheme.tertiary,
+              foregroundColor: Colors.white,
+              leading: Builder(
+                builder: (context) => IconButton(
+                  icon: const Icon(Icons.menu_rounded),
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                ),
+              ),
             ),
-            const SizedBox(width: 12),
-            const Flexible(child: Text('JOIN ARENA', overflow: TextOverflow.ellipsis)),
-          ],
-        ),
-        backgroundColor: colorScheme.tertiary,
-        foregroundColor: Colors.white,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu_rounded),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-      ),
       body: VectorBackground(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -216,7 +217,10 @@ class _JoinScreenState extends ConsumerState<JoinScreen> {
                   hintText: 'ws://192.168.1.5:8080',
                   filled: true,
                   fillColor: colorScheme.surfaceContainerLow,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: BorderSide.none,
+                  ),
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.arrow_forward_rounded),
                     onPressed: () => _join(_manualController.text.trim()),
@@ -264,7 +268,13 @@ class _HostCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: colorScheme.tertiary.withValues(alpha: 0.1), blurRadius: 20, offset: const Offset(0, 10))],
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.tertiary.withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Material(
         color: Colors.white,
@@ -278,21 +288,45 @@ class _HostCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   backgroundColor: colorScheme.tertiary.withValues(alpha: 0.1),
-                  child: Icon(Icons.psychology_rounded, color: colorScheme.tertiary),
+                  child: Icon(
+                    Icons.psychology_rounded,
+                    color: colorScheme.tertiary,
+                  ),
                 ),
                 const SizedBox(width: 20),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(name.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-                      Text('AVAILABLE ARENA', style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.4), fontWeight: FontWeight.bold, fontSize: 10)),
+                      Text(
+                        name.toUpperCase(),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Text(
+                        'AVAILABLE ARENA',
+                        style: TextStyle(
+                          color: colorScheme.onSurface.withValues(alpha: 0.4),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 Icon(Icons.bolt_rounded, color: Colors.amber, size: 20),
                 const SizedBox(width: 8),
-                Text('JOIN', style: TextStyle(color: colorScheme.tertiary, fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 1)),
+                Text(
+                  'JOIN',
+                  style: TextStyle(
+                    color: colorScheme.tertiary,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 12,
+                    letterSpacing: 1,
+                  ),
+                ),
               ],
             ),
           ),

@@ -14,7 +14,9 @@ class AchievementsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(currentScreenIdProvider.notifier).setScreenId('AchievementsScreen');
+      ref
+          .read(currentScreenIdProvider.notifier)
+          .setScreenId('AchievementsScreen');
     });
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -22,31 +24,35 @@ class AchievementsScreen extends ConsumerWidget {
     final isDesktop = ResponsiveLayout.isDesktop(context);
 
     return careerAsync.when(
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (err, stack) => Scaffold(body: Center(child: Text('Vault Error: $err'))),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (err, stack) =>
+          Scaffold(body: Center(child: Text('Vault Error: $err'))),
       data: (career) => Scaffold(
         backgroundColor: colorScheme.surface,
         drawer: const GlobalDrawer(),
-        appBar: isDesktop ? const TopNavBar(activeId: 'AchievementsScreen') : AppBar(
-          title: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SvgPicture.asset(
-                'assets/images/app_icon.svg',
-                width: 32,
-                height: 32,
+        appBar: isDesktop
+            ? const TopNavBar(activeId: 'AchievementsScreen')
+            : AppBar(
+                title: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SvgPicture.asset(
+                      'assets/images/app_icon.svg',
+                      width: 32,
+                      height: 32,
+                    ),
+                    const SizedBox(width: 12),
+                    const Text('ACHIEVEMENTS'),
+                  ],
+                ),
+                leading: Builder(
+                  builder: (context) => IconButton(
+                    icon: const Icon(Icons.menu_rounded),
+                    onPressed: () => Scaffold.of(context).openDrawer(),
+                  ),
+                ),
               ),
-              const SizedBox(width: 12),
-              const Text('ACHIEVEMENTS'),
-            ],
-          ),
-          leading: Builder(
-            builder: (context) => IconButton(
-              icon: const Icon(Icons.menu_rounded),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            ),
-          ),
-        ),
         body: VectorBackground(
           child: SingleChildScrollView(
             child: Padding(
@@ -72,7 +78,11 @@ class AchievementsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(CareerManager career, ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildHeader(
+    CareerManager career,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     final unlockedCount = career.unlockedAchievements.length;
     final totalCount = AchievementRegistry.all.length;
     final progress = unlockedCount / totalCount;
@@ -89,25 +99,50 @@ class AchievementsScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('YOUR PROGRESS', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 4, fontSize: 12, color: colorScheme.primary)),
+                Text(
+                  'YOUR PROGRESS',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 4,
+                    fontSize: 12,
+                    color: colorScheme.primary,
+                  ),
+                ),
                 const SizedBox(height: 12),
-                Text('$unlockedCount / $totalCount UNLOCKED', style: theme.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w900)),
+                Text(
+                  '$unlockedCount / $totalCount UNLOCKED',
+                  style: theme.textTheme.displaySmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
                 const SizedBox(height: 24),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(value: progress, minHeight: 8, backgroundColor: colorScheme.primary.withValues(alpha: 0.1)),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 8,
+                    backgroundColor: colorScheme.primary.withValues(alpha: 0.1),
+                  ),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 40),
-          Icon(Icons.emoji_events_rounded, size: 80, color: colorScheme.primary.withValues(alpha: 0.1)),
+          Icon(
+            Icons.emoji_events_rounded,
+            size: 80,
+            color: colorScheme.primary.withValues(alpha: 0.1),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildAchievementsGrid(BuildContext context, CareerManager career, bool isDesktop) {
+  Widget _buildAchievementsGrid(
+    BuildContext context,
+    CareerManager career,
+    bool isDesktop,
+  ) {
     final unlockedIds = career.unlockedAchievements;
 
     return GridView.builder(
@@ -123,13 +158,13 @@ class AchievementsScreen extends ConsumerWidget {
       itemBuilder: (context, index) {
         final achievement = AchievementRegistry.all[index];
         final isUnlocked = unlockedIds.contains(achievement.id);
-        
+
         if (achievement.isHidden && !isUnlocked) {
           return const _AchievementTile(
             title: '???',
             description: 'Secret Achievement',
             isUnlocked: false,
-            category: AchievementCategory.speed, 
+            category: AchievementCategory.speed,
           );
         }
 
@@ -165,16 +200,24 @@ class _AchievementTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isUnlocked ? baseColor.withValues(alpha: 0.1) : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        color: isUnlocked
+            ? baseColor.withValues(alpha: 0.1)
+            : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isUnlocked ? baseColor.withValues(alpha: 0.2) : Colors.transparent),
+        border: Border.all(
+          color: isUnlocked
+              ? baseColor.withValues(alpha: 0.2)
+              : Colors.transparent,
+        ),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isUnlocked ? baseColor : Colors.grey.withValues(alpha: 0.2),
+              color: isUnlocked
+                  ? baseColor
+                  : Colors.grey.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -218,11 +261,16 @@ class _AchievementTile extends StatelessWidget {
 
   Color _getCategoryColor(AchievementCategory category) {
     switch (category) {
-      case AchievementCategory.speed: return Colors.orange;
-      case AchievementCategory.precision: return Colors.blue;
-      case AchievementCategory.endurance: return Colors.redAccent;
-      case AchievementCategory.multiplayer: return Colors.purple;
-      case AchievementCategory.quirky: return Colors.amber;
+      case AchievementCategory.speed:
+        return Colors.orange;
+      case AchievementCategory.precision:
+        return Colors.blue;
+      case AchievementCategory.endurance:
+        return Colors.redAccent;
+      case AchievementCategory.multiplayer:
+        return Colors.purple;
+      case AchievementCategory.quirky:
+        return Colors.amber;
     }
   }
 }

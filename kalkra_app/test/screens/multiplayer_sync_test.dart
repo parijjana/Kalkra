@@ -15,7 +15,7 @@ import 'package:kalkra_app/src/config/navigator_key.dart';
 
 class FakeHostTransport extends LanHostTransport {
   final _controller = StreamController<GameEvent>.broadcast();
-  
+
   @override
   Stream<GameEvent> get eventStream => _controller.stream;
 
@@ -50,7 +50,9 @@ class MockNavigatorObserver extends NavigatorObserver {
 
 void main() {
   group('Multiplayer: Lobby & Sync Integration', () {
-    testWidgets('Team renaming on host should trigger UI rebuild', (tester) async {
+    testWidgets('Team renaming on host should trigger UI rebuild', (
+      tester,
+    ) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
 
@@ -63,7 +65,7 @@ void main() {
 
       final session = container.read(sessionProvider);
       session.addPlayer('host', 'HostPlayer', isHost: true);
-      
+
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
@@ -86,7 +88,9 @@ void main() {
       expect(find.text('CALCULATORS'), findsOneWidget);
     });
 
-    testWidgets('Auto-navigation to GameScreen when match status changes', (tester) async {
+    testWidgets('Auto-navigation to GameScreen when match status changes', (
+      tester,
+    ) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
 
@@ -118,8 +122,10 @@ void main() {
       // Simulate network event: hostStartedMatch
       final round = container.read(roundProvider);
       round.startRoundWithData(numbers: [1, 2, 3, 4, 5, 6], targets: [100]);
-      
-      container.read(matchStatusProvider.notifier).setStatus(MatchStatus.playing);
+
+      container
+          .read(matchStatusProvider.notifier)
+          .setStatus(MatchStatus.playing);
       await tester.pumpAndSettle();
 
       // Verify automatic transition
@@ -127,7 +133,9 @@ void main() {
       expect(find.textContaining('100'), findsOneWidget);
     });
 
-    testWidgets('Early termination triggers when all players submit', (tester) async {
+    testWidgets('Early termination triggers when all players submit', (
+      tester,
+    ) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
 
@@ -135,11 +143,13 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
-          transportProvider.overrideWith(() => MockTransportNotifier(hostTransport)),
+          transportProvider.overrideWith(
+            () => MockTransportNotifier(hostTransport),
+          ),
           deviceIdProvider.overrideWith((ref) => Future.value('test-host')),
         ],
       );
-      
+
       // Initialize sync
       container.read(sessionSyncProvider);
 
@@ -149,13 +159,18 @@ void main() {
       session.addPlayer('client1', 'Client');
       session.assignTeam('host', 1);
       session.assignTeam('client1', 2);
-      
-      final match = MatchManager(totalRounds: 5, gameMode: GameMode.multiplayer);
+
+      final match = MatchManager(
+        totalRounds: 5,
+        gameMode: GameMode.multiplayer,
+      );
       match.generateMatch();
       container.read(matchProvider).value = match;
-      
+
       final round = container.read(roundProvider);
-      round.startRound(data: MatchRoundData.mock(numbers: [1, 2, 3], targets: [6]));
+      round.startRound(
+        data: MatchRoundData.mock(numbers: [1, 2, 3], targets: [6]),
+      );
 
       await tester.pumpWidget(
         UncontrolledProviderScope(
@@ -173,16 +188,18 @@ void main() {
 
       // Host submits
       session.recordSubmission('host', '1+1', 0);
-      
+
       // At this point, we are still on GameScreen (waiting for client1)
       expect(find.byType(ResultsScreen), findsNothing);
 
       // Simulate client1 submission event via the transport
-      hostTransport.sendEvent(GameEvent(
-        type: GameEventType.submissionReceived,
-        payload: {'playerId': 'client1', 'expression': '2+2'},
-      ));
-      
+      hostTransport.sendEvent(
+        GameEvent(
+          type: GameEventType.submissionReceived,
+          payload: {'playerId': 'client1', 'expression': '2+2'},
+        ),
+      );
+
       // Wait for stream event to propagate and navigation to settle
       await tester.pump(); // Handle stream
       await tester.pump(const Duration(milliseconds: 100)); // Allow async logic
@@ -192,7 +209,9 @@ void main() {
       expect(find.byType(ResultsScreen), findsOneWidget);
     });
 
-    testWidgets('Client correctly initializes MatchManager from network data', (tester) async {
+    testWidgets('Client correctly initializes MatchManager from network data', (
+      tester,
+    ) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
 
@@ -221,17 +240,21 @@ void main() {
       expect(find.textContaining('SOLO'), findsOneWidget);
 
       // Simulate 'roundStarted' with match metadata
-      container.read(transportProvider).sendEvent(GameEvent(
-        type: GameEventType.roundStarted,
-        payload: {
-          'numbers': [1, 2, 3, 4, 5, 6],
-          'targets': [100],
-          'totalRounds': 10,
-          'currentRound': 3,
-          'gameMode': GameMode.multiplayer.index,
-        },
-      ));
-      
+      container
+          .read(transportProvider)
+          .sendEvent(
+            GameEvent(
+              type: GameEventType.roundStarted,
+              payload: {
+                'numbers': [1, 2, 3, 4, 5, 6],
+                'targets': [100],
+                'totalRounds': 10,
+                'currentRound': 3,
+                'gameMode': GameMode.multiplayer.index,
+              },
+            ),
+          );
+
       await tester.pump(); // Handle stream
       await tester.pump(const Duration(milliseconds: 100));
       await tester.pumpAndSettle(); // Handle UI update
@@ -243,7 +266,9 @@ void main() {
       await tester.pumpWidget(Container());
     });
 
-    testWidgets('GameScreen stays in countdown when startTime is in future', (tester) async {
+    testWidgets('GameScreen stays in countdown when startTime is in future', (
+      tester,
+    ) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
 
@@ -268,17 +293,21 @@ void main() {
           ),
         ),
       );
-      await tester.pump(); 
+      await tester.pump();
 
       // Trigger start with future time
-      container.read(transportProvider).sendEvent(GameEvent(
-        type: GameEventType.roundStarted,
-        payload: {
-          'numbers': [1, 2, 3, 4, 5, 6],
-          'targets': [100],
-          'startTime': futureStartTime,
-        },
-      ));
+      container
+          .read(transportProvider)
+          .sendEvent(
+            GameEvent(
+              type: GameEventType.roundStarted,
+              payload: {
+                'numbers': [1, 2, 3, 4, 5, 6],
+                'targets': [100],
+                'startTime': futureStartTime,
+              },
+            ),
+          );
 
       await tester.pump(); // Handle stream
       await tester.pump(const Duration(milliseconds: 100)); // Allow UI to react
@@ -287,18 +316,22 @@ void main() {
       expect(find.byType(CountdownOverlay), findsOneWidget);
     });
 
-    testWidgets('Client auto-disconnects if host heartbeat is lost', (tester) async {
+    testWidgets('Client auto-disconnects if host heartbeat is lost', (
+      tester,
+    ) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
 
       final clientTransport = LanClientTransport();
       final testNavKey = GlobalKey<NavigatorState>();
       final mockObserver = MockNavigatorObserver();
-      
+
       final container = ProviderContainer(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
-          transportProvider.overrideWith(() => MockTransportNotifier(clientTransport)),
+          transportProvider.overrideWith(
+            () => MockTransportNotifier(clientTransport),
+          ),
           deviceIdProvider.overrideWith((ref) => Future.value('test-client')),
           navigatorKeyProvider.overrideWithValue(testNavKey),
         ],
@@ -323,19 +356,27 @@ void main() {
       expect(find.byType(StagingScreen), findsOneWidget);
 
       // Trigger error manually
-      container.read(transportProvider).sendEvent(GameEvent(
-        type: GameEventType.error,
-        payload: {'message': 'Mock error'},
-      ));
+      container
+          .read(transportProvider)
+          .sendEvent(
+            GameEvent(
+              type: GameEventType.error,
+              payload: {'message': 'Mock error'},
+            ),
+          );
 
       // Extensive pumping to ensure navigation logic completes
-      await tester.pump(); 
+      await tester.pump();
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
       await tester.pumpAndSettle();
 
       // Verify navigation was triggered
-      expect(mockObserver.pushedRoutes.isNotEmpty, isTrue, reason: 'Navigation should have been triggered');
+      expect(
+        mockObserver.pushedRoutes.isNotEmpty,
+        isTrue,
+        reason: 'Navigation should have been triggered',
+      );
     });
   });
 }

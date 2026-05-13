@@ -91,9 +91,9 @@ class _CalibrationScreenState extends ConsumerState<CalibrationScreen> {
       rounds: matchRounds,
       seed: seed,
     );
-    
+
     ref.read(matchProvider).value = match;
-    
+
     final session = ref.read(sessionProvider);
     session.resetScores();
     session.resetRoundData();
@@ -105,25 +105,32 @@ class _CalibrationScreenState extends ConsumerState<CalibrationScreen> {
       ref.read(transportProvider.notifier).setTransport(NullTransport());
       final career = await ref.read(careerProvider.future);
       session.addPlayer('solo', career.playerName);
-      
+
       ref.read(roundProvider).startRound(data: roundData);
     } else {
       final transport = ref.read(transportProvider);
       ref.read(roundProvider).startRound(data: roundData);
-      
-      await transport.sendEvent(GameEvent(type: GameEventType.roundStarted, payload: {
-        'target': roundData.targets.first, 
-        'targets': roundData.targets,
-        'numbers': roundData.numbers, 
-        'difficulty': widget.difficulty.index, 
-        'jeopardy': roundData.jeopardy?.index, 
-        'lockedOperator': roundData.lockedOperator,
-        'config': roundData.config.title,
-      }));
+
+      await transport.sendEvent(
+        GameEvent(
+          type: GameEventType.roundStarted,
+          payload: {
+            'target': roundData.targets.first,
+            'targets': roundData.targets,
+            'numbers': roundData.numbers,
+            'difficulty': widget.difficulty.index,
+            'jeopardy': roundData.jeopardy?.index,
+            'lockedOperator': roundData.lockedOperator,
+            'config': roundData.config.title,
+          },
+        ),
+      );
     }
 
     if (mounted) {
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const GameScreen()));
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const GameScreen()),
+      );
     }
   }
 

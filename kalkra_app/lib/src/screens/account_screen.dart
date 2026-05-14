@@ -33,9 +33,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
     final newName = _nameController?.text.trim() ?? '';
     if (newName.isNotEmpty) {
       ref.read(careerProvider.notifier).setPlayerName(newName);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Identity synchronized.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Identity synchronized.')),
+      );
     }
   }
 
@@ -51,33 +51,26 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
     final isDesktop = ResponsiveLayout.isDesktop(context);
 
     return careerAsync.when(
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (err, stack) =>
-          Scaffold(body: Center(child: Text('Vault Error: $err'))),
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (err, stack) => Scaffold(body: Center(child: Text('Vault Error: $err'))),
       data: (career) {
         _initName(career.playerName);
         return Scaffold(
           backgroundColor: colorScheme.surface,
           drawer: const GlobalDrawer(),
-          appBar: isDesktop
-              ? const TopNavBar(activeId: 'AccountScreen')
-              : AppBar(
-                  title: const Text('ACCOUNT & PREFERENCES'),
-                  leading: Builder(
-                    builder: (context) => IconButton(
-                      icon: const Icon(Icons.menu_rounded),
-                      onPressed: () => Scaffold.of(context).openDrawer(),
-                    ),
-                  ),
-                ),
+          appBar: isDesktop ? const TopNavBar(activeId: 'AccountScreen') : AppBar(
+            title: const Text('ACCOUNT & PREFERENCES'),
+            leading: Builder(
+              builder: (context) => IconButton(
+                icon: const Icon(Icons.menu_rounded),
+                onPressed: () => Scaffold.of(context).openDrawer(),
+              ),
+            ),
+          ),
           body: VectorBackground(
             child: SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 40,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
                 child: Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 800),
@@ -95,31 +88,14 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  'ACCOUNT SETTINGS',
-                                  style: theme.textTheme.displaySmall?.copyWith(
-                                    fontWeight: FontWeight.w900,
-                                    color: colorScheme.primary,
-                                    fontSize: 28,
-                                  ),
-                                ),
+                                Text('ACCOUNT SETTINGS', style: theme.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w900, color: colorScheme.primary, fontSize: 28)),
                                 const SizedBox(height: 4),
-                                Text(
-                                  'MANAGE YOUR IDENTITY AND VISUAL PREFERENCES',
-                                  style: TextStyle(
-                                    letterSpacing: 2,
-                                    color: colorScheme.onSurface.withValues(
-                                      alpha: 0.3,
-                                    ),
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 8,
-                                  ),
-                                ),
+                                Text('MANAGE YOUR IDENTITY AND VISUAL PREFERENCES', style: TextStyle(letterSpacing: 2, color: colorScheme.onSurface.withValues(alpha: 0.3), fontWeight: FontWeight.w900, fontSize: 8)),
                               ],
                             ),
                           ],
                         ),
-
+                        
                         const SizedBox(height: 48),
                         _buildSectionHeader('PLAYER IDENTITY'),
                         const SizedBox(height: 24),
@@ -128,10 +104,6 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                         _buildSectionHeader('VISUAL THEME'),
                         const SizedBox(height: 24),
                         _buildThemeGrid(colorScheme, currentTheme),
-                        const SizedBox(height: 48),
-                        _buildSectionHeader('AUDIO PREFERENCES'),
-                        const SizedBox(height: 24),
-                        _buildAudioControls(career),
                         const SizedBox(height: 48),
                         _buildSectionHeader('DANGER ZONE'),
                         const SizedBox(height: 24),
@@ -145,7 +117,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
             ),
           ),
         );
-      },
+      }
     );
   }
 
@@ -177,10 +149,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
               labelText: 'CALLSIGN',
               hintText: 'Enter your name',
             ),
-            style: const TextStyle(
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1),
           ),
           const SizedBox(height: 24),
           SizedBox(
@@ -191,14 +160,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                 backgroundColor: colorScheme.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 20),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
-              child: const Text(
-                'UPDATE IDENTITY',
-                style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1),
-              ),
+              child: const Text('UPDATE IDENTITY', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
             ),
           ),
         ],
@@ -214,102 +178,11 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
       mainAxisSpacing: 16,
       crossAxisSpacing: 16,
       childAspectRatio: 2.2,
-      children: AppThemeType.values
-          .map(
-            (type) => _ThemeCard(
-              type: type,
-              isActive: type == currentTheme,
-              onTap: () => ref.read(themeProvider.notifier).setTheme(type),
-            ),
-          )
-          .toList(),
-    );
-  }
-
-  Widget _buildAudioControls(CareerManager career) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(32),
-      ),
-      child: Column(
-        children: [
-          _buildAudioTile(
-            icon: Icons.volume_up_rounded,
-            title: 'SOUND EFFECTS',
-            subtitle: 'UI feedback and game alerts',
-            value: career.soundEnabled,
-            onChanged: (v) => ref.read(careerProvider.notifier).setSoundEnabled(v),
-            activeColor: colorScheme.primary,
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
-            child: Divider(height: 1),
-          ),
-          _buildAudioTile(
-            icon: Icons.music_note_rounded,
-            title: 'BACKGROUND MUSIC',
-            subtitle: 'Immersive atmospheric audio',
-            value: career.musicEnabled,
-            onChanged: (v) => ref.read(careerProvider.notifier).setMusicEnabled(v),
-            activeColor: colorScheme.secondary,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAudioTile({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-    required Color activeColor,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: activeColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Icon(icon, color: activeColor, size: 24),
-        ),
-        const SizedBox(width: 20),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 14,
-                  letterSpacing: 1,
-                ),
-              ),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: colorScheme.onSurface.withValues(alpha: 0.5),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-        Switch(
-          value: value,
-          onChanged: onChanged,
-          activeTrackColor: activeColor,
-        ),
-      ],
+      children: AppThemeType.values.map((type) => _ThemeCard(
+        type: type, 
+        isActive: type == currentTheme,
+        onTap: () => ref.read(themeProvider.notifier).setTheme(type),
+      )).toList(),
     );
   }
 
@@ -325,20 +198,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'WIPE LOCAL DATA',
-            style: TextStyle(
-              color: Colors.redAccent,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 2,
-              fontSize: 14,
-            ),
-          ),
+          const Text('WIPE LOCAL DATA', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w900, letterSpacing: 2, fontSize: 14)),
           const SizedBox(height: 8),
-          const Text(
-            'Reset ELO, stats, and theme preferences.',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
-          ),
+          const Text('Reset ELO, stats, and theme preferences.', style: TextStyle(fontSize: 12, color: Colors.grey)),
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () => _confirmReset(colorScheme),
@@ -359,26 +221,15 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('ARE YOU SURE?'),
-        content: const Text(
-          'All your progress, ELO and achievements will be permanently erased.',
-        ),
+        content: const Text('All your progress, ELO and achievements will be permanently erased.'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('CANCEL'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('CANCEL')),
           TextButton(
             onPressed: () {
               ref.read(careerProvider.notifier).clear();
               Navigator.pop(context);
             },
-            child: const Text(
-              'RESET EVERYTHING',
-              style: TextStyle(
-                color: Colors.redAccent,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: const Text('RESET EVERYTHING', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -391,11 +242,7 @@ class _ThemeCard extends StatelessWidget {
   final bool isActive;
   final VoidCallback onTap;
 
-  const _ThemeCard({
-    required this.type,
-    required this.isActive,
-    required this.onTap,
-  });
+  const _ThemeCard({required this.type, required this.isActive, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -406,23 +253,15 @@ class _ThemeCard extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: isActive
-              ? colorScheme.primary
-              : colorScheme.surfaceContainerHighest,
+          color: isActive ? colorScheme.primary : colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(16),
-          border: isActive
-              ? null
-              : Border.all(color: colorScheme.onSurface.withValues(alpha: 0.1)),
+          border: isActive ? null : Border.all(color: colorScheme.onSurface.withValues(alpha: 0.1)),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         alignment: Alignment.center,
         child: Row(
           children: [
-            Icon(
-              Icons.palette_rounded,
-              color: isActive ? Colors.white : colorScheme.onSurfaceVariant,
-              size: 20,
-            ),
+            Icon(Icons.palette_rounded, color: isActive ? Colors.white : colorScheme.onSurfaceVariant, size: 20),
             const SizedBox(width: 12),
             Text(
               type.name.toUpperCase(),

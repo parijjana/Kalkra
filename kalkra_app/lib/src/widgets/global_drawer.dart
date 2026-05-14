@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:transport_interface/transport_interface.dart';
 import 'package:transport_lan/transport_lan.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../providers/game_providers.dart';
+import '../providers/providers.dart';
 import '../screens/main_screen.dart';
 import '../screens/achievements_screen.dart';
 import '../screens/stats_screen.dart';

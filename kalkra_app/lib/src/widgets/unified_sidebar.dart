@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/game_providers.dart';
+import '../providers/providers.dart';
 import 'package:game_engine/game_engine.dart';
 
 class UnifiedSidebar extends ConsumerStatefulWidget {

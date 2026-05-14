@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'src/providers/game_providers.dart';
+import 'src/providers/providers.dart';
 import 'src/screens/playtest_login_screen.dart';
 import 'src/theme/app_theme.dart';
 

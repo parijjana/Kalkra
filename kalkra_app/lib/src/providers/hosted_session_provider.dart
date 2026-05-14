@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'game_providers.dart';
+import 'providers.dart';
 
 class HostedSessionParticipant {
   final String name;

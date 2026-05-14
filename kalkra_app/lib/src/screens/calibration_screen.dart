@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_engine/game_engine.dart';
 import 'package:transport_interface/transport_interface.dart';
-import '../providers/game_providers.dart';
+import '../providers/providers.dart';
 import '../widgets/vector_background.dart';
 import 'game_screen.dart';
 import 'match_setup_screen.dart';

@@ -7,7 +7,7 @@ import 'package:kalkra_app/src/screens/staging_screen.dart';
 import 'package:kalkra_app/src/screens/game_screen.dart';
 import 'package:kalkra_app/src/screens/results_screen.dart';
 import 'package:kalkra_app/src/widgets/countdown_overlay.dart';
-import 'package:kalkra_app/src/providers/game_providers.dart';
+import 'package:kalkra_app/src/providers/providers.dart';
 import 'package:game_engine/game_engine.dart';
 import 'package:transport_interface/transport_interface.dart';
 import 'package:transport_lan/transport_lan.dart';

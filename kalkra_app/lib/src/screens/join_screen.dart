@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:transport_lan/transport_lan.dart';
 import 'package:nsd/nsd.dart';
-import '../providers/game_providers.dart';
+import '../providers/providers.dart';
 import '../widgets/responsive_layout.dart';
 import '../widgets/vector_background.dart';
 import '../widgets/top_nav_bar.dart';

@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_engine/game_engine.dart';
 import 'package:transport_interface/transport_interface.dart';
 import 'package:transport_lan/transport_lan.dart';
-import '../providers/game_providers.dart';
+import '../providers/providers.dart';
 import '../widgets/global_drawer.dart';
 import '../services/sound_service.dart';
 import 'game_screen.dart';

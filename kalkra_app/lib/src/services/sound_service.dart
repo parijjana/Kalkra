@@ -2,7 +2,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
-import '../providers/game_providers.dart';
+import '../providers/providers.dart';
 
 /// A service to manage sound effects and music in the game.
 class SoundService {

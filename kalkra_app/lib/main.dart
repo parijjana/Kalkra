@@ -8,7 +8,7 @@ import 'package:logging/logging.dart';
 import 'package:window_manager/window_manager.dart';
 import 'src/config/navigator_key.dart';
 import 'src/screens/main_screen.dart';
-import 'src/providers/game_providers.dart';
+import 'src/providers/providers.dart';
 import 'src/theme/app_theme.dart';
 import 'src/theme/theme_provider.dart';
 

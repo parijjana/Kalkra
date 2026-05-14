@@ -6,7 +6,7 @@ import 'package:kalkra_app/src/screens/game_screen.dart';
 import 'package:kalkra_app/src/screens/results_screen.dart';
 import 'package:kalkra_app/src/screens/solo_summary_screen.dart';
 import 'package:kalkra_app/src/screens/main_screen.dart';
-import 'package:kalkra_app/src/providers/game_providers.dart';
+import 'package:kalkra_app/src/providers/providers.dart';
 import 'package:game_engine/game_engine.dart';
 
 void main() {

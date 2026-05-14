@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/game_providers.dart'; // To reuse sharedPreferencesProvider
+import '../providers/providers.dart'; // To reuse sharedPreferencesProvider
 import 'app_theme.dart';
 
 final themeProvider = NotifierProvider<ThemeNotifier, AppThemeType>(

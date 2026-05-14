@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:transport_interface/transport_interface.dart';
 import 'package:transport_lan/transport_lan.dart';
-import '../providers/game_providers.dart';
+import '../providers/providers.dart';
 import '../widgets/vector_background.dart';
 import '../widgets/global_drawer.dart';
 import 'staging_screen.dart';

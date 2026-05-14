@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_engine/game_engine.dart';
 import 'package:transport_interface/transport_interface.dart';
 import 'package:transport_lan/transport_lan.dart';
-import '../providers/game_providers.dart';
+import '../providers/providers.dart';
 import '../providers/hosted_session_provider.dart';
 import '../widgets/responsive_layout.dart';
 import '../widgets/vector_background.dart';

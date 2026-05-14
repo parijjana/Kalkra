@@ -5,7 +5,7 @@ import 'package:network_info_plus/network_info_plus.dart';
 import 'package:transport_lan/transport_lan.dart';
 import 'package:transport_interface/transport_interface.dart';
 import 'package:game_engine/game_engine.dart';
-import '../providers/game_providers.dart';
+import '../providers/providers.dart';
 import '../providers/hosted_session_provider.dart';
 import '../config/device_util.dart';
 import 'package:flutter_svg/flutter_svg.dart';

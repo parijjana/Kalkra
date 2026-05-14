@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/game_providers.dart';
+import '../providers/providers.dart';
 import '../widgets/responsive_layout.dart';
 import '../widgets/vector_background.dart';
 import '../widgets/top_nav_bar.dart';

@@ -7,7 +7,7 @@ import 'package:transport_lan/transport_lan.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../providers/game_providers.dart';
+import '../providers/providers.dart';
 import '../widgets/vector_background.dart';
 import '../widgets/global_drawer.dart';
 import '../widgets/responsive_layout.dart';

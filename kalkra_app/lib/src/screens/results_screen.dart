@@ -94,10 +94,12 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
     final solverResult = round.bestSolution;
     final match = ref.watch(matchProvider).value;
     final session = ref.watch(sessionProvider);
-    
+
     final transport = ref.watch(transportProvider);
     final myId = transport is LanHostTransport ? 'host' : 'me';
-    final myScore = session.getPlayerScore(transport is NullTransport ? 'solo' : myId);
+    final myScore = session.getPlayerScore(
+      transport is NullTransport ? 'solo' : myId,
+    );
 
     return Scaffold(
       drawer: const GlobalDrawer(),
@@ -134,12 +136,23 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          match != null ? 'ROUND ${match.currentRound}/${match.totalRounds}' : 'SOLO',
-                          style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2, color: colorScheme.onSurface.withValues(alpha: 0.4), fontSize: 10),
+                          match != null
+                              ? 'ROUND ${match.currentRound}/${match.totalRounds}'
+                              : 'SOLO',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 2,
+                            color: colorScheme.onSurface.withValues(alpha: 0.4),
+                            fontSize: 10,
+                          ),
                         ),
                         Text(
                           'YOUR TOTAL: $myScore',
-                          style: TextStyle(fontWeight: FontWeight.w900, color: colorScheme.primary, fontSize: 16),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            color: colorScheme.primary,
+                            fontSize: 16,
+                          ),
                         ),
                       ],
                     ),
@@ -161,15 +174,28 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
                           ),
                           const SizedBox(height: 16),
                           TextButton.icon(
-                            onPressed: () => setState(() => _showIndividual = !_showIndividual),
-                            icon: Icon(_showIndividual ? Icons.expand_less : Icons.expand_more),
-                            label: Text(_showIndividual ? 'HIDE INDIVIDUALS' : 'SHOW INDIVIDUALS'),
+                            onPressed: () => setState(
+                              () => _showIndividual = !_showIndividual,
+                            ),
+                            icon: Icon(
+                              _showIndividual
+                                  ? Icons.expand_less
+                                  : Icons.expand_more,
+                            ),
+                            label: Text(
+                              _showIndividual
+                                  ? 'HIDE INDIVIDUALS'
+                                  : 'SHOW INDIVIDUALS',
+                            ),
                           ),
                           if (_showIndividual)
-                             Padding(
-                               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                               child: _buildIndividualBreakdown(context),
-                             ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 40,
+                                vertical: 16,
+                              ),
+                              child: _buildIndividualBreakdown(context),
+                            ),
                           const SizedBox(height: 32),
                         ],
                         _HeroRecap(
@@ -197,12 +223,20 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
     );
   }
 
-  Widget _buildNavigationRow(BuildContext context, ColorScheme colorScheme, WidgetRef ref) {
+  Widget _buildNavigationRow(
+    BuildContext context,
+    ColorScheme colorScheme,
+    WidgetRef ref,
+  ) {
     final match = ref.read(matchProvider).value;
-    final isLastRound = match != null && (match.isMatchOver || (match.gameMode != GameMode.endless && match.currentRound >= match.totalRounds));
+    final isLastRound =
+        match != null &&
+        (match.isMatchOver ||
+            (match.gameMode != GameMode.endless &&
+                match.currentRound >= match.totalRounds));
     final isHost = ref.read(transportProvider) is LanHostTransport;
     final isLocked = _lockoutSeconds > 0;
-    
+
     String buttonText = isLastRound ? 'FINISH MATCH' : 'NEXT ROUND';
     if (isLocked) {
       buttonText = 'WAIT... ${_lockoutSeconds}s';
@@ -214,97 +248,118 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
       width: 350,
       height: 64,
       child: ElevatedButton(
-        onPressed: (isLocked || (!isHost && widget.multiplayerResults != null)) 
-          ? null 
-          : () async {
-            if (isLastRound) {
-              if (context.mounted) {
+        onPressed: (isLocked || (!isHost && widget.multiplayerResults != null))
+            ? null
+            : () async {
+                if (isLastRound) {
+                  if (context.mounted) {
+                    final transport = ref.read(transportProvider);
+                    if (transport is NullTransport) {
+                      final session = ref.read(sessionProvider);
+                      final score = session.getPlayerScore('solo');
+                      final match = ref.read(matchProvider).value;
+                      ref
+                          .read(careerProvider.notifier)
+                          .recordSoloMatch(
+                            score: score,
+                            mode: match?.gameMode.name.toUpperCase() ?? 'SOLO',
+                          );
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (context) => const SoloSummaryScreen(),
+                        ),
+                      );
+                    } else {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (context) => MatchSummaryScreen(
+                            teamTotalScores: widget.teamTotalScores ?? {},
+                            multiplayerResults: widget.multiplayerResults,
+                          ),
+                        ),
+                      );
+                    }
+                  }
+                  return;
+                }
+
                 final transport = ref.read(transportProvider);
-                if (transport is NullTransport) {
-                  final session = ref.read(sessionProvider);
-                  final score = session.getPlayerScore('solo');
-                  final match = ref.read(matchProvider).value;
-                  ref.read(careerProvider.notifier).recordSoloMatch(
-                    score: score,
-                    mode: match?.gameMode.name.toUpperCase() ?? 'SOLO',
-                  );
+                if (transport is LanHostTransport) {
+                  _triggerNextRound(ref, transport, match);
+                } else if (transport is NullTransport) {
+                  if (match != null) {
+                    match.nextRound();
+                    final round = ref.read(roundProvider);
+                    final nextData = match.currentRoundData;
+                    if (nextData != null) {
+                      round.startRound(data: nextData);
+                    }
+                  }
+                }
+
+                if (context.mounted) {
                   Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => const SoloSummaryScreen()),
-                  );
-                } else {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (context) => MatchSummaryScreen(
-                        teamTotalScores: widget.teamTotalScores ?? {},
-                        multiplayerResults: widget.multiplayerResults,
-                      ),
-                    ),
+                    MaterialPageRoute(builder: (context) => const GameScreen()),
                   );
                 }
-              }
-              return;
-            }
-
-            final transport = ref.read(transportProvider);
-            if (transport is LanHostTransport) {
-               _triggerNextRound(ref, transport, match);
-            } else if (transport is NullTransport) {
-               if (match != null) {
-                  match.nextRound();
-                  final round = ref.read(roundProvider);
-                  final nextData = match.currentRoundData;
-                  if (nextData != null) {
-                    round.startRound(data: nextData);
-                  }
-               }
-            }
-            
-            if (context.mounted) {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const GameScreen()),
-              );
-            }
-          },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
-          elevation: 0,
-        ).copyWith(
-          backgroundColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.disabled)) return colorScheme.surfaceContainerHighest;
-            return colorScheme.primary;
-          }),
+              },
+        style:
+            ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(32),
+              ),
+              elevation: 0,
+            ).copyWith(
+              backgroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.disabled))
+                  return colorScheme.surfaceContainerHighest;
+                return colorScheme.primary;
+              }),
+            ),
+        child: Text(
+          buttonText,
+          style: const TextStyle(
+            fontWeight: FontWeight.w900,
+            letterSpacing: 4,
+            fontSize: 18,
+          ),
         ),
-        child: Text(buttonText, style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 4, fontSize: 18)),
       ),
     );
   }
 
-  Future<void> _triggerNextRound(WidgetRef ref, IGameTransport transport, MatchManager? match) async {
+  Future<void> _triggerNextRound(
+    WidgetRef ref,
+    IGameTransport transport,
+    MatchManager? match,
+  ) async {
     if (match != null && !match.isMatchOver) {
       match.nextRound();
       final roundData = match.currentRoundData ?? MatchRoundData.mock();
-      
+
       final round = ref.read(roundProvider);
       round.startRound(data: roundData);
       ref.read(sessionProvider).resetRoundData();
-      
-      await transport.sendEvent(GameEvent(
-        type: GameEventType.roundStarted,
-        payload: {
-          'target': roundData.targets.first,
-          'targets': roundData.targets,
-          'numbers': roundData.numbers,
-          'difficulty': 1, 
-          'jeopardy': roundData.jeopardy?.index,
-          'lockedOperator': roundData.lockedOperator,
-          'totalRounds': match.totalRounds,
-          'gameMode': match.gameMode.index,
-          'currentRound': match.currentRound,
-          'config': roundData.config.title,
-        },
-      ));
+
+      await transport.sendEvent(
+        GameEvent(
+          type: GameEventType.roundStarted,
+          payload: {
+            'target': roundData.targets.first,
+            'targets': roundData.targets,
+            'numbers': roundData.numbers,
+            'difficulty': 1,
+            'jeopardy': roundData.jeopardy?.index,
+            'lockedOperator': roundData.lockedOperator,
+            'totalRounds': match.totalRounds,
+            'gameMode': match.gameMode.index,
+            'currentRound': match.currentRound,
+            'config': roundData.config.title,
+          },
+        ),
+      );
     }
   }
 
@@ -312,17 +367,18 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final session = ref.watch(sessionProvider);
     final teamColors = [Colors.blue, Colors.orange, Colors.purple, Colors.teal];
-    
-    // Only show teams that have at least one player assigned
-    final activeTeams = [1, 2, 3, 4].where((tId) => 
-      session.players.values.any((p) => p.teamId == tId)
-    ).toList();
 
-    final sortedTeams = activeTeams..sort((a, b) {
-       final sA = widget.teamTotalScores?[a] ?? 0;
-       final sB = widget.teamTotalScores?[b] ?? 0;
-       return sB.compareTo(sA);
-    });
+    // Only show teams that have at least one player assigned
+    final activeTeams = [1, 2, 3, 4]
+        .where((tId) => session.players.values.any((p) => p.teamId == tId))
+        .toList();
+
+    final sortedTeams = activeTeams
+      ..sort((a, b) {
+        final sA = widget.teamTotalScores?[a] ?? 0;
+        final sB = widget.teamTotalScores?[b] ?? 0;
+        return sB.compareTo(sA);
+      });
 
     if (sortedTeams.isEmpty) return const SizedBox.shrink();
 
@@ -331,11 +387,22 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.05), width: 1),
+        border: Border.all(
+          color: colorScheme.onSurface.withValues(alpha: 0.05),
+          width: 1,
+        ),
       ),
       child: Column(
         children: [
-          Text('TEAM STANDINGS', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 4, fontSize: 10, color: colorScheme.primary.withValues(alpha: 0.5))),
+          Text(
+            'TEAM STANDINGS',
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              letterSpacing: 4,
+              fontSize: 10,
+              color: colorScheme.primary.withValues(alpha: 0.5),
+            ),
+          ),
           const SizedBox(height: 24),
           ...sortedTeams.map((tId) {
             final total = widget.teamTotalScores?[tId] ?? 0;
@@ -352,14 +419,48 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
               ),
               child: Row(
                 children: [
-                  CircleAvatar(backgroundColor: color, radius: 14, child: Text('$tId', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))),
+                  CircleAvatar(
+                    backgroundColor: color,
+                    radius: 14,
+                    child: Text(
+                      '$tId',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                   const SizedBox(width: 16),
-                  Expanded(child: Text('TEAM $tId', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14))),
+                  Expanded(
+                    child: Text(
+                      'TEAM $tId',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text('$total TOTAL', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: colorScheme.onSurface)),
-                      if (roundPts > 0) Text('+$roundPts ROUND', style: const TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold)),
+                      Text(
+                        '$total TOTAL',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 14,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                      if (roundPts > 0)
+                        Text(
+                          '+$roundPts ROUND',
+                          style: const TextStyle(
+                            color: Colors.green,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                     ],
                   ),
                 ],
@@ -386,21 +487,57 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
         return Container(
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(color: colorScheme.surfaceContainerHigh, borderRadius: BorderRadius.circular(16)),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHigh,
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Row(
             children: [
-              CircleAvatar(radius: 12, backgroundColor: color.withValues(alpha: 0.1), child: Text(data['name'][0].toUpperCase(), style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold))),
+              CircleAvatar(
+                radius: 12,
+                backgroundColor: color.withValues(alpha: 0.1),
+                child: Text(
+                  data['name'][0].toUpperCase(),
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(data['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                    Text(expr.isEmpty ? 'NO SUBMISSION' : '$expr = ${data['value']}', style: TextStyle(fontFamily: 'monospace', fontSize: 10, color: colorScheme.onSurface.withValues(alpha: 0.5))),
+                    Text(
+                      data['name'],
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                    Text(
+                      expr.isEmpty
+                          ? 'NO SUBMISSION'
+                          : '$expr = ${data['value']}',
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 10,
+                        color: colorScheme.onSurface.withValues(alpha: 0.5),
+                      ),
+                    ),
                   ],
                 ),
               ),
-              if (data['proximity'] != null) Text('PROX: ${data['proximity']}', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+              if (data['proximity'] != null)
+                Text(
+                  'PROX: ${data['proximity']}',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
             ],
           ),
         );
@@ -434,14 +571,30 @@ class _HeroRecap extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // 1. Target Header
-        Text('TARGET NUMBER', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 4, color: colorScheme.onSurface.withValues(alpha: 0.2), fontSize: 10)),
+        Text(
+          'TARGET NUMBER',
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            letterSpacing: 4,
+            color: colorScheme.onSurface.withValues(alpha: 0.2),
+            fontSize: 10,
+          ),
+        ),
         FittedBox(
           fit: BoxFit.scaleDown,
-          child: Text('$target', style: theme.textTheme.displayLarge?.copyWith(fontSize: 100, color: colorScheme.primary, height: 1, fontWeight: FontWeight.w900)),
+          child: Text(
+            '$target',
+            style: theme.textTheme.displayLarge?.copyWith(
+              fontSize: 100,
+              color: colorScheme.primary,
+              height: 1,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
         ),
-        
+
         const SizedBox(height: 24),
-        
+
         // 2. Main Solution Card (Dynamic based on outcome)
         if (isExact)
           // Success Highlight: Player's Solution is the Hero
@@ -451,11 +604,28 @@ class _HeroRecap extends StatelessWidget {
             decoration: const BoxDecoration(color: Colors.green),
             child: Column(
               children: [
-                const Text('TARGET REACHED!', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 8, color: Colors.white70, fontSize: 14)),
+                const Text(
+                  'TARGET REACHED!',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 8,
+                    color: Colors.white70,
+                    fontSize: 14,
+                  ),
+                ),
                 const SizedBox(height: 24),
                 FittedBox(
                   fit: BoxFit.scaleDown,
-                  child: Text(playerExpression, style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.w900, fontSize: 80, color: Colors.white, letterSpacing: 4)),
+                  child: Text(
+                    playerExpression,
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontWeight: FontWeight.w900,
+                      fontSize: 80,
+                      color: Colors.white,
+                      letterSpacing: 4,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -468,11 +638,28 @@ class _HeroRecap extends StatelessWidget {
             decoration: BoxDecoration(color: colorScheme.secondary),
             child: Column(
               children: [
-                Text('POSSIBLE SOLUTION', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 8, color: colorScheme.onSecondary.withValues(alpha: 0.5), fontSize: 14)),
+                Text(
+                  'POSSIBLE SOLUTION',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 8,
+                    color: colorScheme.onSecondary.withValues(alpha: 0.5),
+                    fontSize: 14,
+                  ),
+                ),
                 const SizedBox(height: 24),
                 FittedBox(
                   fit: BoxFit.scaleDown,
-                  child: Text(solverExpression, style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.w900, fontSize: 80, color: colorScheme.onSecondary, letterSpacing: 4)),
+                  child: Text(
+                    solverExpression,
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontWeight: FontWeight.w900,
+                      fontSize: 80,
+                      color: colorScheme.onSecondary,
+                      letterSpacing: 4,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -483,20 +670,47 @@ class _HeroRecap extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 40),
             child: Column(
               children: [
-                Text('YOUR SUBMISSION', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2, color: colorScheme.onSurface.withValues(alpha: 0.2), fontSize: 10)),
+                Text(
+                  'YOUR SUBMISSION',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 2,
+                    color: colorScheme.onSurface.withValues(alpha: 0.2),
+                    fontSize: 10,
+                  ),
+                ),
                 const SizedBox(height: 8),
                 FittedBox(
                   fit: BoxFit.scaleDown,
-                  child: Text(playerExpression.isEmpty ? 'NO SUBMISSION' : playerExpression, style: theme.textTheme.headlineMedium?.copyWith(fontFamily: 'monospace', fontWeight: FontWeight.w900, fontSize: 32)),
+                  child: Text(
+                    playerExpression.isEmpty
+                        ? 'NO SUBMISSION'
+                        : playerExpression,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontFamily: 'monospace',
+                      fontWeight: FontWeight.w900,
+                      fontSize: 32,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 20),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 40,
+                    vertical: 16,
+                  ),
                   decoration: BoxDecoration(
                     color: colorScheme.onSurface,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Text('RESULT: $playerValue', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22, color: Colors.white)),
+                  child: Text(
+                    'RESULT: $playerValue',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 22,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -512,10 +726,26 @@ class _HeroRecap extends StatelessWidget {
             children: [
               Text(
                 '$playerPoints PTS',
-                style: TextStyle(fontSize: 90, fontWeight: FontWeight.w900, color: playerPoints > 0 ? Colors.amber : Colors.grey.withValues(alpha: 0.5), letterSpacing: -2, height: 1),
+                style: TextStyle(
+                  fontSize: 90,
+                  fontWeight: FontWeight.w900,
+                  color: playerPoints > 0
+                      ? Colors.amber
+                      : Colors.grey.withValues(alpha: 0.5),
+                  letterSpacing: -2,
+                  height: 1,
+                ),
               ),
               const SizedBox(height: 4),
-              Text('EARNED THIS ROUND', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 6, fontSize: 10, color: colorScheme.onSurface.withValues(alpha: 0.3))),
+              Text(
+                'EARNED THIS ROUND',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 6,
+                  fontSize: 10,
+                  color: colorScheme.onSurface.withValues(alpha: 0.3),
+                ),
+              ),
             ],
           ),
         ),

@@ -50,9 +50,10 @@ void main() {
         color: color,
       );
 
-      if (tl)
+      if (tl) {
         img.fillCircle(image, x: x + r, y: y + r, radius: r, color: color);
-      if (tr)
+      }
+      if (tr) {
         img.fillCircle(
           image,
           x: x + size - r,
@@ -60,7 +61,8 @@ void main() {
           radius: r,
           color: color,
         );
-      if (bl)
+      }
+      if (bl) {
         img.fillCircle(
           image,
           x: x + r,
@@ -68,7 +70,8 @@ void main() {
           radius: r,
           color: color,
         );
-      if (br)
+      }
+      if (br) {
         img.fillCircle(
           image,
           x: x + size - r,
@@ -76,6 +79,7 @@ void main() {
           radius: r,
           color: color,
         );
+      }
     }
 
     // 1. Draw Exploded Quadrants

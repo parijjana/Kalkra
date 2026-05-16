@@ -38,8 +38,9 @@ class PersistenceSecurity {
   /// Throws an exception if tampering is detected.
   static String unpack(String packedData, String deviceId) {
     final parts = packedData.split(':');
-    if (parts.length != 3)
+    if (parts.length != 3) {
       throw Exception('Vault Integrity Error: Invalid Format');
+    }
 
     final payload = '${parts[0]}:${parts[1]}';
     final providedSignature = parts[2];

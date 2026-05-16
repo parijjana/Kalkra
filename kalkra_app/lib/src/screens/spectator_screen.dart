@@ -195,8 +195,9 @@ class _SpectatorScreenState extends ConsumerState<SpectatorScreen>
   }
 
   void _banPlayer(String id, String? deviceId) {
-    if (deviceId != null)
+    if (deviceId != null) {
       ref.read(hostedSessionProvider.notifier).banDevice(deviceId);
+    }
     ref.read(transportProvider).kickPlayer(id);
     ScaffoldMessenger.of(
       context,
@@ -410,8 +411,9 @@ class _SpectatorScreenState extends ConsumerState<SpectatorScreen>
                             label: Text(type.name.toUpperCase()),
                             selected: isActive,
                             onSelected: (selected) {
-                              if (selected)
+                              if (selected) {
                                 setState(() => _nextJeopardy = type);
+                              }
                             },
                           );
                         }).toList(),

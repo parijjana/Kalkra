@@ -1,5 +1,4 @@
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
 import '../providers/providers.dart';
@@ -14,7 +13,7 @@ class SoundService {
   final _logger = Logger('SoundService');
   final AudioPlayer _fxPlayer = AudioPlayer();
   final AudioPlayer _musicPlayer = AudioPlayer();
-  
+
   WidgetRef? _ref;
 
   void updateRef(WidgetRef ref) {

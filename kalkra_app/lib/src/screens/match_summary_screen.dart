@@ -162,8 +162,9 @@ class MatchSummaryScreen extends ConsumerWidget {
                     onPressed: () {
                       if (isHost) {
                         // 1. Record Outcome locally
-                        if (winnerId != null)
+                        if (winnerId != null) {
                           session.recordMatchOutcome(winnerId);
+                        }
                         session.resetScores();
 
                         // 2. Transition State

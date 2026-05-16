@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:game_engine/game_engine.dart';
 import '../services/career_persistence.dart';
 import 'providers.dart';

@@ -56,7 +56,7 @@ void main() {
       const Duration(milliseconds: 500),
     ); // Wait for entrance animations
     final firstTile = find
-        .byWidgetPredicate((w) => w.runtimeType.toString() == '_NumberTile')
+        .byWidgetPredicate((w) => w.runtimeType.toString() == 'NumberTile')
         .first;
     await tester.tap(firstTile);
     await tester.pump();
@@ -80,7 +80,7 @@ void main() {
     // Build and submit another
     await tester.pump(const Duration(milliseconds: 500));
     final secondTile = find
-        .byWidgetPredicate((w) => w.runtimeType.toString() == '_NumberTile')
+        .byWidgetPredicate((w) => w.runtimeType.toString() == 'NumberTile')
         .first;
     await tester.tap(secondTile);
     await tester.tap(find.text('SUBMIT'));

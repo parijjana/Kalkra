@@ -1,0 +1,74 @@
+name: kalkra
+description: Kalkra - A vibrant, educational math game for all ages.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  crypto: ^3.0.7
+  device_info_plus: ^12.4.0
+  encrypt: ^5.0.3
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^3.3.1
+  flutter_svg: ^2.2.4
+  game_engine:
+    path: ../packages/game_engine
+  google_fonts: ^8.0.2
+  intl: ^0.20.2
+  logging: ^1.3.0
+  mobile_scanner: ^7.2.0
+  network_info_plus: 6.1.2
+  nsd: ^5.0.1
+  qr_flutter: ^4.1.0
+  riverpod_annotation: ^4.0.2
+  shared_preferences: ^2.5.5
+  transport_interface:
+    path: ../packages/transport_interface
+  transport_lan:
+    path: ../packages/transport_lan
+  gatekeeper_rate_limit:
+    path: ../packages/gatekeeper_rate_limit
+  window_manager: ^0.5.1
+  flutter_driver:
+    sdk: flutter
+  uuid: ^4.5.3
+  image: 4.5.2
+  http: 1.6.0
+  audioplayers: ^6.6.0
+  flutter_secure_storage: ^10.2.0
+  url_launcher: ^6.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  riverpod_generator: ^4.0.3
+  build_runner: ^2.13.1
+  flutter_launcher_icons: ^0.14.4
+flutter_native_splash:
+  color: "#121212"
+  image: "assets/images/app_icon.png"
+  android_12:
+    image: "assets/images/app_icon.png"
+    icon_background_color: "#121212"
+  fullscreen: true
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/audio/
+    - assets/audio/bgm/
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  windows:
+    generate: true
+    image_path: "assets/images/app_icon.png"
+  image_path: "assets/images/app_icon.png"
+  adaptive_icon_background: "#121212"
+  adaptive_icon_foreground: "assets/images/app_icon.png"

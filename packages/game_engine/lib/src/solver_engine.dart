@@ -1,3 +1,5 @@
+import 'dart:math';
+
 class SolveResult {
   final int? bestValue;
   final String? expression;
@@ -20,51 +22,40 @@ class SolveResult {
 
 class _SolverNode {
   final double value;
-  final int precedence;
-  final String? expression; // Null until materialized
+  final int precedence; // 3: atomic, 2: */, 1: +-
   final _SolverNode? left;
   final _SolverNode? right;
   final String? op;
+  final String? expression;
 
-  _SolverNode(this.value, this.precedence, {this.expression, this.left, this.right, this.op});
+  _SolverNode(this.value, this.precedence, {this.left, this.right, this.op, this.expression});
 
   String get materializedExpression {
     if (expression != null) return expression!;
-    
-    final sA = left!.materializedExpression;
-    final sB = right!.materializedExpression;
-    final pA = left!.precedence;
-    final pB = right!.precedence;
-    final currentPrec = precedence;
+    if (left != null && right != null && op != null) {
+      final int opPrec = (op == '*' || op == '/') ? 2 : 1;
+      
+      String lStr = left!.materializedExpression;
+      if (left!.precedence < opPrec) {
+        lStr = '($lStr)';
+      }
 
-    final lStr = pA < currentPrec ? '($sA)' : sA;
-    final rStr = pB < currentPrec ? '($sB)' : sB;
-    return '$lStr $op $rStr';
+      String rStr = right!.materializedExpression;
+      bool wrapRight = right!.precedence < opPrec;
+      if (!wrapRight && right!.precedence == opPrec) {
+        if (op == '-' || op == '/') wrapRight = true;
+      }
+      if (wrapRight) {
+        rStr = '($rStr)';
+      }
+
+      return '$lStr$op$rStr';
+    }
+    return value.toInt().toString();
   }
 }
 
 class SolverEngine {
-  /// Finds all reachable integer values from a pool and set of operators.
-  Set<int> findAllReachableValues(List<int> pool, {List<String>? allowedOperators, int maxNesting = 10, int? minTarget, int? maxTarget}) {
-    if (pool.isEmpty) return {};
-    final ops = allowedOperators ?? ['+', '-', '*', '/'];
-    final reachable = <int, _SolverNode>{};
-    
-    _search(
-      pool.map((e) => _SolverNode(e.toDouble(), 10, expression: e.toString())).toList(),
-      null, 
-      reachable,
-      ops,
-      maxNesting,
-    );
-
-    if (minTarget == null && maxTarget == null) return reachable.keys.toSet();
-
-    return reachable.keys
-        .where((v) => (minTarget == null || v >= minTarget) && (maxTarget == null || v <= maxTarget))
-        .toSet();
-  }
-
   /// Solves the math puzzle with optional operator restrictions and nesting limits.
   SolveResult solve(List<int> pool, int target, {List<String>? allowedOperators, int maxNesting = 10}) {
     if (pool.isEmpty) return SolveResult();
@@ -72,7 +63,7 @@ class SolverEngine {
     final ops = allowedOperators ?? ['+', '-', '*', '/'];
     final solutions = <int, _SolverNode>{};
     
-    final initialNodes = pool.map((e) => _SolverNode(e.toDouble(), 10, expression: e.toString())).toList();
+    final initialNodes = pool.map((e) => _SolverNode(e.toDouble(), 3, expression: e.toString())).toList();
     for (final node in initialNodes) {
       solutions[node.value.toInt()] = node;
     }
@@ -149,7 +140,7 @@ class SolverEngine {
     int maxNesting,
   ) {
     final intRes = res.value.toInt();
-    if (!solutions.containsKey(intRes)) {
+    if (!solutions.containsKey(intRes) || res.materializedExpression.length < solutions[intRes]!.materializedExpression.length) {
       solutions[intRes] = res;
     }
 

@@ -1,194 +1,40 @@
 import 'dart:math';
 import 'number_generator.dart';
 import 'round_config.dart';
+import 'exhaustive_solver.dart';
 import 'solver_engine.dart';
 
 class TargetGenerator {
+  final ExhaustiveSolver _exhaustiveSolver = ExhaustiveSolver();
   final SolverEngine _solver = SolverEngine();
 
-  int generateTarget({Difficulty difficulty = Difficulty.medium, int? seed, TargetType type = TargetType.standard}) {
-    final random = Random(seed);
-    
-    if (type == TargetType.countdown) {
-      // Starts high
-      return 800 + random.nextInt(200);
-    }
-
-    switch (difficulty) {
-      case Difficulty.easy:
-        // Range 50 to 250 (Easier with 1 large number)
-        return 50 + random.nextInt(201);
-      case Difficulty.medium:
-        // Range 100 to 999 (Standard)
-        return 100 + random.nextInt(900);
-      case Difficulty.hard:
-        // Range 400 to 999 (Requires more complex combinations)
-        return 400 + random.nextInt(600);
-    }
-  }
-
-  /// Generates a target that is guaranteed to be reachable with the given pool and operators.
-  int generateReachableTarget({
-    required List<int> pool,
-    List<String>? allowedOperators,
+  int generateTarget({
     Difficulty difficulty = Difficulty.medium,
     int? seed,
     TargetType type = TargetType.standard,
-    Set<int>? excludedTargets,
+    List<int> excludedTargets = const [],
   }) {
     final random = Random(seed);
     
+    if (type == TargetType.powersOf2) {
+      final powers = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024];
+      final available = powers.where((p) => !excludedTargets.contains(p)).toList();
+      return available[random.nextInt(available.length)];
+    }
+
     int minT = 100;
     int maxT = 999;
     
-    if (type == TargetType.countdown) {
-      minT = 800; maxT = 999;
-    } else if (type == TargetType.powersOf2 || type == TargetType.powersOf3) {
-      switch (difficulty) {
-        case Difficulty.easy:
-          minT = 100;
-          maxT = 999;
-          break;
-        case Difficulty.medium:
-          minT = 1000;
-          maxT = 9999;
-          break;
-        case Difficulty.hard:
-          minT = 10000;
-          maxT = 99999;
-          break;
-      }
-    } else {
-      switch (difficulty) {
-        case Difficulty.easy:
-          minT = 50;
-          maxT = 250;
-          break;
-        case Difficulty.medium:
-          minT = 100;
-          maxT = 999;
-          break;
-        case Difficulty.hard:
-          minT = 400;
-          maxT = 999;
-          break;
-      }
+    if (difficulty == Difficulty.easy) {
+      minT = 10; maxT = 150;
+    } else if (difficulty == Difficulty.medium) {
+      minT = 100; maxT = 500;
     }
 
-    // Optimization: Constructive approach
-    // Pick N random targets and check if they are solvable.
-
-    int? bestCandidate;
-    int minDistance = 1000000;
-
-    final powerPool =
-        type == TargetType.powersOf2
-            ? [
-              32,
-              64,
-              128,
-              256,
-              512,
-              1024,
-              2048,
-              4096,
-              8192,
-              16384,
-              32768,
-              65536,
-              131072,
-            ]
-            : (type == TargetType.powersOf3
-                ? [27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441]
-                : null);
-
-    final attempts = (powerPool != null) ? powerPool.length * 2 : 20;
-
-    for (int i = 0; i < attempts; i++) {
-      int candidate;
-      if (powerPool != null) {
-        candidate = powerPool[random.nextInt(powerPool.length)];
-        // Filter by range
-        if (candidate < minT || candidate > maxT) continue;
-      } else {
-        candidate = minT + random.nextInt(maxT - minT + 1);
-      }
-
-      if (excludedTargets != null && excludedTargets.contains(candidate)) {
-        continue;
-      }
-
-      final res = _solver.solve(
-        pool,
-        candidate,
-        allowedOperators: allowedOperators,
-      );
-      if (res.foundExact) return candidate;
-
-      final resultVal = res.bestValue ?? pool.first;
-
-      // If themed, resultVal must also be a power of N
-      if (powerPool != null && !powerPool.contains(resultVal)) continue;
-
-      final dist = (resultVal - candidate).abs();
-
-      // Keep track of the closest reachable value that isn't excluded
-      if (excludedTargets == null || !excludedTargets.contains(resultVal)) {
-        if (dist < minDistance) {
-          minDistance = dist;
-          bestCandidate = resultVal;
-        }
-      }
-    }
-
-    // If we found a non-excluded reachable candidate, use it.
-    if (bestCandidate != null) return bestCandidate;
-
-    // Themed Fallback: Random power within range, respecting exclusions
-    if (powerPool != null) {
-      final inRangeNotExcluded =
-          powerPool.where((p) {
-            if (p < minT || p > maxT) return false;
-            if (excludedTargets != null && excludedTargets.contains(p)) {
-              return false;
-            }
-            return true;
-          }).toList();
-
-      if (inRangeNotExcluded.isNotEmpty) {
-        return inRangeNotExcluded[random.nextInt(inRangeNotExcluded.length)];
-      }
-
-      // If no valid one in range, try any power from the pool not excluded
-      final anyNotExcluded =
-          powerPool
-              .where(
-                (p) => excludedTargets == null || !excludedTargets.contains(p),
-              )
-              .toList();
-      if (anyNotExcluded.isNotEmpty) {
-        return anyNotExcluded[random.nextInt(anyNotExcluded.length)];
-      }
-    }
-
-    // Last resort fallback: find ANY value in the pool not excluded
-    for (final p in pool) {
-      if (excludedTargets == null || !excludedTargets.contains(p)) return p;
-    }
-
-    // Absolute fallback: random number (may duplicate if set is exhausted)
-    return pool[random.nextInt(pool.length)];
+    return minT + random.nextInt(maxT - minT);
   }
 
-  List<int> generateTargets({int count = 1, Difficulty difficulty = Difficulty.medium, int? seed}) {
-    final random = Random(seed);
-    final targets = <int>{};
-    while (targets.length < count) {
-      targets.add(generateTarget(difficulty: difficulty, seed: random.nextInt(1000000)));
-    }
-    return targets.toList()..sort();
-  }
-
+  /// Generates a set of reachable targets for standard game modes.
   List<int> generateReachableTargets({
     int count = 1,
     required List<int> pool,
@@ -196,17 +42,138 @@ class TargetGenerator {
     Difficulty difficulty = Difficulty.medium,
     int? seed,
     TargetType type = TargetType.standard,
-    Set<int>? excludedTargets,
+    Set<int> excludedTargets = const {},
   }) {
     final random = Random(seed);
     final targets = <int>{};
-    final localExclusions = Set<int>.from(excludedTargets ?? {});
-    
     int attempts = 0;
-    while (targets.length < count && attempts < 30) {
-      final t = generateReachableTarget(
-        pool: pool,
-        allowedOperators: allowedOperators,
+
+    while (targets.length < count && attempts < 50) {
+      final t = generateTarget(
+        difficulty: difficulty,
+        seed: random.nextInt(1000000),
+        type: type,
+        excludedTargets: excludedTargets.toList(),
+      );
+
+      final res = _solver.solve(pool, t, allowedOperators: allowedOperators);
+      if (res.foundExact && !targets.contains(t) && !excludedTargets.contains(t)) {
+        targets.add(t);
+      }
+      attempts++;
+    }
+
+    // Fallback: if we can't find exact solutions, find any reachable values
+    if (targets.length < count) {
+      final reachable = _exhaustiveSolver.findAllReachableValues(pool, allowedOps: allowedOperators);
+      final available = reachable.where((v) => v >= 10 && v <= 999 && !targets.contains(v) && !excludedTargets.contains(v)).toList();
+      available.shuffle(random);
+      for (final v in available.take(count - targets.length)) {
+        targets.add(v);
+      }
+    }
+
+    return targets.toList()..sort();
+  }
+
+  /// Generates a set of 9 targets for the Triple Threat mode: 3 reachable, 6 unreachable.
+  List<int> generateTripleThreatTargets({
+    required List<int> pool,
+    List<String>? allowedOperators,
+    Difficulty difficulty = Difficulty.medium,
+    int? seed,
+  }) {
+    final random = Random(seed);
+    final reachable = _exhaustiveSolver.findAllReachableValues(
+      pool,
+      allowedOps: allowedOperators,
+    );
+
+    final filteredReachable = reachable.where((v) => v >= 10 && v <= 999).toList();
+
+    if (filteredReachable.length < 3) {
+      // Fallback: if pool is very weak, generate standard targets
+      final List<int> fallback = [];
+      for (int i = 0; i < 9; i++) {
+        fallback.add(generateTarget(difficulty: difficulty, seed: random.nextInt(1000000)));
+      }
+      return fallback;
+    }
+
+    filteredReachable.shuffle(random);
+    final selectedReachable = filteredReachable.take(3).toList()..sort((a, b) => b.compareTo(a));
+
+    final unreachable = <int>{};
+    int attempts = 0;
+    while (unreachable.length < 6 && attempts < 500) {
+      final candidate = 10 + random.nextInt(989);
+      if (!reachable.contains(candidate) && !selectedReachable.contains(candidate)) {
+        unreachable.add(candidate);
+      }
+      attempts++;
+    }
+
+    // Fill with randoms if still short (extremely unlikely with 500 attempts, but for absolute safety)
+    while (unreachable.length < 6) {
+      final candidate = 1000 + random.nextInt(1000); // Outside normal range to avoid collision
+      unreachable.add(candidate);
+    }
+
+    // Combined list: [R1, R2, R3, U1, U2, U3, U4, U5, U6]
+    return [...selectedReachable, ...unreachable];
+  }
+
+  /// Generates a set of 4 targets for the Double Danger mode: 2 reachable, 2 unreachable.
+  List<int> generateDoubleDangerTargets({
+    required List<int> pool,
+    List<String>? allowedOperators,
+    Difficulty difficulty = Difficulty.medium,
+    int? seed,
+  }) {
+    final random = Random(seed);
+    final reachable = _exhaustiveSolver.findAllReachableValues(
+      pool,
+      allowedOps: allowedOperators,
+    );
+
+    final filteredReachable = reachable.where((v) => v >= 10 && v <= 999).toList();
+
+    if (filteredReachable.length < 2) {
+      final List<int> fallback = [];
+      for (int i = 0; i < 4; i++) {
+        fallback.add(generateTarget(difficulty: difficulty, seed: random.nextInt(1000000)));
+      }
+      return fallback;
+    }
+
+    filteredReachable.shuffle(random);
+    final selectedReachable = filteredReachable.take(2).toList()..sort((a, b) => b.compareTo(a));
+
+    final unreachable = <int>{};
+    int attempts = 0;
+    while (unreachable.length < 2 && attempts < 200) {
+      final candidate = 10 + random.nextInt(989);
+      if (!reachable.contains(candidate) && !selectedReachable.contains(candidate)) {
+        unreachable.add(candidate);
+      }
+      attempts++;
+    }
+
+    while (unreachable.length < 2) {
+      unreachable.add(1000 + random.nextInt(1000));
+    }
+
+    return [...selectedReachable, ...unreachable];
+  }
+
+  List<int> generateTargets({int count = 1, Difficulty difficulty = Difficulty.medium, int? seed, TargetType type = TargetType.standard}) {
+    final random = Random(seed);
+    final targets = <int>{};
+    final localExclusions = <int>[];
+    int attempts = 0;
+    
+    while (targets.length < count && attempts < 20) {
+      final t = generateTarget(
         difficulty: difficulty,
         seed: random.nextInt(1000000),
         type: type,

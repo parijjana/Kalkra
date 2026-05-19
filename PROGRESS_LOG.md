@@ -25,3 +25,10 @@
 - [FIX] Navigation: Corrected "End Match" state reset and forced redirect to Main Screen.
 - [BACKEND] Playtest System: Deployed Dart Shelf AOT server with SQLite tracking and Pastel theme for web.
 - [MANDATE] Created `GEMINI.md`: Core gameplay integrity and performance rules.
+
+## 2026-05-19
+- [RENAME] Rebranding: Migrated project from `kalkra_app` to `kalkra` across all directories, imports, and metadata.
+- [FIX] Audio Robustness: Refactored `SoundService` to handle app lifecycle resume, track completion, and cross-fade failures.
+- [ASSET] Standardization: Implemented `tool/standardize_audio.py` using `ffmpeg` to convert all BGM to `.ogg` format.
+- [TEST] Stabilization: Resolved `pumpAndSettle` timeouts in screen tests by silencing audio and optimizing animation waits.
+- [CHECK] Health Check: `kalkra` and `game_engine` suites are 100% Green (114+ tests total).

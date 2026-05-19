@@ -24,190 +24,128 @@ class RivalInfo {
 }
 
 class CareerManager {
-  String _playerName;
-  int _elo;
-  int _matchesWon;
-  int _matchesPlayed;
-  double _avgSpeedSeconds;
-  double _avgAccuracy;
-  int _roundsTracked;
-  int _currentStreak;
-  int _bestStreak;
-  bool _soundEnabled;
-  bool _musicEnabled;
-  final List<RivalInfo> _rivals;
-  final Set<String> _unlockedAchievements;
+  final String playerName;
+  final int elo;
+  final int matchesWon;
+  final int matchesPlayed;
+  final double avgSpeedSeconds;
+  final double avgAccuracy;
+  final int roundsTracked;
+  final int currentStreak;
+  final int bestStreak;
+  final bool soundEnabled;
+  final bool musicEnabled;
+  final double sfxVolume;
+  final double bgmVolume;
+  final Set<String> enabledTracks; // New: Set of track filenames
+  final List<RivalInfo> rivals;
+  final Set<String> unlockedAchievements;
 
   CareerManager({
-    String playerName = 'Guest',
-    int elo = 1200,
-    int matchesWon = 0,
-    int matchesPlayed = 0,
-    double avgSpeedSeconds = 0.0,
-    double avgAccuracy = 0.0,
-    int roundsTracked = 0,
-    int currentStreak = 0,
-    int bestStreak = 0,
-    bool soundEnabled = true,
-    bool musicEnabled = true,
+    this.playerName = 'Guest',
+    this.elo = 1200,
+    this.matchesWon = 0,
+    this.matchesPlayed = 0,
+    this.avgSpeedSeconds = 0.0,
+    this.avgAccuracy = 0.0,
+    this.roundsTracked = 0,
+    this.currentStreak = 0,
+    this.bestStreak = 0,
+    this.soundEnabled = true,
+    this.musicEnabled = true,
+    this.sfxVolume = 0.8,
+    this.bgmVolume = 0.4,
+    this.enabledTracks = const {'vaporware.ogg', 'good_endings.mid', 'starfield.ogg'},
+    this.rivals = const [],
+    this.unlockedAchievements = const {},
+  });
+
+  CareerManager copyWith({
+    String? playerName,
+    int? elo,
+    int? matchesWon,
+    int? matchesPlayed,
+    double? avgSpeedSeconds,
+    double? avgAccuracy,
+    int? roundsTracked,
+    int? currentStreak,
+    int? bestStreak,
+    bool? soundEnabled,
+    bool? musicEnabled,
+    double? sfxVolume,
+    double? bgmVolume,
+    Set<String>? enabledTracks,
     List<RivalInfo>? rivals,
-    List<String>? unlockedAchievements,
-  }) : _playerName = playerName,
-       _elo = elo,
-       _matchesWon = matchesWon,
-       _matchesPlayed = matchesPlayed,
-       _avgSpeedSeconds = avgSpeedSeconds,
-       _avgAccuracy = avgAccuracy,
-       _roundsTracked = roundsTracked,
-       _currentStreak = currentStreak,
-       _bestStreak = bestStreak,
-       _soundEnabled = soundEnabled,
-       _musicEnabled = musicEnabled,
-       _rivals = rivals ?? [],
-       _unlockedAchievements = (unlockedAchievements ?? []).toSet();
-
-  String get playerName => _playerName;
-  int get elo => _elo;
-  int get matchesWon => _matchesWon;
-  int get matchesPlayed => _matchesPlayed;
-  double get avgSpeedSeconds => _avgSpeedSeconds;
-  double get avgAccuracy => _avgAccuracy;
-  int get currentStreak => _currentStreak;
-  int get bestStreak => _bestStreak;
-  bool get soundEnabled => _soundEnabled;
-  bool get musicEnabled => _musicEnabled;
-  List<RivalInfo> get rivals => List.unmodifiable(_rivals);
-  Set<String> get unlockedAchievements => Set.unmodifiable(_unlockedAchievements);
-
-  void setPlayerName(String name) {
-    _playerName = name;
-  }
-
-  void setSoundEnabled(bool enabled) {
-    _soundEnabled = enabled;
-  }
-
-  void setMusicEnabled(bool enabled) {
-    _musicEnabled = enabled;
-  }
-
-  void unlockAchievement(String id) {
-    _unlockedAchievements.add(id);
-  }
-
-  void recordRoundPerformance({required double secondsToSubmit, required double proximityToTarget}) {
-    _avgSpeedSeconds = ((_avgSpeedSeconds * _roundsTracked) + secondsToSubmit) / (_roundsTracked + 1);
-    _avgAccuracy = ((_avgAccuracy * _roundsTracked) + proximityToTarget) / (_roundsTracked + 1);
-    _roundsTracked++;
-
-    if (proximityToTarget == 0) {
-      _currentStreak++;
-      if (_currentStreak > _bestStreak) {
-        _bestStreak = _currentStreak;
-      }
-    } else {
-      _currentStreak = 0;
-    }
-  }
-
-  /// Records the completion of a solo match.
-  void recordSoloMatchResult({required int score, required String mode}) {
-    _matchesPlayed++;
-    
-    _rivals.insert(0, RivalInfo(
-      name: 'Solo $mode',
-      eloShift: score > 0 ? 5 : 0, // Nominal shift for completing a solo match
-      date: DateTime.now(),
-      wasSolo: true,
-    ));
-
-    if (_rivals.length > 50) {
-      _rivals.removeLast();
-    }
-  }
-
-  void recordMultiplayerPerformance({required double secondsToSubmit, required double proximityToTarget, required String opponentName, int eloShift = 0}) {
-    _avgSpeedSeconds = ((_avgSpeedSeconds * _roundsTracked) + secondsToSubmit) / (_roundsTracked + 1);
-    _avgAccuracy = ((_avgAccuracy * _roundsTracked) + proximityToTarget) / (_roundsTracked + 1);
-    _roundsTracked++;
-
-    if (proximityToTarget == 0) {
-      _currentStreak++;
-      if (_currentStreak > _bestStreak) {
-        _bestStreak = _currentStreak;
-      }
-    } else {
-      _currentStreak = 0;
-    }
-
-    _rivals.insert(0, RivalInfo(
-      name: opponentName,
-      eloShift: eloShift,
-      date: DateTime.now(),
-      wasSolo: false,
-    ));
-
-    if (_rivals.length > 50) {
-      _rivals.removeLast();
-    }
-  }
-
-  /// Apply a pre-calculated Elo shift (received from host or calculated locally).
-  void applyEloShift(int shift, String opponentName, {bool wasSolo = false}) {
-    _elo += shift;
-    _matchesPlayed++;
-    if (shift > 0) _matchesWon++; 
-
-    _rivals.insert(0, RivalInfo(
-      name: opponentName,
-      eloShift: shift,
-      date: DateTime.now(),
-      wasSolo: wasSolo,
-    ));
-
-    if (_rivals.length > 50) {
-      _rivals.removeLast();
-    }
-  }
-
-  void recordMatchResult({required bool didWin, required int opponentElo, required String opponentName}) {
-    final shift = EloCalculator.calculateShift(
-      playerElo: _elo,
-      didWin: didWin,
-      opponentElo: opponentElo,
+    Set<String>? unlockedAchievements,
+  }) {
+    return CareerManager(
+      playerName: playerName ?? this.playerName,
+      elo: elo ?? this.elo,
+      matchesWon: matchesWon ?? this.matchesWon,
+      matchesPlayed: matchesPlayed ?? this.matchesPlayed,
+      avgSpeedSeconds: avgSpeedSeconds ?? this.avgSpeedSeconds,
+      avgAccuracy: avgAccuracy ?? this.avgAccuracy,
+      roundsTracked: roundsTracked ?? this.roundsTracked,
+      currentStreak: currentStreak ?? this.currentStreak,
+      bestStreak: bestStreak ?? this.bestStreak,
+      soundEnabled: soundEnabled ?? this.soundEnabled,
+      musicEnabled: musicEnabled ?? this.musicEnabled,
+      sfxVolume: sfxVolume ?? this.sfxVolume,
+      bgmVolume: bgmVolume ?? this.bgmVolume,
+      enabledTracks: enabledTracks ?? this.enabledTracks,
+      rivals: rivals ?? this.rivals,
+      unlockedAchievements: unlockedAchievements ?? this.unlockedAchievements,
     );
-    applyEloShift(shift, opponentName);
   }
 
   Map<String, dynamic> toJson() => {
-    'playerName': _playerName,
-    'elo': _elo,
-    'matchesWon': _matchesWon,
-    'matchesPlayed': _matchesPlayed,
-    'avgSpeedSeconds': _avgSpeedSeconds,
-    'avgAccuracy': _avgAccuracy,
-    'roundsTracked': _roundsTracked,
-    'currentStreak': _currentStreak,
-    'bestStreak': _bestStreak,
-    'soundEnabled': _soundEnabled,
-    'musicEnabled': _musicEnabled,
-    'rivals': _rivals.map((r) => r.toJson()).toList(),
-    'unlockedAchievements': _unlockedAchievements.toList(),
+    'playerName': playerName,
+    'elo': elo,
+    'matchesWon': matchesWon,
+    'matchesPlayed': matchesPlayed,
+    'avgSpeedSeconds': avgSpeedSeconds,
+    'avgAccuracy': avgAccuracy,
+    'roundsTracked': roundsTracked,
+    'currentStreak': currentStreak,
+    'bestStreak': bestStreak,
+    'soundEnabled': soundEnabled,
+    'musicEnabled': musicEnabled,
+    'sfxVolume': sfxVolume,
+    'bgmVolume': bgmVolume,
+    'enabledTracks': enabledTracks.toList(),
+    'rivals': rivals.map((r) => r.toJson()).toList(),
+    'unlockedAchievements': unlockedAchievements.toList(),
   };
 
-  factory CareerManager.fromJson(Map<String, dynamic> json) => CareerManager(
-    playerName: json['playerName'] ?? 'Guest',
-    elo: json['elo'] ?? 1200,
-    matchesWon: json['matchesWon'] ?? 0,
-    matchesPlayed: json['matchesPlayed'] ?? 0,
-    avgSpeedSeconds: (json['avgSpeedSeconds'] ?? 0.0).toDouble(),
-    avgAccuracy: (json['avgAccuracy'] ?? 0.0).toDouble(),
-    roundsTracked: json['roundsTracked'] ?? 0,
-    currentStreak: json['currentStreak'] ?? 0,
-    bestStreak: json['bestStreak'] ?? 0,
-    soundEnabled: json['soundEnabled'] ?? true,
-    musicEnabled: json['musicEnabled'] ?? true,
-    rivals: (json['rivals'] as List?)?.map((r) => RivalInfo.fromJson(r)).toList(),
-    unlockedAchievements: (json['unlockedAchievements'] as List?)?.map((e) => e.toString()).toList(),
-  );
+  factory CareerManager.fromJson(Map<String, dynamic> json) {
+    List<String> tracks = (json['enabledTracks'] as List?)?.map((e) => e.toString()).toList() ?? 
+                          ['vaporware.ogg', 'good_endings.mid', 'starfield.ogg'];
+
+    // Migration: ensure .ogg extensions
+    tracks = tracks.map((t) {
+      if (t.endsWith('.mp3') || t.endsWith('.wav')) {
+        return '${t.split('.').first}.ogg';
+      }
+      return t;
+    }).toList();
+
+    return CareerManager(
+      playerName: json['playerName'] ?? 'Guest',
+      elo: json['elo'] ?? 1200,
+      matchesWon: json['matchesWon'] ?? 0,
+      matchesPlayed: json['matchesPlayed'] ?? 0,
+      avgSpeedSeconds: (json['avgSpeedSeconds'] ?? 0.0).toDouble(),
+      avgAccuracy: (json['avgAccuracy'] ?? 0.0).toDouble(),
+      roundsTracked: json['roundsTracked'] ?? 0,
+      currentStreak: json['currentStreak'] ?? 0,
+      bestStreak: json['bestStreak'] ?? 0,
+      soundEnabled: json['soundEnabled'] ?? true,
+      musicEnabled: json['musicEnabled'] ?? true,
+      sfxVolume: (json['sfxVolume'] ?? 0.8).toDouble(),
+      bgmVolume: (json['bgmVolume'] ?? 0.4).toDouble(),
+      enabledTracks: tracks.toSet(),
+      rivals: (json['rivals'] as List?)?.map((r) => RivalInfo.fromJson(r)).toList() ?? const [],
+      unlockedAchievements: (json['unlockedAchievements'] as List?)?.map((e) => e.toString()).toSet() ?? const {},
+    );
+  }
 }

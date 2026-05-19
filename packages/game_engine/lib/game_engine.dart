@@ -4,6 +4,7 @@ export 'src/number_generator.dart';
 export 'src/target_generator.dart';
 export 'src/submission_validator.dart';
 export 'src/solver_engine.dart';
+export 'src/exhaustive_solver.dart';
 export 'src/score_keeper.dart';
 export 'src/round_manager.dart';
 export 'src/game_settings.dart';

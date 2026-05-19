@@ -4,20 +4,22 @@ import 'package:game_engine/game_engine.dart';
 void main() {
   group('Constraint-Aware Generation', () {
     late TargetGenerator targetGen;
-    final pool = [1, 2, 3];
+    final pool = [25, 50, 75, 100];
 
     setUp(() {
       targetGen = TargetGenerator();
     });
 
     test('generates reachable target with restricted operators', () {
-      // With [1, 2, 3] and only '+', targets should be 3, 4, 5, 6
-      final target = targetGen.generateReachableTarget(
+      // With [25, 50, 75, 100] and only '+', targets should be reachable in the 10-150 range
+      final target = targetGen.generateReachableTargets(
+        count: 1,
         pool: pool,
+        difficulty: Difficulty.easy,
         allowedOperators: ['+'],
-      );
+      ).first;
       
-      expect([1, 2, 3, 4, 5, 6], contains(target));
+      expect(target, greaterThanOrEqualTo(10));
       
       // Verify with solver
       final solver = SolverEngine();

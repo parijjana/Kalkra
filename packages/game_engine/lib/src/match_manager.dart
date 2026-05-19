@@ -10,7 +10,7 @@ enum JeopardyType {
   doubleOrNothing, // Exact match gives 20 points, off-by-1 gives 0.
 }
 
-enum GameMode { practice, endless, progressive, multiplayer, tunnelVision, permutations, powersOf2, powersOf3 }
+enum GameMode { practice, endless, progressive, multiplayer, tunnelVision, permutations, powersOf2, tripleThreat, doubleDanger }
 
 class MatchRoundData {
   final List<int> numbers;
@@ -88,7 +88,7 @@ class MatchManager {
     GameMode gameMode,
     Difficulty initialDifficulty,
     int? seed,
-    int startRoundIndex, // New: To track block context for Endless
+    int startRoundIndex, 
   }) args) {
     final rounds = <MatchRoundData>[];
     final random = Random(args.seed);
@@ -99,28 +99,17 @@ class MatchManager {
     int? persistentTarget;
     Difficulty currentDifficulty = args.initialDifficulty;
 
-    final roundsToGenerate = (args.gameMode == GameMode.endless) ? 10 : args.totalRounds;
-    
     // Jeopardy Distribution Logic
     final jeopardyIndices = <int>{};
     if (args.jeopardyEnabled && args.gameMode != GameMode.progressive) {
       if (args.gameMode == GameMode.endless) {
-        // Endless: 3 in first 10, then 4-5 per block
         final blockIndex = args.startRoundIndex ~/ 10;
         final count = (blockIndex == 0) ? 3 : (4 + random.nextInt(2));
-        while (jeopardyIndices.length < count) {
-          jeopardyIndices.add(random.nextInt(10));
-        }
+        while (jeopardyIndices.length < count) jeopardyIndices.add(random.nextInt(10));
       } else {
-        // Fixed Match: At least 1. 10 rounds -> 2 or 3.
-        int jCount = 1;
-        if (args.totalRounds == 10) {
-          jCount = 2 + random.nextInt(2);
-        }
-        
+        int jCount = args.totalRounds == 10 ? 2 + random.nextInt(2) : 1;
         if (args.totalRounds > 1) {
           while (jeopardyIndices.length < jCount) {
-            // Never jeopardy on Round 1
             final idx = 1 + random.nextInt(args.totalRounds - 1);
             jeopardyIndices.add(idx);
           }
@@ -128,11 +117,12 @@ class MatchManager {
       }
     }
 
-    for (int i = 1; i <= roundsToGenerate; i++) {
+    final int roundsToGen = (args.gameMode == GameMode.endless) ? 10 : args.totalRounds;
+
+    for (int i = 1; i <= roundsToGen; i++) {
       final absoluteRoundIndex = args.startRoundIndex + i;
       final relativeIndex = i - 1;
       
-      // 1. Determine Difficulty and Config for this round
       RoundConfig config = RoundConfig.classic;
       JeopardyType? jeopardy;
       String? lockedOp;
@@ -142,94 +132,56 @@ class MatchManager {
         currentDifficulty = setup.difficulty;
         config = setup.config;
       } else {
-        // Scaling
         if (args.gameMode == GameMode.endless) {
-          if (absoluteRoundIndex <= 5) {
-            currentDifficulty = Difficulty.easy;
-          } else if (absoluteRoundIndex <= 15) {
-            currentDifficulty = Difficulty.medium;
-          } else {
-            currentDifficulty = Difficulty.hard;
-          }
+          if (absoluteRoundIndex <= 5) currentDifficulty = Difficulty.easy;
+          else if (absoluteRoundIndex <= 15) currentDifficulty = Difficulty.medium;
+          else currentDifficulty = Difficulty.hard;
         } else {
           final progress = absoluteRoundIndex / args.totalRounds;
-          if (progress <= 0.34) {
-            currentDifficulty = Difficulty.easy;
-          } else if (progress <= 0.67) {
-            currentDifficulty = Difficulty.medium;
-          } else {
-            currentDifficulty = Difficulty.hard;
-          }
+          if (progress <= 0.34) currentDifficulty = Difficulty.easy;
+          else if (progress <= 0.67) currentDifficulty = Difficulty.medium;
+          else currentDifficulty = Difficulty.hard;
         }
 
-        if (args.gameMode == GameMode.permutations) {
-          config = RoundConfig.permutations;
-        } else if (args.gameMode == GameMode.tunnelVision) {
-          config = RoundConfig.tunnelVision;
-        } else if (args.gameMode == GameMode.powersOf2) {
-          config = RoundConfig.powersOf2;
-        } else if (args.gameMode == GameMode.powersOf3) {
-          config = RoundConfig.powersOf3;
-        }
+        if (args.gameMode == GameMode.permutations) config = RoundConfig.permutations;
+        else if (args.gameMode == GameMode.tunnelVision) config = RoundConfig.tunnelVision;
+        else if (args.gameMode == GameMode.powersOf2) config = RoundConfig.powersOf2;
+        else if (args.gameMode == GameMode.tripleThreat) config = RoundConfig.tripleThreat;
+        else if (args.gameMode == GameMode.doubleDanger) config = RoundConfig.doubleDanger;
         
         if (jeopardyIndices.contains(args.gameMode == GameMode.endless ? relativeIndex : absoluteRoundIndex - 1)) {
           jeopardy = JeopardyType.values[random.nextInt(JeopardyType.values.length)];
-          if (jeopardy == JeopardyType.operatorLockout) {
-            const ops = ['+', '-', '*', '/'];
-            lockedOp = ops[random.nextInt(ops.length)];
-          }
+          if (jeopardy == JeopardyType.operatorLockout) lockedOp = ['+', '-', '*', '/'][random.nextInt(4)];
         }
       }
 
-      // 2. Generate solvable data
-      bool solvable = false;
-      int attempts = 0;
-      List<int> numbers = [];
-      List<int> targets = [];
-      SolveResult? bestSolution;
-
-      final allowedOps = ['+', '-', '*', '/'];
-      if (lockedOp != null) allowedOps.remove(lockedOp);
+      bool solvable = false; int attempts = 0;
+      List<int> numbers = []; List<int> targets = []; SolveResult? bestSolution;
+      final allowedOps = ['+', '-', '*', '/']; if (lockedOp != null) allowedOps.remove(lockedOp);
 
       while (!solvable && attempts < 20) {
-        numbers = numGen.generatePool(
-          difficulty: currentDifficulty, 
-          seed: random.nextInt(1000000),
-          poolType: config.poolType,
-        );
-
-        if (args.gameMode == GameMode.tunnelVision && persistentTarget != null) {
-          targets = [persistentTarget];
-          final res = solver.solve(numbers, persistentTarget, allowedOperators: allowedOps);
-          if (res.foundExact) {
-            solvable = true;
-            bestSolution = res;
-          }
+        numbers = numGen.generatePool(difficulty: currentDifficulty, seed: random.nextInt(1000000), poolType: config.poolType);
+        if (args.gameMode == GameMode.tripleThreat) {
+          targets = targetGen.generateTripleThreatTargets(pool: numbers, allowedOperators: allowedOps, difficulty: currentDifficulty, seed: random.nextInt(1000000));
+          solvable = true;
+          bestSolution = SolveResult();
+        } else if (args.gameMode == GameMode.doubleDanger) {
+          targets = targetGen.generateDoubleDangerTargets(pool: numbers, allowedOperators: allowedOps, difficulty: currentDifficulty, seed: random.nextInt(1000000));
+          solvable = true;
+          bestSolution = SolveResult();
+        } else if (args.gameMode == GameMode.tunnelVision && persistentTarget != null) {
+          targets = [persistentTarget!];
+          final res = solver.solve(numbers, persistentTarget!, allowedOperators: allowedOps);
+          if (res.foundExact) { solvable = true; bestSolution = res; }
         } else {
-          targets = targetGen.generateReachableTargets(
-            count: config.isDualTarget ? 2 : 1,
-            pool: numbers,
-            allowedOperators: allowedOps,
-            difficulty: currentDifficulty,
-            seed: random.nextInt(1000000),
-            type: config.targetType,
-            excludedTargets: rounds.expand((r) => r.targets).toSet(),
-          );
+          targets = targetGen.generateReachableTargets(count: config.isDualTarget ? 2 : 1, pool: numbers, allowedOperators: allowedOps, difficulty: currentDifficulty, seed: random.nextInt(1000000), type: config.targetType, excludedTargets: rounds.expand((r) => r.targets).toSet());
           solvable = true;
           if (args.gameMode == GameMode.tunnelVision) persistentTarget = targets.first;
           bestSolution = solver.solve(numbers, targets.first, allowedOperators: allowedOps);
         }
         attempts++;
       }
-
-      rounds.add(MatchRoundData(
-        numbers: numbers,
-        targets: targets,
-        jeopardy: jeopardy,
-        lockedOperator: lockedOp,
-        config: config,
-        bestSolution: bestSolution ?? SolveResult(),
-      ));
+      rounds.add(MatchRoundData(numbers: numbers, targets: targets, jeopardy: jeopardy, lockedOperator: lockedOp, config: config, bestSolution: bestSolution ?? SolveResult()));
     }
     return rounds;
   }
@@ -248,54 +200,26 @@ class MatchManager {
     }
   }
 
-  /// Pre-computes rounds for the match. 
-  /// In fixed-length modes, generates everything. In Endless, generates a small buffer.
   void generateMatch({Difficulty initialDifficulty = Difficulty.easy}) {
-    _matchRounds.clear();
-    _matchRounds = generateMatchData((
-      totalRounds: totalRounds,
-      jeopardyEnabled: jeopardyEnabled,
-      gameMode: gameMode,
-      initialDifficulty: initialDifficulty,
-      seed: _random.nextInt(1000000),
-      startRoundIndex: 0,
-    ));
+    _matchRounds = generateMatchData((totalRounds: totalRounds, jeopardyEnabled: jeopardyEnabled, gameMode: gameMode, initialDifficulty: initialDifficulty, seed: _random.nextInt(1000000), startRoundIndex: 0));
+  }
+
+  void appendRounds(List<MatchRoundData> newRounds) {
+    _matchRounds.addAll(newRounds);
   }
 
   MatchRoundData? get currentRoundData => (_currentRound <= _matchRounds.length) ? _matchRounds[_currentRound - 1] : null;
-
   int get currentRound => _currentRound;
   int get lives => _lives;
+  bool get isMatchOver => gameMode == GameMode.endless ? _lives <= 0 : _currentRound > totalRounds;
   
-  bool get isMatchOver {
-    if (gameMode == GameMode.endless) return _lives <= 0;
-    return _currentRound > totalRounds;
-  }
-
-  void loseLife() {
-    if (gameMode == GameMode.endless) {
-      _lives--;
-    }
-  }
-
+  void loseLife() { if (gameMode == GameMode.endless) _lives--; }
   void nextRound() {
     _currentRound++;
-    
-    // Refill Endless buffer if we are close to the end
     if (gameMode == GameMode.endless && _currentRound >= _matchRounds.length - 1) {
-      final moreRounds = generateMatchData((
-        totalRounds: 10, 
-        jeopardyEnabled: jeopardyEnabled,
-        gameMode: gameMode,
-        initialDifficulty: Difficulty.hard,
-        seed: _random.nextInt(1000000),
-        startRoundIndex: _matchRounds.length,
-      ));
+      final moreRounds = generateMatchData((totalRounds: 10, jeopardyEnabled: jeopardyEnabled, gameMode: gameMode, initialDifficulty: Difficulty.hard, seed: _random.nextInt(1000000), startRoundIndex: _matchRounds.length));
       _matchRounds.addAll(moreRounds);
     }
   }
-
-  void syncRound(int roundIndex) {
-    _currentRound = roundIndex;
-  }
+  void syncRound(int roundIndex) { _currentRound = roundIndex; }
 }

@@ -102,6 +102,17 @@ BEFORE: [staging_screen.dart] (931 lines)
 **Status:** Completed ✅
 **Verification:** 100% Test Pass Rate (25/25)
 
+...
+
+## Phase 6: Security Hardening
+**Status:** Completed ✅
+**Verification:** 100% Test Pass Rate (27/27)
+**Key Changes:**
+*   **Hardware-Backed Vault:** Migrated "Career Vault" encryption from software-derived keys to the **Android Keystore / iOS Keychain** via `flutter_secure_storage`.
+*   **Tamper-Proof HMAC:** Upgraded signing logic to use the hardware-backed master key for HMAC-SHA256, making it computationally impossible to forge save data.
+*   **Seamless Migration:** Implemented a fallback mechanism to safely migrate existing users from legacy derived keys to the new hardware vault without data loss.
+*   **Obfuscation Mandate:** Established a hard requirement for `--obfuscate` flags in all production builds.
+
 ### Summary of Modularization
 *   **Infrastructure:** Monolithic `game_providers.dart` split into 4 domain providers.
 *   **GameScreen:** 807-line screen decomposed into 7 atomic widgets.

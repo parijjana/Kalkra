@@ -4,7 +4,7 @@
 A high-stakes math competition game (Kalkra) built with Flutter. It features a multi-package architecture to separate core engine logic, networking, and UI.
 
 ## Workspace Structure
-- **kalkra_app/**: The main Flutter application.
+- **kalkra/**: The main Flutter application.
     - **lib/src/screens/calibration_screen.dart**: Engages the user while background math logic runs.
     - **lib/src/screens/match_setup_screen.dart**: Decouples game mode from round count.
 - **packages/**

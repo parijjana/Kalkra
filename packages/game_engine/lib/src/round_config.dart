@@ -1,5 +1,5 @@
 enum PoolType { standard, smallOnly, primesOnly, expanding, powersOf2, powersOf3 }
-enum TargetType { standard, ascending, fixed100, countdown, powersOf2, powersOf3 }
+enum TargetType { standard, ascending, fixed100, countdown, powersOf2, powersOf3, tripleThreat, doubleDanger }
 
 abstract class RoundConstraint {
   String get description;
@@ -56,6 +56,7 @@ class RoundConfig {
   final List<RoundConstraint> constraints;
   final int rewardBump; // Extra points for exact match
   final bool isDualTarget;
+  final int targetCount; // Number of targets to display
   final bool allowNegative;
   final bool allowFractions;
   final bool allowMultipleSubmissions;
@@ -69,6 +70,7 @@ class RoundConfig {
     this.constraints = const [],
     this.rewardBump = 0,
     this.isDualTarget = false,
+    this.targetCount = 1,
     this.allowNegative = false,
     this.allowFractions = false,
     this.allowMultipleSubmissions = false,
@@ -148,9 +150,17 @@ class RoundConfig {
     targetType: TargetType.powersOf2,
   );
 
-  static const powersOf3 = RoundConfig(
-    title: "3's Powers",
-    poolType: PoolType.powersOf3,
-    targetType: TargetType.powersOf3,
+  static const tripleThreat = RoundConfig(
+    title: 'Triple Threat',
+    durationSeconds: 90,
+    targetType: TargetType.tripleThreat,
+    targetCount: 9,
+  );
+
+  static const doubleDanger = RoundConfig(
+    title: 'Double Danger',
+    durationSeconds: 90,
+    targetType: TargetType.doubleDanger,
+    targetCount: 4,
   );
 }

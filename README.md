@@ -1,6 +1,6 @@
 # Kalkra
 
-Kalkra is a Flutter math game built around Countdown-style arithmetic rounds: players use a small pool of numbers and the operators `+`, `-`, `*`, and `/` to reach a target. The repository is split into a mobile/web Flutter app, a reusable Dart game engine, transport packages for multiplayer, and a small Dart playtest server.
+Kalkra is a Flutter math game built around Gameshow-style arithmetic rounds: players use a small pool of numbers and the operators `+`, `-`, `*`, and `/` to reach a target. The repository is split into a mobile/web Flutter app, a reusable Dart game engine, transport packages for multiplayer, and a small Dart playtest server.
 
 ## Quick Start
 

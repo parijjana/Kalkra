@@ -40,11 +40,6 @@ class CreditsScreen extends ConsumerWidget {
               ),
               _buildCreditItem(
                 theme,
-                'northivanastan',
-                'Track: "Good Endings" (OpenGameArt.org).',
-              ),
-              _buildCreditItem(
-                theme,
                 'The Cynic Project',
                 'Track: "003 Vaporware" (Pixelsphere.org / OpenGameArt.org).',
               ),

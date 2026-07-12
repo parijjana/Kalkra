@@ -20,7 +20,6 @@ Kalkra uses sound effects and music sourced from public domain and open-licensed
 
 | Asset | Source | License | Attribution |
 | :--- | :--- | :--- | :--- |
-| `good_endings.mid` | [OpenGameArt.org](https://opengameart.org/content/good-endings) | CC0 / Open Game License | northivanastan |
 | `vaporware.ogg` | [OpenGameArt.org](https://opengameart.org/content/003vaporware) | CC0 / Open Game License | The Cynic Project / cynicmusic.com / pixelsphere.org |
 | `starfield.ogg` | [OpenGameArt.org](https://opengameart.org/content/starfield-romance-%E2%80%93-cc0-ambient-emotional-space-theme-yoiyami-blue-series-%E2%80%93-no3) | CC0 1.0 Universal | Music by Yoiyami |
 

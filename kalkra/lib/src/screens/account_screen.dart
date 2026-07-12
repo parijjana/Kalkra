@@ -321,7 +321,6 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
                   Text('ACTIVE PLAYLIST', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 2, color: colorScheme.primary)),
                   const SizedBox(height: 16),
                   _buildTrackItem('vaporware.ogg', 'VAPORWARE (High Energy)', 'https://opengameart.org/content/003vaporware', career.enabledTracks.contains('vaporware.ogg')),
-                  _buildTrackItem('good_endings.ogg', 'GOOD ENDINGS (Ambient)', 'https://opengameart.org/content/good-endings', career.enabledTracks.contains('good_endings.ogg')),
                   _buildTrackItem('starfield.ogg', 'STARFIELD (Emotional)', 'https://opengameart.org/content/starfield-romance-%E2%80%93-cc0-ambient-emotional-space-theme-yoiyami-blue-series-%E2%80%93-no3', career.enabledTracks.contains('starfield.ogg')),
                 ],
               ),

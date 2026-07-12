@@ -378,7 +378,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Reset ELO, stats, and theme preferences.',
+            'Reset all stats, progress, and theme preferences.',
             style: TextStyle(fontSize: 12, color: Colors.grey),
           ),
           const SizedBox(height: 24),
@@ -402,7 +402,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
       builder: (context) => AlertDialog(
         title: const Text('ARE YOU SURE?'),
         content: const Text(
-          'All your progress, ELO and achievements will be permanently erased.',
+          'All your progress, stats, and achievements will be permanently erased.',
         ),
         actions: [
           TextButton(

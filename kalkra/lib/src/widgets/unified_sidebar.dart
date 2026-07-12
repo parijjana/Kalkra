@@ -193,7 +193,7 @@ class _UnifiedSidebarState extends ConsumerState<UnifiedSidebar> {
                                     ),
                                   ),
                                   Text(
-                                    '${career.elo} ELO',
+                                    '${career.matchesPlayed} GAMES PLAYED',
                                     style: TextStyle(
                                       color: colorScheme.primary,
                                       fontWeight: FontWeight.bold,

@@ -32,7 +32,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
               const SizedBox(height: 24),
               _buildHeader('1. DATA COLLECTION'),
               _buildBody(
-                'Kalkra does NOT collect, transmit, or sell any personal information. All game progress — including your "Callsign", Elo rating, statistics, achievements, and match history — is stored exclusively on your device and never leaves it.',
+                'Kalkra does NOT collect, transmit, or sell any personal information. All game progress — including your "Callsign", statistics, achievements, and match history — is stored exclusively on your device and never leaves it.',
               ),
               const SizedBox(height: 24),
               _buildHeader('2. LOCAL DATA SECURITY'),
@@ -47,7 +47,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
               const SizedBox(height: 24),
               _buildHeader('4. MULTIPLAYER (COMING SOON)'),
               _buildBody(
-                'Kalkra is currently single-player only. If local multiplayer is introduced in a future update, this policy will be updated first to describe exactly what is shared with other players (such as your Callsign and rating on your local network) before any such feature is enabled.',
+                'Kalkra is currently single-player only. If local multiplayer is introduced in a future update, this policy will be updated first to describe exactly what is shared with other players (such as your Callsign on your local network) before any such feature is enabled.',
               ),
               const SizedBox(height: 24),
               _buildHeader('5. ANALYTICS & TRACKING'),
@@ -63,6 +63,11 @@ class PrivacyPolicyScreen extends StatelessWidget {
               _buildHeader('7. THIRD-PARTY SOFTWARE'),
               _buildBody(
                 'Kalkra is built with the Flutter SDK and open-source libraries. These run entirely on your device. Attributions and licenses are listed on the Credits screen in the app.',
+              ),
+              const SizedBox(height: 24),
+              _buildHeader('8. CONTACT'),
+              _buildBody(
+                'Questions about this policy: overengineeredhobbies@gmail.com',
               ),
               const SizedBox(height: 40),
               Center(

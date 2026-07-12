@@ -8,7 +8,7 @@ Kalkra is a fully offline, single-player game. It makes no network connections, 
 
 ### 1. DATA COLLECTION
 
-Kalkra does NOT collect, transmit, or sell any personal information. All game progress — including your "Callsign", Elo rating, statistics, achievements, and match history — is stored exclusively on your device and never leaves it.
+Kalkra does NOT collect, transmit, or sell any personal information. All game progress — including your "Callsign", statistics, achievements, and match history — is stored exclusively on your device and never leaves it.
 
 ### 2. LOCAL DATA SECURITY
 
@@ -20,7 +20,7 @@ Kalkra requires no network access to play. The only network activity the app can
 
 ### 4. MULTIPLAYER (COMING SOON)
 
-Kalkra is currently single-player only. If local multiplayer is introduced in a future update, this policy will be updated first to describe exactly what is shared with other players (such as your Callsign and rating on your local network) before any such feature is enabled.
+Kalkra is currently single-player only. If local multiplayer is introduced in a future update, this policy will be updated first to describe exactly what is shared with other players (such as your Callsign on your local network) before any such feature is enabled.
 
 ### 5. ANALYTICS & TRACKING
 
@@ -36,7 +36,7 @@ Kalkra is built with the Flutter SDK and open-source libraries. These run entire
 
 ### 8. CONTACT
 
-Questions about this policy: **[insert support email before publishing]**
+Questions about this policy: **overengineeredhobbies@gmail.com**
 
 ---
 **KALKRA PROJECT • OPEN SOURCE**

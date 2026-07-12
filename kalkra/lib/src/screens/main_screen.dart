@@ -138,7 +138,7 @@ class _MainScreenMobile extends ConsumerWidget {
                           ],
                         ),
                         const SizedBox(height: 32),
-                        _EloBadge(career: career),
+                        _PlayerBadge(career: career),
                       ],
                     ),
                   );
@@ -148,11 +148,15 @@ class _MainScreenMobile extends ConsumerWidget {
               _SectionHeader(title: 'THE ARENA'),
               const SizedBox(height: 24),
               _ModeCard(
-                title: 'SOLO',
+                title: ref.watch(isPausedProvider)
+                    ? 'RESUME'
+                    : 'START PLAYING',
                 description: ref.watch(isPausedProvider)
                     ? 'RESUME SUSPENDED SESSION'
                     : 'Hone your mental math skills.',
-                icon: Icons.person_rounded,
+                icon: ref.watch(isPausedProvider)
+                    ? Icons.play_arrow_rounded
+                    : Icons.calculate_rounded,
                 color: ref.watch(isPausedProvider)
                     ? colorScheme.tertiary
                     : colorScheme.primary,
@@ -174,7 +178,6 @@ class _MainScreenMobile extends ConsumerWidget {
                   }
                 },
               ),
-              _MultiplayerComingSoonCard(colorScheme: colorScheme),
               const SizedBox(height: 32),
               _SectionHeader(title: 'NAVIGATION'),
               const SizedBox(height: 24),
@@ -282,37 +285,25 @@ class _MainScreenDesktop extends ConsumerWidget {
                             ),
                           ],
                         ),
-                        _EloBadge(career: career, isLarge: true),
+                        _PlayerBadge(career: career, isLarge: true),
                       ],
                     ),
 
                     const SizedBox(height: 100),
 
-                    // Game Mode Grid
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _DesktopModeCard(
-                            title: 'SOLO',
-                            desc: 'Individual missions and endless survival.',
-                            icon: Icons.psychology_rounded,
-                            color: colorScheme.primary,
-                            onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const MatchSetupScreen(
-                                  mode: MatchSetupMode.solo,
-                                ),
-                              ),
-                            ),
+                    // Primary Play CTA
+                    _DesktopModeCard(
+                      title: 'START PLAYING',
+                      desc: 'Individual missions and endless survival. Test your mental math.',
+                      icon: Icons.calculate_rounded,
+                      color: colorScheme.primary,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const MatchSetupScreen(
+                            mode: MatchSetupMode.solo,
                           ),
                         ),
-                        const SizedBox(width: 40),
-                        Expanded(
-                          child: _DesktopComingSoonCard(
-                            colorScheme: colorScheme,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
 
                     const SizedBox(height: 80),
@@ -368,8 +359,7 @@ class _DesktopModeCard extends StatelessWidget {
             ],
             border: Border.all(color: color.withValues(alpha: 0.1), width: 2),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(24),
@@ -379,22 +369,35 @@ class _DesktopModeCard extends StatelessWidget {
                 ),
                 child: Icon(icon, color: color, size: 48),
               ),
-              const SizedBox(height: 40),
-              Text(
-                title,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2,
+              const SizedBox(width: 48),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      desc,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                        height: 1.6,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
-              Text(
-                desc,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                  height: 1.6,
-                  fontSize: 14,
-                ),
+              const SizedBox(width: 48),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: color.withValues(alpha: 0.4),
+                size: 24,
               ),
             ],
           ),
@@ -509,10 +512,10 @@ class _LargeStat extends StatelessWidget {
 
 /// --- COMMON WIDGETS ---
 
-class _EloBadge extends StatelessWidget {
+class _PlayerBadge extends StatelessWidget {
   final dynamic career;
   final bool isLarge;
-  const _EloBadge({required this.career, this.isLarge = false});
+  const _PlayerBadge({required this.career, this.isLarge = false});
 
   @override
   Widget build(BuildContext context) {
@@ -666,163 +669,6 @@ class _ModeCard extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// Mobile card placeholder for multiplayer — non-navigating, Coming Soon.
-class _MultiplayerComingSoonCard extends StatelessWidget {
-  final ColorScheme colorScheme;
-  const _MultiplayerComingSoonCard({required this.colorScheme});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final dimColor = colorScheme.onSurface.withValues(alpha: 0.3);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(40),
-        ),
-        child: Material(
-          color: colorScheme.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(40),
-          clipBehavior: Clip.antiAlias,
-          child: Container(
-            padding: const EdgeInsets.all(28),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: dimColor.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: Icon(Icons.groups_rounded, color: dimColor, size: 36),
-                ),
-                const SizedBox(width: 24),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'MULTIPLAYER',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w900,
-                          color: dimColor,
-                          fontSize: 22,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'COMING IN A FUTURE UPDATE',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: dimColor.withValues(alpha: 0.6),
-                          fontWeight: FontWeight.w900,
-                          fontSize: 10,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: dimColor, width: 1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    'SOON',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 9,
-                      letterSpacing: 1,
-                      color: dimColor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Desktop card placeholder for multiplayer — non-navigating, Coming Soon.
-class _DesktopComingSoonCard extends StatelessWidget {
-  final ColorScheme colorScheme;
-  const _DesktopComingSoonCard({required this.colorScheme});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final dimColor = colorScheme.onSurface.withValues(alpha: 0.25);
-    return Container(
-      padding: const EdgeInsets.all(48),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(48),
-        border: Border.all(color: dimColor.withValues(alpha: 0.3), width: 2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: dimColor.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: Icon(Icons.groups_rounded, color: dimColor, size: 48),
-          ),
-          const SizedBox(height: 40),
-          Row(
-            children: [
-              Text(
-                'MULTIPLAYER',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2,
-                  color: dimColor,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  border: Border.all(color: dimColor, width: 1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'COMING SOON',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 8,
-                    letterSpacing: 1,
-                    color: dimColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Local multiplayer is arriving in a future update.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: dimColor.withValues(alpha: 0.6),
-              height: 1.6,
-              fontSize: 14,
-            ),
-          ),
-        ],
       ),
     );
   }

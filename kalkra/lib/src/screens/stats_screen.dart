@@ -218,7 +218,7 @@ class StatsScreen extends ConsumerWidget {
       child: Column(
         children: [
           Text(
-            'CURRENT RANK',
+            'GAMES PLAYED',
             style: TextStyle(
               color: colorScheme.onPrimary.withValues(alpha: 0.6),
               fontWeight: FontWeight.w900,
@@ -228,27 +228,10 @@ class StatsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            '${career.elo} ELO',
+            '${career.matchesPlayed}',
             style: theme.textTheme.displayLarge?.copyWith(
               color: colorScheme.onPrimary,
               fontSize: isDesktop ? 80 : 48,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              _getTier(career.elo),
-              style: TextStyle(
-                color: colorScheme.tertiaryContainer,
-                fontWeight: FontWeight.w900,
-                fontSize: isDesktop ? 20 : 14,
-                letterSpacing: 2,
-              ),
             ),
           ),
         ],
@@ -380,8 +363,6 @@ class StatsScreen extends ConsumerWidget {
       itemCount: history.length,
       itemBuilder: (context, index) {
         final item = history[index];
-        final isPositive = item.eloShift > 0;
-        final isNeutral = item.eloShift == 0;
 
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
@@ -433,29 +414,6 @@ class StatsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '${isPositive ? "+" : ""}${item.eloShift}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      color: isNeutral
-                          ? Colors.grey
-                          : (isPositive ? Colors.green : Colors.redAccent),
-                      fontSize: 18,
-                    ),
-                  ),
-                  const Text(
-                    'ELO',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 8,
-                      color: Colors.black26,
-                    ),
-                  ),
-                ],
-              ),
             ],
           ),
         );
@@ -463,12 +421,6 @@ class StatsScreen extends ConsumerWidget {
     );
   }
 
-  String _getTier(int elo) {
-    if (elo < 1000) return 'BRONZE TIER';
-    if (elo < 1500) return 'SILVER TIER';
-    if (elo < 2000) return 'GOLD TIER';
-    return 'PLATINUM TIER';
-  }
 }
 
 class _StatCard extends StatelessWidget {

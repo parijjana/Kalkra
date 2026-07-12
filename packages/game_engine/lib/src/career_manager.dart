@@ -55,7 +55,7 @@ class CareerManager {
     this.musicEnabled = true,
     this.sfxVolume = 0.8,
     this.bgmVolume = 0.4,
-    this.enabledTracks = const {'vaporware.ogg', 'good_endings.mid', 'starfield.ogg'},
+    this.enabledTracks = const {'vaporware.ogg', 'good_endings.ogg', 'starfield.ogg'},
     this.rivals = const [],
     this.unlockedAchievements = const {},
   });
@@ -118,12 +118,12 @@ class CareerManager {
   };
 
   factory CareerManager.fromJson(Map<String, dynamic> json) {
-    List<String> tracks = (json['enabledTracks'] as List?)?.map((e) => e.toString()).toList() ?? 
-                          ['vaporware.ogg', 'good_endings.mid', 'starfield.ogg'];
+    List<String> tracks = (json['enabledTracks'] as List?)?.map((e) => e.toString()).toList() ??
+                          ['vaporware.ogg', 'good_endings.ogg', 'starfield.ogg'];
 
-    // Migration: ensure .ogg extensions
+    // Migration: ensure .ogg extensions (including .mid → .ogg for good_endings)
     tracks = tracks.map((t) {
-      if (t.endsWith('.mp3') || t.endsWith('.wav')) {
+      if (t.endsWith('.mp3') || t.endsWith('.wav') || t.endsWith('.mid')) {
         return '${t.split('.').first}.ogg';
       }
       return t;

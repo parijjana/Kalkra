@@ -10,11 +10,29 @@ class SoundService with WidgetsBindingObserver {
 
   SoundService._internal() {
     _initAudioContext();
-    
+
     _bgmPlayer.setReleaseMode(ReleaseMode.release); // release so we can detect completion and cycle
     _bgmPlayer.setPlayerMode(PlayerMode.mediaPlayer);
-    
+
     _bgmPlayer.onPlayerComplete.listen((_) => _onBgmComplete());
+
+    // Catch async platform errors (e.g. missing file on macOS bypassing try/catch).
+    // eventStream carries errors via addError when the platform reports a failure.
+    _bgmPlayer.eventStream.listen(
+      null,
+      onError: (Object e, [StackTrace? st]) {
+        _log.warning('BGM player async error: $e');
+        _consecutiveFailures++;
+        if (_consecutiveFailures <= _playlist.length) {
+          Future.delayed(const Duration(seconds: 2), () {
+            if (_isMusicEnabled && _isAppInForeground) _playNextInPlaylist();
+          });
+        } else {
+          _log.warning('BGM: too many consecutive failures ($_consecutiveFailures), giving up.');
+        }
+      },
+      cancelOnError: false,
+    );
 
     // Initialize SFX pool
     for (int i = 0; i < _sfxPoolSize; i++) {
@@ -22,7 +40,7 @@ class SoundService with WidgetsBindingObserver {
       p.setPlayerMode(PlayerMode.lowLatency);
       _sfxPool.add(p);
     }
-    
+
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -58,7 +76,8 @@ class SoundService with WidgetsBindingObserver {
   
   List<String> _playlist = [];
   int _currentTrackIndex = -1;
-  
+  int _consecutiveFailures = 0;
+
   Timer? _fadeTimer;
   bool _isAppInForeground = true;
 
@@ -172,12 +191,18 @@ class SoundService with WidgetsBindingObserver {
         try {
           if (_isAppInForeground && _isMusicEnabled) {
             await _bgmPlayer.play(AssetSource('audio/bgm/$nextFile'));
+            _consecutiveFailures = 0; // successful play — reset failure counter
             _fadeIn();
           }
         } catch (e) {
           _log.warning('Fade in failed for $nextFile: $e');
           // If a file fails, try the next one after a short delay
-          Future.delayed(const Duration(seconds: 2), () => _playNextInPlaylist());
+          _consecutiveFailures++;
+          if (_consecutiveFailures <= _playlist.length) {
+            Future.delayed(const Duration(seconds: 2), () => _playNextInPlaylist());
+          } else {
+            _log.warning('BGM: too many consecutive failures ($_consecutiveFailures), giving up.');
+          }
         }
       }
     });

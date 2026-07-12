@@ -273,10 +273,10 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
           ? const NeverScrollableScrollPhysics()
           : const ScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 1.2,
+        crossAxisCount: 3,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        childAspectRatio: 1.0,
       ),
       itemCount: modes.length,
       itemBuilder: (context, index) {
@@ -286,12 +286,12 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
           onTap: () => setState(() => _gameMode = m.mode),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: isSelected
                   ? colorScheme.primary
                   : colorScheme.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(16),
               border: isSelected
                   ? Border.all(color: Colors.white24, width: 2)
                   : null,
@@ -311,9 +311,9 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
                 Icon(
                   m.icon,
                   color: isSelected ? Colors.white : colorScheme.primary,
-                  size: isDesktop ? 32 : 24,
+                  size: isDesktop ? 24 : 20,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 FittedBox(
                   child: Text(
                     m.label,
@@ -326,7 +326,7 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
                   ),
                 ),
                 if (isDesktop) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Text(
                     m.desc,
                     style: TextStyle(

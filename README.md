@@ -1,13 +1,15 @@
 # Kalkra
 
-Kalkra is a Flutter math game built around Gameshow-style arithmetic rounds: players use a small pool of numbers and the operators `+`, `-`, `*`, and `/` to reach a target. The repository is split into a mobile/web Flutter app, a reusable Dart game engine, transport packages for multiplayer, and a small Dart playtest server.
+Kalkra is a single-player Flutter math game targeting the Mac App Store, iOS App Store, and Microsoft Store. Players use a small pool of numbers and the operators `+`, `-`, `*`, and `/` to reach a target. The repository is split into a main Flutter app, a reusable Dart game engine, transport packages preserved for future multiplayer, and a small Dart playtest server.
+
+The app is fully offline in store builds — zero network calls, no accounts, no tracking. Multiplayer is a placeholder ("Coming Soon") and is not active in any store build.
 
 ## Quick Start
 
 Prerequisites:
 
-- Flutter and Dart compatible with the package SDK constraints in each `pubspec.yaml`.
-- Platform tooling for the target you want to run, such as Android Studio/Xcode for mobile.
+- Flutter and Dart compatible with the SDK constraints in each `pubspec.yaml`.
+- Platform tooling for the target you want to run (Xcode for macOS/iOS, Visual Studio for Windows).
 
 Run the app:
 
@@ -17,7 +19,7 @@ flutter pub get
 flutter run
 ```
 
-Run package tests from a package directory:
+Run package tests:
 
 ```powershell
 cd packages/game_engine
@@ -25,91 +27,101 @@ dart pub get
 dart test
 ```
 
-There is no checked-in workspace manifest at the repository root, so verification is run per package. Use `flutter` commands for Flutter packages and `dart` commands for pure Dart packages.
+There is no checked-in workspace manifest at the repository root. Run `pub get`, `analyze`, and `test` per package. Use `flutter` commands for Flutter packages and `dart` commands for pure Dart packages.
+
+### Store Release Builds
+
+```powershell
+# macOS (App Sandbox enabled)
+flutter build macos --release
+
+# iOS
+flutter build ipa --release --obfuscate --split-debug-info=build/debug-info
+
+# Windows (MSIX)
+flutter build windows --release
+```
 
 ## Repository Layout
 
-- `kalkra/` - main Flutter application, including solo play, multiplayer setup/join screens, playtest entry point, persistence, audio, themes, and UI.
-- `packages/game_engine/` - pure Dart gameplay logic: number and target generation, solver, validation, scoring, match/session/career helpers, achievements, and Elo.
-- `packages/transport_interface/` - shared transport contracts and event models used by network implementations.
-- `packages/transport_lan/` - LAN WebSocket transport with NSD discovery, encrypted event payloads, heartbeat, rate limiting, replay checks, and host controls.
-- `packages/themer_sdk/` - small Flutter theming helper that parses `.themer` JSON into `ThemeData`.
-- `packages/gatekeeper_rate_limit/` - token-bucket rate limiter used by the LAN transport.
-- `packages/qr_secure_handshake/` - QR handshake package with examples.
-- `playtest_server/` - Dart Shelf server for hosting a Flutter web playtest build and collecting result submissions in SQLite.
-- Root docs such as `ARCHITECTURE.md`, `PLAYERS_GUIDE.md`, `GEMINI.md`, and release/planning notes.
+- `kalkra/` — main Flutter app: solo play, persistence, audio, themes, and UI. Fonts are bundled (Space Grotesk, Plus Jakarta Sans, DM Sans, IBM Plex Sans, Nunito Sans, Newsreader, Literata, Inter).
+- `packages/game_engine/` — pure Dart gameplay logic: number and target generation, solver, validation, scoring, match/session/career helpers, achievements, and Elo.
+- `packages/transport_interface/` — shared event models. Compiled into the app via `NullTransport`; no network activity is generated.
+- `packages/themer_sdk/` — Flutter theming helper that parses `.themer` JSON into `ThemeData`.
+- `packages/transport_lan/` — LAN WebSocket transport. In the repo, **not compiled into store builds**; preserved for future multiplayer.
+- `packages/gatekeeper_rate_limit/` — token-bucket rate limiter. In the repo, **not compiled into store builds**.
+- `packages/qr_secure_handshake/` — QR handshake package. In the repo, **not compiled into store builds**.
+- `playtest_server/` — Dart Shelf server for hosting a Flutter web playtest build and collecting result submissions in SQLite.
+- Root docs: `ARCHITECTURE.md`, `PRIVACY_POLICY.md`, `PLAYERS_GUIDE.md`, `SINGLE_PLAYER_PIVOT.md`, and release/planning notes.
 
 ## Gameplay Modes
 
-The engine currently exposes `practice`, `endless`, `progressive`, `multiplayer`, `tunnelVision`, `permutations`, `powersOf2`, `tripleThreat`, and `doubleDanger` modes.
+The engine exposes `practice`, `endless`, `progressive`, `tunnelVision`, `permutations`, `powersOf2`, `tripleThreat`, and `doubleDanger` modes. Multiplayer mode is a UI placeholder only.
 
-- Classic/practice rounds generate one target from six visible numbers.
-- Endless starts easier, increases difficulty over time, and tracks lives.
-- Progressive uses a fixed ladder of round variants such as gauntlet, forbidden number, two targets, expanding pool, mandatory number, and countdown.
-- Tunnel Vision keeps one target while refreshing the number pool.
-- Permutations allows multiple submissions and canonicalizes equivalent expressions.
-- Powers of 2 uses a specialized number pool and target type.
-- Triple Threat shows 9 targets; Double Danger shows 4 targets. Target generation marks a subset as solvable in the engine.
-- Jeopardy modifiers can add speed pressure, operator lockout, or double-or-nothing scoring outside progressive mode.
+- **Practice** — one target from six visible numbers.
+- **Endless** — starts easy, increases difficulty over time, tracks lives.
+- **Progressive** — a fixed ladder of round variants including gauntlet, forbidden number, two targets, expanding pool, mandatory number, and countdown.
+- **Tunnel Vision** — one persistent target while the number pool refreshes each round.
+- **Permutations** — multiple submissions allowed; equivalent expressions are canonicalized.
+- **Powers of 2** — specialized number pool and target type.
+- **Triple Threat** — nine targets; **Double Danger** — four targets. A solvable subset is marked by the engine.
 
-Rules are engine-owned: submitted expressions can only reuse numbers available in the pool, constraints are checked per round, division by zero is rejected, and normal rounds require integer intermediate results unless the round allows fractions.
+Wildcard modifiers can add speed pressure, operator lockout, or double-or-nothing scoring outside progressive mode.
+
+Rules are engine-owned: submitted expressions may only reuse numbers from the pool, constraints are checked per round, division by zero is rejected, and normal rounds require integer intermediate results unless the round allows fractions.
 
 ## Architecture
 
-The app is intentionally thin around the game rules. `game_engine` is the source of truth for generated rounds, solver checks, scoring, and match state. The Flutter app consumes those models through Riverpod providers and screen controllers. Multiplayer flows exchange `GameEvent` objects through the transport interface so UI/game logic is not tied to LAN implementation details.
+The app is intentionally thin around the game rules. `game_engine` is the source of truth for generated rounds, solver checks, scoring, and match state. The Flutter app consumes those models through Riverpod providers and screen controllers.
 
-For set-length matches, `MatchManager` can precompute round data. Endless mode appends generated batches as play progresses. Flutter code can run heavier generation work outside the main UI path to keep gameplay responsive.
+For set-length matches, `MatchManager` pre-computes all rounds before play starts. Endless mode appends generated batches in the background. Heavier generation work runs in Dart isolates via `compute()` to keep the UI thread free.
 
-## Playtest Server Workflow
+## Playtest Telemetry
 
-The playtest server serves static Flutter web files from `playtest_server/web` and exposes:
-
-- `POST /api/results` - records player name, mode, difficulty, score, round count, timestamp, and metadata.
-- `GET /api/stats` - returns the latest 100 stored results.
-
-Typical flow:
+Telemetry is gated behind a compile-time flag and is never active in store builds:
 
 ```powershell
 cd kalkra
-flutter build web -t lib/playtest_main.dart
+flutter build web -t lib/playtest_main.dart --dart-define=PLAYTEST_BUILD=true
+```
 
-# Copy build/web into ../playtest_server/web, then:
+Copy `build/web` into `../playtest_server/web`, then:
+
+```powershell
 cd ..\playtest_server
 dart pub get
 dart run bin/server.dart
 ```
 
-The server listens on `PORT` or `8000` and writes `results.db` in the current `playtest_server` directory.
+The server listens on `PORT` or `8000` and writes `results.db` in the `playtest_server` directory. It exposes:
 
-## LAN Multiplayer and Security Notes
+- `POST /api/results` — records player name, mode, difficulty, score, round count, timestamp, and metadata.
+- `GET /api/stats` — returns the latest 100 stored results.
 
-LAN transport uses a host WebSocket server plus NSD registration (`_kalkra._tcp`) for local discovery. Messages are encrypted with a per-session random AES key, clients monitor host heartbeats, hosts can kick clients, host-side rate limiting drops excessive packets, and sequence numbers are used for replay protection after a client identity is known.
+## Multiplayer (Future)
 
-This is local-network game transport, not an internet security boundary. The lobby secret must be delivered to clients out of band, such as a QR-code join URL, and clients without the secret cannot decrypt or send accepted messages. Avoid exposing the host port beyond the trusted LAN.
+The complete LAN multiplayer implementation is preserved at git tag `multiplayer-baseline` (commit `de0448c`). Recover any file with:
+
+```
+git show multiplayer-baseline:<path>
+```
+
+The `packages/transport_lan`, `packages/gatekeeper_rate_limit`, and `packages/qr_secure_handshake` directories remain in the repo untouched. They are simply not compiled into the store app. When multiplayer returns, branch from the tag and address the security findings documented in `SECURITY_ANALYSIS.md` before re-enabling.
 
 ## Verification
-
-Useful focused checks:
 
 ```powershell
 cd packages/game_engine
 dart test
 
-cd ..\transport_interface
-dart test
-
-cd ..\transport_lan
-flutter test
-
 cd ..\..\kalkra
 flutter test
 ```
 
-There is no tracked root-level test runner in this repository. A practical full sweep is to run `pub get`, `analyze`, and `test` in the app and each package that has a `test/` directory.
+There is no root-level test runner. A full sweep runs `pub get`, `analyze`, and `test` in the app and each package that has a `test/` directory.
 
 ## Documentation Caveats
 
-- The root does not define a single workspace manifest or checked-in test runner; commands are run per package.
-- Some package descriptions in `pubspec.yaml` are still template text even where code is project-specific.
-- LAN client code expects a `secret` query parameter in `connectionInfo`, while at least one transport test still uses a bare `ws://host:port` URL. Treat the secret-bearing URL as the intended secure workflow until tests/code are reconciled.
-- Playtest web builds are solo-oriented and submit results to the relative `/api/results` endpoint when running in a browser.
+- The root does not define a single workspace manifest; commands are run per package.
+- Some package descriptions in `pubspec.yaml` are still template text.
+- Playtest web builds are solo-oriented and submit results to the relative `/api/results` endpoint when `PLAYTEST_BUILD=true` is set.

@@ -13,7 +13,7 @@ import 'match_setup_screen.dart';
 
 class CalibrationScreen extends ConsumerStatefulWidget {
   final int totalRounds;
-  final bool jeopardyEnabled;
+  final bool wildcardEnabled;
   final GameMode gameMode;
   final Difficulty difficulty;
   final MatchSetupMode setupMode;
@@ -21,7 +21,7 @@ class CalibrationScreen extends ConsumerStatefulWidget {
   const CalibrationScreen({
     super.key,
     required this.totalRounds,
-    required this.jeopardyEnabled,
+    required this.wildcardEnabled,
     required this.gameMode,
     required this.difficulty,
     required this.setupMode,
@@ -80,7 +80,7 @@ class _CalibrationScreenState extends ConsumerState<CalibrationScreen> {
 
     final matchRounds = await compute(MatchManager.generateMatchData, (
       totalRounds: initialGenCount,
-      jeopardyEnabled: widget.jeopardyEnabled,
+      wildcardEnabled: widget.wildcardEnabled,
       gameMode: widget.gameMode,
       initialDifficulty: widget.difficulty,
       seed: seed,
@@ -89,7 +89,7 @@ class _CalibrationScreenState extends ConsumerState<CalibrationScreen> {
 
     final match = MatchManager.fromData(
       totalRounds: widget.totalRounds,
-      jeopardyEnabled: widget.jeopardyEnabled,
+      wildcardEnabled: widget.wildcardEnabled,
       gameMode: widget.gameMode,
       initialDifficulty: widget.difficulty,
       rounds: matchRounds,
@@ -132,7 +132,7 @@ class _CalibrationScreenState extends ConsumerState<CalibrationScreen> {
   void _startBackgroundGeneration(MatchManager match, int seed) async {
     final remainingRounds = await compute(MatchManager.generateMatchData, (
       totalRounds: widget.totalRounds - 1,
-      jeopardyEnabled: widget.jeopardyEnabled,
+      wildcardEnabled: widget.wildcardEnabled,
       gameMode: widget.gameMode,
       initialDifficulty: widget.difficulty,
       seed: seed + 1,

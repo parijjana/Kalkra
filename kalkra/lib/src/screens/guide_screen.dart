@@ -38,10 +38,10 @@ class PlayersGuideScreen extends StatelessWidget {
               _buildModeItem(context, 'ENDLESS', '3 lives. Survive as long as you can.'),
               const SizedBox(height: 32),
 
-              _buildHeader('⚡ JEOPARDY MODES'),
-              _buildJeopardyItem(context, 'SPEED DEMON', 'Timer is reduced by 50%. Focus on speed!', Icons.bolt_rounded),
-              _buildJeopardyItem(context, 'OPERATOR LOCKOUT', 'One random operator is BANNED.', Icons.block_rounded),
-              _buildJeopardyItem(context, 'DOUBLE OR NOTHING', 'Exact match = 20pts. Anything else = 0pts.', Icons.star_outline_rounded),
+              _buildHeader('⚡ WILDCARD MODES'),
+              _buildWildcardItem(context, 'SPEED DEMON', 'Timer is reduced by 50%. Focus on speed!', Icons.bolt_rounded),
+              _buildWildcardItem(context, 'OPERATOR LOCKOUT', 'One random operator is BANNED.', Icons.block_rounded),
+              _buildWildcardItem(context, 'DOUBLE OR NOTHING', 'Exact match = 20pts. Anything else = 0pts.', Icons.star_outline_rounded),
               const SizedBox(height: 32),
 
               _buildHeader('📊 SCORING'),
@@ -121,7 +121,7 @@ class PlayersGuideScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildJeopardyItem(BuildContext context, String title, String desc, IconData icon) {
+  Widget _buildWildcardItem(BuildContext context, String title, String desc, IconData icon) {
     final colorScheme = Theme.of(context).colorScheme;
     return ListTile(
       contentPadding: EdgeInsets.zero,

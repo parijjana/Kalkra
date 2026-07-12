@@ -17,6 +17,14 @@ import 'src/widgets/debug_overlay.dart';
 import 'src/services/sound_service.dart';
 
 void main() async {
+  // Register OFL font licenses for the about/license page.
+  LicenseRegistry.addLicense(() async* {
+    final license = await rootBundle.loadString(
+      'assets/fonts/OFL_licenses.txt',
+    );
+    yield LicenseEntryWithLineBreaks(['bundled_fonts'], license);
+  });
+
   // 1. Setup Logging
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((record) {

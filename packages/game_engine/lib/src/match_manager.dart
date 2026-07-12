@@ -4,7 +4,7 @@ import 'round_config.dart';
 import 'solver_engine.dart';
 import 'target_generator.dart';
 
-enum JeopardyType {
+enum WildcardType {
   speedDemon,      // 50% less time
   operatorLockout, // Disables one random operator (+, -, *, /)
   doubleOrNothing, // Exact match gives 20 points, off-by-1 gives 0.
@@ -15,7 +15,7 @@ enum GameMode { practice, endless, progressive, multiplayer, tunnelVision, permu
 class MatchRoundData {
   final List<int> numbers;
   final List<int> targets;
-  final JeopardyType? jeopardy;
+  final WildcardType? wildcard;
   final String? lockedOperator;
   final RoundConfig config;
   final SolveResult bestSolution;
@@ -23,7 +23,7 @@ class MatchRoundData {
   MatchRoundData({
     required this.numbers,
     required this.targets,
-    this.jeopardy,
+    this.wildcard,
     this.lockedOperator,
     required this.config,
     required this.bestSolution,
@@ -32,7 +32,7 @@ class MatchRoundData {
   Map<String, dynamic> toJson() => {
     'numbers': numbers,
     'targets': targets,
-    'jeopardy': jeopardy?.index,
+    'jeopardy': wildcard?.index,
     'lockedOperator': lockedOperator,
     'config': config.title, // Simplified for now
     'bestSolution': bestSolution.toJson(),
@@ -41,13 +41,13 @@ class MatchRoundData {
   factory MatchRoundData.mock({
     List<int>? numbers,
     List<int>? targets,
-    JeopardyType? jeopardy,
+    WildcardType? wildcard,
     String? lockedOperator,
     RoundConfig config = RoundConfig.classic,
   }) => MatchRoundData(
     numbers: numbers ?? [1, 2, 3, 4, 5, 10],
     targets: targets ?? [100],
-    jeopardy: jeopardy,
+    wildcard: wildcard,
     lockedOperator: lockedOperator,
     config: config,
     bestSolution: SolveResult(),
@@ -56,7 +56,7 @@ class MatchRoundData {
 
 class MatchManager {
   final int totalRounds;
-  final bool jeopardyEnabled;
+  final bool wildcardEnabled;
   final GameMode gameMode;
   final Difficulty initialDifficulty;
   int _currentRound = 1;
@@ -66,7 +66,7 @@ class MatchManager {
 
   MatchManager({
     this.totalRounds = 5, 
-    this.jeopardyEnabled = true,
+    this.wildcardEnabled = true,
     this.gameMode = GameMode.multiplayer,
     this.initialDifficulty = Difficulty.medium,
     int? seed,
@@ -74,7 +74,7 @@ class MatchManager {
 
   MatchManager.fromData({
     required this.totalRounds,
-    required this.jeopardyEnabled,
+    required this.wildcardEnabled,
     required this.gameMode,
     required this.initialDifficulty,
     required List<MatchRoundData> rounds,
@@ -84,7 +84,7 @@ class MatchManager {
   /// Static method intended to be run in a background isolate.
   static List<MatchRoundData> generateMatchData(({
     int totalRounds,
-    bool jeopardyEnabled,
+    bool wildcardEnabled,
     GameMode gameMode,
     Difficulty initialDifficulty,
     int? seed,
@@ -99,19 +99,19 @@ class MatchManager {
     int? persistentTarget;
     Difficulty currentDifficulty = args.initialDifficulty;
 
-    // Jeopardy Distribution Logic
-    final jeopardyIndices = <int>{};
-    if (args.jeopardyEnabled && args.gameMode != GameMode.progressive) {
+    // Wildcard Distribution Logic
+    final wildcardIndices = <int>{};
+    if (args.wildcardEnabled && args.gameMode != GameMode.progressive) {
       if (args.gameMode == GameMode.endless) {
         final blockIndex = args.startRoundIndex ~/ 10;
         final count = (blockIndex == 0) ? 3 : (4 + random.nextInt(2));
-        while (jeopardyIndices.length < count) jeopardyIndices.add(random.nextInt(10));
+        while (wildcardIndices.length < count) wildcardIndices.add(random.nextInt(10));
       } else {
         int jCount = args.totalRounds == 10 ? 2 + random.nextInt(2) : 1;
         if (args.totalRounds > 1) {
-          while (jeopardyIndices.length < jCount) {
+          while (wildcardIndices.length < jCount) {
             final idx = 1 + random.nextInt(args.totalRounds - 1);
-            jeopardyIndices.add(idx);
+            wildcardIndices.add(idx);
           }
         }
       }
@@ -124,7 +124,7 @@ class MatchManager {
       final relativeIndex = i - 1;
       
       RoundConfig config = RoundConfig.classic;
-      JeopardyType? jeopardy;
+      WildcardType? wildcard;
       String? lockedOp;
 
       if (args.gameMode == GameMode.progressive) {
@@ -149,9 +149,9 @@ class MatchManager {
         else if (args.gameMode == GameMode.tripleThreat) config = RoundConfig.tripleThreat;
         else if (args.gameMode == GameMode.doubleDanger) config = RoundConfig.doubleDanger;
         
-        if (jeopardyIndices.contains(args.gameMode == GameMode.endless ? relativeIndex : absoluteRoundIndex - 1)) {
-          jeopardy = JeopardyType.values[random.nextInt(JeopardyType.values.length)];
-          if (jeopardy == JeopardyType.operatorLockout) lockedOp = ['+', '-', '*', '/'][random.nextInt(4)];
+        if (wildcardIndices.contains(args.gameMode == GameMode.endless ? relativeIndex : absoluteRoundIndex - 1)) {
+          wildcard = WildcardType.values[random.nextInt(WildcardType.values.length)];
+          if (wildcard == WildcardType.operatorLockout) lockedOp = ['+', '-', '*', '/'][random.nextInt(4)];
         }
       }
 
@@ -181,7 +181,7 @@ class MatchManager {
         }
         attempts++;
       }
-      rounds.add(MatchRoundData(numbers: numbers, targets: targets, jeopardy: jeopardy, lockedOperator: lockedOp, config: config, bestSolution: bestSolution ?? SolveResult()));
+      rounds.add(MatchRoundData(numbers: numbers, targets: targets, wildcard: wildcard, lockedOperator: lockedOp, config: config, bestSolution: bestSolution ?? SolveResult()));
     }
     return rounds;
   }
@@ -201,7 +201,7 @@ class MatchManager {
   }
 
   void generateMatch({Difficulty initialDifficulty = Difficulty.easy}) {
-    _matchRounds = generateMatchData((totalRounds: totalRounds, jeopardyEnabled: jeopardyEnabled, gameMode: gameMode, initialDifficulty: initialDifficulty, seed: _random.nextInt(1000000), startRoundIndex: 0));
+    _matchRounds = generateMatchData((totalRounds: totalRounds, wildcardEnabled: wildcardEnabled, gameMode: gameMode, initialDifficulty: initialDifficulty, seed: _random.nextInt(1000000), startRoundIndex: 0));
   }
 
   void appendRounds(List<MatchRoundData> newRounds) {
@@ -217,7 +217,7 @@ class MatchManager {
   void nextRound() {
     _currentRound++;
     if (gameMode == GameMode.endless && _currentRound >= _matchRounds.length - 1) {
-      final moreRounds = generateMatchData((totalRounds: 10, jeopardyEnabled: jeopardyEnabled, gameMode: gameMode, initialDifficulty: Difficulty.hard, seed: _random.nextInt(1000000), startRoundIndex: _matchRounds.length));
+      final moreRounds = generateMatchData((totalRounds: 10, wildcardEnabled: wildcardEnabled, gameMode: gameMode, initialDifficulty: Difficulty.hard, seed: _random.nextInt(1000000), startRoundIndex: _matchRounds.length));
       _matchRounds.addAll(moreRounds);
     }
   }

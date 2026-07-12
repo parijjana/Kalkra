@@ -24,14 +24,14 @@ void main() {
       expect(match.currentRound, 3);
     });
 
-    test('pre-calculates jeopardy correctly', () {
-      final match = MatchManager(totalRounds: 10, jeopardyEnabled: true, seed: 42);
+    test('pre-calculates wildcard correctly', () {
+      final match = MatchManager(totalRounds: 10, wildcardEnabled: true, seed: 42);
       match.generateMatch();
 
-      // Verify that at least some rounds have jeopardy in a long match
+      // Verify that at least some rounds have wildcard in a long match
       bool foundJeopardy = false;
       for (int i = 0; i < 10; i++) {
-        if (match.currentRoundData?.jeopardy != null) foundJeopardy = true;
+        if (match.currentRoundData?.wildcard != null) foundJeopardy = true;
         match.nextRound();
       }
       expect(foundJeopardy, isTrue);
@@ -49,34 +49,34 @@ void main() {
     });
 
     test('Jeopardy distribution: 10-round match has 2-3 events', () {
-      final match = MatchManager(totalRounds: 10, jeopardyEnabled: true, seed: 100);
+      final match = MatchManager(totalRounds: 10, wildcardEnabled: true, seed: 100);
       match.generateMatch();
       
       int jCount = 0;
       for (int i = 0; i < 10; i++) {
-        if (match.currentRoundData?.jeopardy != null) jCount++;
+        if (match.currentRoundData?.wildcard != null) jCount++;
         match.nextRound();
       }
-      expect(jCount, anyOf(2, 3), reason: '10-round match must have 2 or 3 jeopardy rounds');
+      expect(jCount, anyOf(2, 3), reason: '10-round match must have 2 or 3 wildcard rounds');
     });
 
     test('Jeopardy distribution: Endless mode scales frequency', () {
-      final match = MatchManager(gameMode: GameMode.endless, jeopardyEnabled: true, seed: 200);
+      final match = MatchManager(gameMode: GameMode.endless, wildcardEnabled: true, seed: 200);
       match.generateMatch(); // Generates first 10
       
       int block0Count = 0;
       for (int i = 0; i < 10; i++) {
-        if (match.currentRoundData?.jeopardy != null) block0Count++;
+        if (match.currentRoundData?.wildcard != null) block0Count++;
         match.nextRound(); // Triggers refill at R9/10
       }
-      expect(block0Count, equals(3), reason: 'Endless Block 0 must have exactly 3 jeopardy rounds');
+      expect(block0Count, equals(3), reason: 'Endless Block 0 must have exactly 3 wildcard rounds');
       
       int block1Count = 0;
       for (int i = 0; i < 10; i++) {
-        if (match.currentRoundData?.jeopardy != null) block1Count++;
+        if (match.currentRoundData?.wildcard != null) block1Count++;
         match.nextRound();
       }
-      expect(block1Count, anyOf(4, 5), reason: 'Subsequent Endless blocks must have 4 or 5 jeopardy rounds');
+      expect(block1Count, anyOf(4, 5), reason: 'Subsequent Endless blocks must have 4 or 5 wildcard rounds');
     });
   });
 }

@@ -186,13 +186,13 @@ class PauseNotifier extends Notifier<bool> {
   void setPaused(bool value) => state = value;
 }
 
-/// Provider for tracking host-initiated jeopardy overrides.
-final jeopardyOverrideProvider =
-    NotifierProvider<JeopardyOverrideNotifier, bool>(
-      JeopardyOverrideNotifier.new,
+/// Provider for tracking host-initiated wildcard overrides.
+final wildcardOverrideProvider =
+    NotifierProvider<WildcardOverrideNotifier, bool>(
+      WildcardOverrideNotifier.new,
     );
 
-class JeopardyOverrideNotifier extends Notifier<bool> {
+class WildcardOverrideNotifier extends Notifier<bool> {
   @override
   bool build() => false;
   void setOverride(bool value) => state = value;

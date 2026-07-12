@@ -8,7 +8,7 @@ class UnifiedSidebar extends ConsumerStatefulWidget {
   final int? matchScore;
   final int? secondsLeft;
   final String? roundText;
-  final JeopardyType? jeopardy;
+  final WildcardType? wildcard;
   final List<String>? attemptHistory;
   final VoidCallback? onResign;
 
@@ -18,7 +18,7 @@ class UnifiedSidebar extends ConsumerStatefulWidget {
     this.matchScore,
     this.secondsLeft,
     this.roundText,
-    this.jeopardy,
+    this.wildcard,
     this.attemptHistory,
     this.onResign,
   });
@@ -130,7 +130,7 @@ class _UnifiedSidebarState extends ConsumerState<UnifiedSidebar> {
                                     ),
                                   ],
                                 ),
-                                if (widget.jeopardy != null)
+                                if (widget.wildcard != null)
                                   Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 10,
@@ -141,7 +141,7 @@ class _UnifiedSidebarState extends ConsumerState<UnifiedSidebar> {
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Text(
-                                      widget.jeopardy!.name.toUpperCase(),
+                                      widget.wildcard!.name.toUpperCase(),
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w900,
                                         fontSize: 9,

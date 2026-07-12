@@ -24,7 +24,7 @@ class MatchSetupScreen extends ConsumerStatefulWidget {
 class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
   Difficulty _difficulty = Difficulty.medium;
   int _rounds = 5;
-  bool _jeopardyEnabled = true;
+  bool _wildcardEnabled = true;
   GameMode _gameMode = GameMode.practice;
 
   @override
@@ -92,7 +92,7 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
             _buildRoundSelector(),
             const SizedBox(height: 24),
           ],
-          if (_gameMode != GameMode.progressive) _buildJeopardyToggle(),
+          if (_gameMode != GameMode.progressive) _buildWildcardToggle(),
         ],
       ),
     );
@@ -163,7 +163,7 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
                               const SizedBox(height: 32),
                             ],
                             if (_gameMode != GameMode.progressive)
-                              _buildJeopardyToggle(),
+                              _buildWildcardToggle(),
                             const Spacer(),
                             _buildStartButton(context, isLarge: true),
                           ],
@@ -445,7 +445,7 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
     );
   }
 
-  Widget _buildJeopardyToggle() {
+  Widget _buildWildcardToggle() {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(20),
@@ -459,7 +459,7 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
           const SizedBox(width: 16),
           const Expanded(
             child: Text(
-              'JEOPARDY MODE',
+              'WILDCARD MODE',
               style: TextStyle(
                 fontWeight: FontWeight.w900,
                 letterSpacing: 1,
@@ -468,8 +468,8 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
             ),
           ),
           Switch(
-            value: _jeopardyEnabled,
-            onChanged: (v) => setState(() => _jeopardyEnabled = v),
+            value: _wildcardEnabled,
+            onChanged: (v) => setState(() => _wildcardEnabled = v),
             activeTrackColor: colorScheme.tertiary,
           ),
         ],
@@ -526,13 +526,13 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
       MaterialPageRoute(
         builder: (context) => CalibrationScreen(
           totalRounds: rounds,
-          jeopardyEnabled:
+          wildcardEnabled:
               (_gameMode == GameMode.progressive ||
                       _gameMode == GameMode.endless ||
                       _gameMode == GameMode.tripleThreat ||
                       _gameMode == GameMode.doubleDanger)
                   ? false
-                  : _jeopardyEnabled,
+                  : _wildcardEnabled,
           gameMode: _gameMode,
           difficulty: _difficulty,
           setupMode: widget.mode,

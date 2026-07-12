@@ -4,7 +4,7 @@ class ScoreKeeper {
   int calculateScore({
     required int target, 
     required num? result, 
-    JeopardyType? jeopardy,
+    WildcardType? wildcard,
     int rewardBump = 0,
   }) {
     if (result == null) return 0;
@@ -12,7 +12,7 @@ class ScoreKeeper {
     final diff = (target - result).abs();
 
     // Double or Nothing Logic
-    if (jeopardy == JeopardyType.doubleOrNothing) {
+    if (wildcard == WildcardType.doubleOrNothing) {
       return (diff == 0) ? 20 : 0;
     }
 

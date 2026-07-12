@@ -13,7 +13,7 @@ class RoundManager {
   RoundState _state = RoundState.idle;
   List<int> _numbers = [];
   List<int> _targets = [];
-  JeopardyType? _jeopardyType;
+  WildcardType? _wildcardType;
   String? _lockedOperator;
   RoundConfig _config = RoundConfig.classic;
   final List<String> _submissions = [];
@@ -23,7 +23,7 @@ class RoundManager {
   List<int> get numbers => _numbers;
   List<int> get targets => _targets;
   int? get target => _targets.isNotEmpty ? _targets.first : null;
-  JeopardyType? get jeopardyType => _jeopardyType;
+  WildcardType? get wildcardType => _wildcardType;
   String? get lockedOperator => _lockedOperator;
   RoundConfig get config => _config;
   List<String> get submissions => _submissions;
@@ -33,7 +33,7 @@ class RoundManager {
   void startRound({required MatchRoundData data}) {
     _numbers = data.numbers;
     _targets = data.targets;
-    _jeopardyType = data.jeopardy;
+    _wildcardType = data.wildcard;
     _lockedOperator = data.lockedOperator;
     _config = data.config;
     _bestSolution = data.bestSolution;
@@ -43,15 +43,15 @@ class RoundManager {
   }
 
   void startRoundWithData({
-    required List<int> numbers, 
-    required List<int> targets, 
-    JeopardyType? jeopardy,
+    required List<int> numbers,
+    required List<int> targets,
+    WildcardType? wildcard,
     String? lockedOp,
     RoundConfig config = RoundConfig.classic,
   }) {
     _numbers = numbers;
     _targets = targets;
-    _jeopardyType = jeopardy;
+    _wildcardType = wildcard;
     _lockedOperator = lockedOp;
     _config = config;
     
@@ -129,7 +129,7 @@ class RoundManager {
     return _scoreKeeper.calculateScore(
       target: _targets.first, 
       result: validation.value,
-      jeopardy: _jeopardyType,
+      wildcard: _wildcardType,
       rewardBump: _config.rewardBump,
     );
   }

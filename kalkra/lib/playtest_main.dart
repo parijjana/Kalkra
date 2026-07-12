@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'src/providers/providers.dart';
@@ -6,6 +8,14 @@ import 'src/screens/playtest_login_screen.dart';
 import 'src/theme/app_theme.dart';
 
 void main() async {
+  // Register OFL font licenses for the about/license page.
+  LicenseRegistry.addLicense(() async* {
+    final license = await rootBundle.loadString(
+      'assets/fonts/OFL_licenses.txt',
+    );
+    yield LicenseEntryWithLineBreaks(['bundled_fonts'], license);
+  });
+
   WidgetsFlutterBinding.ensureInitialized();
 
   final prefs = await SharedPreferences.getInstance();

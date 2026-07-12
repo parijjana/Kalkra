@@ -13,6 +13,10 @@ import 'main_screen.dart';
 class SoloSummaryScreen extends ConsumerWidget {
   const SoloSummaryScreen({super.key});
 
+  // Playtest builds are produced with:
+  // flutter build web -t lib/playtest_main.dart --dart-define=PLAYTEST_BUILD=true
+  static const bool _isPlaytestBuild = bool.fromEnvironment('PLAYTEST_BUILD');
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final match = ref.read(matchProvider).value;
@@ -28,8 +32,8 @@ class SoloSummaryScreen extends ConsumerWidget {
           .read(currentScreenIdProvider.notifier)
           .setScreenId('SoloSummaryScreen');
 
-      // Auto-submit results for playtesting
-      if (match != null) {
+      // Auto-submit results for playtesting (store builds: dead code, tree-shaken out)
+      if (_isPlaytestBuild && match != null) {
         ref.read(playtestServiceProvider.notifier).submitResult(match, myScore);
       }
     });
@@ -134,7 +138,7 @@ class SoloSummaryScreen extends ConsumerWidget {
                               MaterialPageRoute(
                                 builder: (context) => CalibrationScreen(
                                   totalRounds: match.totalRounds,
-                                  jeopardyEnabled: match.jeopardyEnabled,
+                                  wildcardEnabled: match.wildcardEnabled,
                                   gameMode: match.gameMode,
                                   difficulty: match.initialDifficulty,
                                   setupMode: MatchSetupMode.solo,

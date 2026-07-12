@@ -1,24 +1,42 @@
 # PRIVACY POLICY - KALKRA
 
-**Last Updated: May 20, 2026**
+**Last Updated: July 12, 2026**
 
 ### 🛡️ YOUR DATA IS YOURS
-Kalkra is designed with a "Local-First" philosophy. We believe your gaming data, stats, and achievements should remain on your device.
+
+Kalkra is a fully offline, single-player game. It makes no network connections, collects no data, and contains no accounts, advertisements, or tracking of any kind.
 
 ### 1. DATA COLLECTION
-Kalkra does NOT collect, transmit, or sell any personal information. All game progress, including your "Callsign", Elo rating, and match history, is stored exclusively on your device.
 
-### 2. HARDWARE SECURITY
-To prevent unauthorized tampering, Kalkra uses hardware-backed encryption (Android Keystore / iOS Keychain). This ensures your save data is tied to your physical device and protected by your system security.
+Kalkra does NOT collect, transmit, or sell any personal information. All game progress — including your "Callsign", Elo rating, statistics, achievements, and match history — is stored exclusively on your device and never leaves it.
 
-### 3. MULTIPLAYER PRIVACY
-During local multiplayer (LAN) matches, your Callsign and Elo are shared with other players on your same network to facilitate match-making and scoring. This data is never sent to external servers.
+### 2. LOCAL DATA SECURITY
 
-### 4. ANALYTICS & TRACKING
-Kalkra contains no third-party trackers, advertisements, or analytics SDKs. We do not track your location, contacts, or app usage.
+To prevent unauthorized tampering, Kalkra encrypts your save data using your operating system's secure key storage (Android Keystore, iOS Keychain, macOS Keychain, or Windows credential storage). Your save data is protected by your device's own security and stays on your device.
 
-### 5. THIRD-PARTY SERVICES
-Kalkra uses the official Flutter SDK and various open-source libraries. For more details on these, see the Credits & Attributions screen in the app.
+### 3. NETWORK ACCESS
+
+Kalkra requires no network access to play. The only network activity the app can initiate is opening a link in your web browser (for example, a credits or license link) when you explicitly tap it.
+
+### 4. MULTIPLAYER (COMING SOON)
+
+Kalkra is currently single-player only. If local multiplayer is introduced in a future update, this policy will be updated first to describe exactly what is shared with other players (such as your Callsign and rating on your local network) before any such feature is enabled.
+
+### 5. ANALYTICS & TRACKING
+
+Kalkra contains no third-party trackers, advertisements, or analytics SDKs. We do not track your location, contacts, identity, or app usage. Fonts and all other assets are bundled with the app — nothing is fetched from external servers at runtime.
+
+### 6. CHILDREN'S PRIVACY
+
+Because Kalkra collects no data from anyone, it collects no data from children. There are no chat features, no user-generated content shared with others, and no external links a child can be directed to during gameplay.
+
+### 7. THIRD-PARTY SOFTWARE
+
+Kalkra is built with the Flutter SDK and open-source libraries. These run entirely on your device. Attributions and licenses are listed on the Credits screen in the app.
+
+### 8. CONTACT
+
+Questions about this policy: **[insert support email before publishing]**
 
 ---
 **KALKRA PROJECT • OPEN SOURCE**

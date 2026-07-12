@@ -28,7 +28,7 @@ void main() {
       final score = scoreKeeper.calculateScore(
         target: 100, 
         result: 100, 
-        jeopardy: JeopardyType.doubleOrNothing
+        wildcard: WildcardType.doubleOrNothing
       );
       expect(score, 20);
     });
@@ -37,7 +37,7 @@ void main() {
       final score = scoreKeeper.calculateScore(
         target: 100, 
         result: 101, 
-        jeopardy: JeopardyType.doubleOrNothing
+        wildcard: WildcardType.doubleOrNothing
       );
       expect(score, 0);
     });
@@ -46,7 +46,7 @@ void main() {
       final score = scoreKeeper.calculateScore(
         target: 100, 
         result: 99, 
-        jeopardy: JeopardyType.doubleOrNothing
+        wildcard: WildcardType.doubleOrNothing
       );
       expect(score, 0);
     });

@@ -33,7 +33,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
   DateTime? _roundStartTime;
   double? _secondsToSubmit;
 
-  JeopardyType? _activeJeopardy;
+  WildcardType? _activeWildcard;
   String? _lockedOperator;
   int _visibleNumberCount = 6;
   int? _dynamicTarget;
@@ -56,7 +56,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
       duration: const Duration(milliseconds: 800),
     );
     final round = ref.read(roundProvider);
-    _activeJeopardy = round.jeopardyType;
+    _activeWildcard = round.wildcardType;
     _lockedOperator = round.lockedOperator;
 
     _visibleNumberCount = round.config.poolType == PoolType.expanding
@@ -85,7 +85,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
     _timer?.cancel();
     final round = ref.read(roundProvider);
     _secondsLeft = round.config.durationSeconds;
-    if (_activeJeopardy == JeopardyType.speedDemon) _secondsLeft ~/= 2;
+    if (_activeWildcard == WildcardType.speedDemon) _secondsLeft ~/= 2;
     _totalRoundTime = _secondsLeft;
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -477,24 +477,24 @@ class _GameScreenState extends ConsumerState<GameScreen>
           final List<int> targets = event.payload['targets'] != null
               ? List<int>.from(event.payload['targets'])
               : [event.payload['target'] as int];
-          final jeopardyIndex = event.payload['jeopardy'];
+          final wildcardIndex = event.payload['jeopardy'];
           final lockedOp = event.payload['lockedOperator'];
-          final jeopardy = jeopardyIndex != null
-              ? JeopardyType.values[jeopardyIndex]
+          final wildcard = wildcardIndex != null
+              ? WildcardType.values[wildcardIndex]
               : null;
           ref
               .read(roundProvider)
               .startRoundWithData(
                 numbers: numbers,
                 targets: targets,
-                jeopardy: jeopardy,
+                wildcard: wildcard,
                 lockedOp: lockedOp,
               );
           setState(() {
-            _activeJeopardy = jeopardy;
+            _activeWildcard = wildcard;
             _lockedOperator = lockedOp;
             _secondsLeft = ref.read(roundProvider).config.durationSeconds;
-            if (_activeJeopardy == JeopardyType.speedDemon) _secondsLeft ~/= 2;
+            if (_activeWildcard == WildcardType.speedDemon) _secondsLeft ~/= 2;
             _currentExpression = '';
             _usedIndices.clear();
             _roundStartTime = DateTime.now();
@@ -594,7 +594,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
           child: Center(
             child: AnimatedTarget(
               targets: round.targets,
-              isHighStakes: _activeJeopardy == JeopardyType.doubleOrNothing,
+              isHighStakes: _activeWildcard == WildcardType.doubleOrNothing,
               entrance: _entranceController,
               isDesktop: isDesktop,
               match: match,

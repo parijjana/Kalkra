@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 enum AppThemeType {
   vectorPop,
@@ -9,6 +8,32 @@ enum AppThemeType {
   ivory,
   midnightCyber,
   retroArcade,
+}
+
+// Returns a TextStyle with the given font family applied, preserving any passed params.
+TextStyle Function({
+  Color? color,
+  double? fontSize,
+  FontWeight? fontWeight,
+  double? letterSpacing,
+}) _headlineFont(String family) {
+  return ({Color? color, double? fontSize, FontWeight? fontWeight, double? letterSpacing}) {
+    return TextStyle(
+      fontFamily: family,
+      color: color,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      letterSpacing: letterSpacing,
+    );
+  };
+}
+
+// Returns a function that applies the given font family to every text style in a TextTheme.
+TextTheme Function([TextTheme? base]) _bodyFont(String family) {
+  return ([TextTheme? base]) {
+    final t = base ?? const TextTheme();
+    return t.apply(fontFamily: family);
+  };
 }
 
 class AppTheme {
@@ -30,8 +55,8 @@ class AppTheme {
           onSurface: const Color(0xFF2F2E30),
           onPrimary: Colors.white,
           isDark: false,
-          headlineFont: GoogleFonts.spaceGrotesk,
-          bodyFont: GoogleFonts.plusJakartaSansTextTheme,
+          headlineFont: _headlineFont('Space Grotesk'),
+          bodyFont: _bodyFont('Plus Jakarta Sans'),
           borderRadiusCard: 48,
           borderRadiusButton: 32,
         );
@@ -51,8 +76,8 @@ class AppTheme {
           onSurface: const Color(0xFFEBEBEB),
           onPrimary: Colors.black,
           isDark: true,
-          headlineFont: GoogleFonts.dmSans,
-          bodyFont: GoogleFonts.ibmPlexSansTextTheme,
+          headlineFont: _headlineFont('DM Sans'),
+          bodyFont: _bodyFont('IBM Plex Sans'),
           borderRadiusCard: 8,
           borderRadiusButton: 4,
         );
@@ -72,8 +97,8 @@ class AppTheme {
           onSurface: const Color(0xFF5D5D5D),
           onPrimary: const Color(0xFF7B3100),
           isDark: false,
-          headlineFont: GoogleFonts.nunitoSans,
-          bodyFont: GoogleFonts.nunitoSansTextTheme,
+          headlineFont: _headlineFont('Nunito Sans'),
+          bodyFont: _bodyFont('Nunito Sans'),
           borderRadiusCard: 100,
           borderRadiusButton: 100,
         );
@@ -93,8 +118,8 @@ class AppTheme {
           onSurface: Colors.white,
           onPrimary: Colors.black,
           isDark: true,
-          headlineFont: GoogleFonts.spaceGrotesk,
-          bodyFont: GoogleFonts.spaceGroteskTextTheme,
+          headlineFont: _headlineFont('Space Grotesk'),
+          bodyFont: _bodyFont('Space Grotesk'),
           borderRadiusCard: 16,
           borderRadiusButton: 12,
         );
@@ -114,8 +139,8 @@ class AppTheme {
           onSurface: const Color(0xFF3E2723),
           onPrimary: Colors.white,
           isDark: false,
-          headlineFont: GoogleFonts.newsreader,
-          bodyFont: GoogleFonts.literataTextTheme,
+          headlineFont: _headlineFont('Newsreader'),
+          bodyFont: _bodyFont('Literata'),
           borderRadiusCard: 4,
           borderRadiusButton: 2,
         );
@@ -135,8 +160,8 @@ class AppTheme {
           onSurface: Colors.white,
           onPrimary: Colors.black,
           isDark: true,
-          headlineFont: GoogleFonts.spaceGrotesk,
-          bodyFont: GoogleFonts.interTextTheme,
+          headlineFont: _headlineFont('Space Grotesk'),
+          bodyFont: _bodyFont('Inter'),
           borderRadiusCard: 24,
           borderRadiusButton: 16,
         );
@@ -156,8 +181,8 @@ class AppTheme {
           onSurface: Colors.white,
           onPrimary: Colors.white,
           isDark: true,
-          headlineFont: GoogleFonts.spaceGrotesk,
-          bodyFont: GoogleFonts.ibmPlexSansTextTheme,
+          headlineFont: _headlineFont('Space Grotesk'),
+          bodyFont: _bodyFont('IBM Plex Sans'),
           borderRadiusCard: 4,
           borderRadiusButton: 0,
         );

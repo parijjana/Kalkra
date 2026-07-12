@@ -16,7 +16,6 @@ dependencies:
   flutter_svg: ^2.2.4
   game_engine:
     path: ../packages/game_engine
-  google_fonts: ^8.0.2
   intl: ^0.20.2
   logging: ^1.3.0
   riverpod_annotation: ^4.0.2
@@ -54,6 +53,47 @@ flutter:
     - assets/images/
     - assets/audio/
     - assets/audio/bgm/
+    - assets/fonts/OFL_licenses.txt
+
+  fonts:
+    - family: Space Grotesk
+      fonts:
+        - asset: assets/fonts/SpaceGrotesk/SpaceGrotesk[wght].ttf
+    - family: Plus Jakarta Sans
+      fonts:
+        - asset: assets/fonts/PlusJakartaSans/PlusJakartaSans[wght].ttf
+        - asset: assets/fonts/PlusJakartaSans/PlusJakartaSans-Italic[wght].ttf
+          style: italic
+    - family: DM Sans
+      fonts:
+        - asset: assets/fonts/DmSans/DMSans[opsz,wght].ttf
+        - asset: assets/fonts/DmSans/DMSans-Italic[opsz,wght].ttf
+          style: italic
+    - family: IBM Plex Sans
+      fonts:
+        - asset: assets/fonts/IbmPlexSans/IBMPlexSans[wdth,wght].ttf
+        - asset: assets/fonts/IbmPlexSans/IBMPlexSans-Italic[wdth,wght].ttf
+          style: italic
+    - family: Nunito Sans
+      fonts:
+        - asset: assets/fonts/NunitoSans/NunitoSans[YTLC,opsz,wdth,wght].ttf
+        - asset: assets/fonts/NunitoSans/NunitoSans-Italic[YTLC,opsz,wdth,wght].ttf
+          style: italic
+    - family: Newsreader
+      fonts:
+        - asset: assets/fonts/Newsreader/Newsreader[opsz,wght].ttf
+        - asset: assets/fonts/Newsreader/Newsreader-Italic[opsz,wght].ttf
+          style: italic
+    - family: Literata
+      fonts:
+        - asset: assets/fonts/Literata/Literata[opsz,wght].ttf
+        - asset: assets/fonts/Literata/Literata-Italic[opsz,wght].ttf
+          style: italic
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter/Inter[opsz,wght].ttf
+        - asset: assets/fonts/Inter/Inter-Italic[opsz,wght].ttf
+          style: italic
 
 flutter_launcher_icons:
   android: "launcher_icon"

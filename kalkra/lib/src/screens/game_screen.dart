@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_engine/game_engine.dart';
 import 'package:transport_interface/transport_interface.dart';
-import 'package:transport_lan/transport_lan.dart';
 import '../providers/providers.dart';
 import '../widgets/responsive_layout.dart';
 import '../widgets/vector_background.dart';
@@ -166,118 +165,11 @@ class _GameScreenState extends ConsumerState<GameScreen>
     _timer?.cancel();
 
     final round = ref.read(roundProvider);
-    final transport = ref.read(transportProvider);
     final match = ref.read(matchProvider).value;
     final session = ref.read(sessionProvider);
     round.endRound();
 
-    if (transport is LanHostTransport) {
-      await _handleHostResults(round, transport, match, session);
-    } else if (transport is NullTransport) {
-      await _handleSoloResults(round, match, session);
-    }
-  }
-
-  Future<void> _handleHostResults(
-    RoundManager round,
-    LanHostTransport transport,
-    MatchManager? match,
-    SessionManager session,
-  ) async {
-    final target = _dynamicTarget ?? round.target ?? 0;
-    final validator = SubmissionValidator();
-    session.recordSubmission('host', _currentExpression.trim(), 0);
-
-    final playerResults = <String, Map<String, dynamic>>{};
-    for (final id in session.players.keys) {
-      final p = session.players[id]!;
-      final val = validator
-          .validate(
-            p.lastExpression ?? '',
-            round.numbers,
-            allowNegative: round.config.allowNegative,
-            allowFractions: round.config.allowFractions,
-          )
-          .value;
-      playerResults[id] = {
-        'name': p.name,
-        'expression': p.lastExpression ?? '',
-        'value': val,
-        'proximity': val == null ? null : (target - val).abs(),
-        'teamId': p.teamId,
-      };
-    }
-
-    final teamBestPoints = <int, int>{};
-    for (int tId = 1; tId <= 4; tId++) {
-      final teamPlayers = session.players.entries
-          .where((e) => e.value.teamId == tId)
-          .map((e) => e.key)
-          .toList();
-      if (teamPlayers.isEmpty) continue;
-      num minProx = 1000000;
-      num? bestVal;
-      for (final pId in teamPlayers) {
-        final prox = playerResults[pId]!['proximity'] as num?;
-        if (prox != null && prox < minProx) {
-          minProx = prox;
-          bestVal = playerResults[pId]!['value'];
-        }
-      }
-      if (minProx < 1000000) {
-        final pts = ScoreKeeper().calculateScore(
-          target: target,
-          result: bestVal,
-          jeopardy: round.jeopardyType,
-        );
-        teamBestPoints[tId] = pts;
-        session.awardTeamPoints(tId, pts);
-      }
-    }
-
-    Map<String, int>? eloShifts;
-    if (match?.isMatchOver ?? false) {
-      final winnerId = session.players.entries
-          .reduce(
-            (a, b) => a.value.cumulativeScore > b.value.cumulativeScore ? a : b,
-          )
-          .key;
-      eloShifts = EloCalculator.calculateMultiplayerShifts(
-        playerElos: session.players.map((id, p) => MapEntry(id, p.currentElo)),
-        winnerId: winnerId,
-      );
-    }
-
-    await transport.sendEvent(
-      GameEvent(
-        type: GameEventType.roundResults,
-        payload: {
-          'playerResults': playerResults,
-          'teamPoints': teamBestPoints.map((k, v) => MapEntry(k.toString(), v)),
-          'teamTotalScores': session.teamScores.map(
-            (k, v) => MapEntry(k.toString(), v),
-          ),
-          'bestSolution': round.bestSolution?.toJson(),
-          'eloShifts': eloShifts,
-          'isMatchOver': match?.isMatchOver ?? false,
-        },
-      ),
-    );
-
-    if (eloShifts?.containsKey('host') ?? false) {
-      ref
-          .read(careerProvider.notifier)
-          .applyEloShift(eloShifts!['host']!, 'Arena Rival');
-    }
-
-    if (mounted) {
-      _navigateToResults(
-        multiplayerResults: playerResults,
-        teamPoints: teamBestPoints,
-        teamTotalScores: session.teamScores,
-        eloShifts: eloShifts,
-      );
-    }
+    await _handleSoloResults(round, match, session);
   }
 
   Future<void> _handleSoloResults(
@@ -359,21 +251,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
             child: const Text('CANCEL'),
           ),
           TextButton(
-            onPressed: () async {
+            onPressed: () {
               Navigator.pop(dialogContext);
-              final transport = ref.read(transportProvider);
-              if (transport is! NullTransport) {
-                await transport.sendEvent(
-                  GameEvent(
-                    type: GameEventType.playerJoined,
-                    payload: {'resigned': true},
-                  ),
-                );
-                transport.disconnect();
-                ref
-                    .read(transportProvider.notifier)
-                    .setTransport(NullTransport());
-              }
               ref.read(matchProvider).value = null;
               ref
                   .read(matchStatusProvider.notifier)
@@ -470,7 +349,6 @@ class _GameScreenState extends ConsumerState<GameScreen>
   Future<void> _submit() async {
     if (_currentExpression.isEmpty) return;
     final round = ref.read(roundProvider);
-    final transport = ref.read(transportProvider);
     final expression = _currentExpression.trim();
     _secondsToSubmit =
         DateTime.now().difference(_roundStartTime!).inMilliseconds / 1000.0;
@@ -486,40 +364,22 @@ class _GameScreenState extends ConsumerState<GameScreen>
       SoundService().playError();
     }
 
-    if (transport is NullTransport) {
-      round.submitExpression(expression);
-      if (round.config.allowMultipleSubmissions) {
-        _clear();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Submission Recorded! Total: ${round.calculateTotalPoints(round.submissions)} pts',
-              ),
-              duration: const Duration(milliseconds: 500),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } else {
-        _onTimeUp();
-      }
-    } else {
-      await transport.sendEvent(
-        GameEvent(
-          type: GameEventType.submissionReceived,
-          payload: {'expression': expression, 'playerId': transport.myId},
-        ),
-      );
+    round.submitExpression(expression);
+    if (round.config.allowMultipleSubmissions) {
+      _clear();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Submission sent!'),
-            duration: Duration(seconds: 1),
+          SnackBar(
+            content: Text(
+              'Submission Recorded! Total: ${round.calculateTotalPoints(round.submissions)} pts',
+            ),
+            duration: const Duration(milliseconds: 500),
+            backgroundColor: Colors.green,
           ),
         );
       }
-      if (round.config.allowMultipleSubmissions) _clear();
+    } else {
+      _onTimeUp();
     }
   }
 
@@ -563,12 +423,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
       );
   }
 
-  void _navigateToResults({
-    Map<String, dynamic>? multiplayerResults,
-    Map<int, int>? teamPoints,
-    Map<int, int>? teamTotalScores,
-    Map<String, int>? eloShifts,
-  }) {
+  void _navigateToResults() {
     final expression = _currentExpression.trim();
     final val = SubmissionValidator()
         .validate(expression, ref.read(roundProvider).numbers)
@@ -580,10 +435,6 @@ class _GameScreenState extends ConsumerState<GameScreen>
             playerExpression: expression,
             playerValue: val,
             playerPoints: ref.read(roundProvider).calculatePoints(expression),
-            multiplayerResults: multiplayerResults,
-            teamPoints: teamPoints,
-            teamTotalScores: teamTotalScores,
-            eloShifts: eloShifts,
           ),
         ),
       );
@@ -664,36 +515,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final matchNotifier = ref.watch(matchProvider);
     final session = ref.watch(sessionProvider);
 
-    ref.listen<MatchStatus>(matchStatusProvider, (prev, next) {
-      if (next == MatchStatus.results) {
-        final lastResults = ref.read(lastResultsProvider);
-        if (lastResults != null) {
-          final results = Map<String, dynamic>.from(
-            lastResults['playerResults'],
-          );
-          final Map<int, int>? teamPoints = lastResults['teamPoints'] != null
-              ? Map<String, dynamic>.from(
-                  lastResults['teamPoints'],
-                ).map((k, v) => MapEntry(int.parse(k), v as int))
-              : null;
-          final Map<int, int>? teamTotalScores =
-              lastResults['teamTotalScores'] != null
-              ? Map<String, dynamic>.from(
-                  lastResults['teamTotalScores'],
-                ).map((k, v) => MapEntry(int.parse(k), v as int))
-              : null;
-          final Map<String, int>? eloShifts = lastResults['eloShifts'] != null
-              ? Map<String, int>.from(lastResults['eloShifts'])
-              : null;
-          _navigateToResults(
-            multiplayerResults: results,
-            teamPoints: teamPoints,
-            teamTotalScores: teamTotalScores,
-            eloShifts: eloShifts,
-          );
-        }
-      }
-    });
+    // Solo-only: no network-driven navigation needed here.
 
     return ValueListenableBuilder<MatchManager?>(
       valueListenable: matchNotifier,
@@ -707,9 +529,7 @@ class _GameScreenState extends ConsumerState<GameScreen>
           else
             roundText = 'ROUND ${match.currentRound}/${match.totalRounds}';
         }
-        final myScore = session.getPlayerScore(
-          ref.read(transportProvider).myId,
-        );
+        final myScore = session.getPlayerScore('solo');
 
         return KeyboardListener(
           focusNode: _focusNode,

@@ -10,7 +10,8 @@ import 'calibration_screen.dart';
 import '../widgets/global_drawer.dart';
 import 'main_screen.dart';
 
-enum MatchSetupMode { solo, host }
+/// Solo-only build: multiplayer hosting removed (Coming Soon).
+enum MatchSetupMode { solo }
 
 class MatchSetupScreen extends ConsumerStatefulWidget {
   final MatchSetupMode mode;
@@ -194,11 +195,9 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: FloatingActionButton.extended(
         onPressed: _startMatch,
-        label: Text(
-          widget.mode == MatchSetupMode.solo
-              ? 'INITIATE SOLO MISSION'
-              : 'OPEN MULTIPLAYER ARENA',
-          style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2),
+        label: const Text(
+          'INITIATE SOLO MISSION',
+          style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2),
         ),
         icon: const Icon(Icons.play_arrow_rounded),
         backgroundColor: colorScheme.primary,
@@ -230,13 +229,12 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
         desc: 'Standard rules.',
         icon: Icons.model_training_rounded,
       ),
-      if (widget.mode == MatchSetupMode.solo)
-        (
-          mode: GameMode.endless,
-          label: 'ENDLESS',
-          desc: 'Survive the scaling.',
-          icon: Icons.loop_rounded,
-        ),
+      (
+        mode: GameMode.endless,
+        label: 'ENDLESS',
+        desc: 'Survive the scaling.',
+        icon: Icons.loop_rounded,
+      ),
       (
         mode: GameMode.progressive,
         label: 'PROGRESSIVE',
@@ -493,9 +491,9 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
             borderRadius: BorderRadius.circular(40),
           ),
         ),
-        child: Text(
-          widget.mode == MatchSetupMode.solo ? 'START MISSION' : 'START ARENA',
-          style: const TextStyle(
+        child: const Text(
+          'START MISSION',
+          style: TextStyle(
             fontWeight: FontWeight.w900,
             letterSpacing: 4,
             fontSize: 18,

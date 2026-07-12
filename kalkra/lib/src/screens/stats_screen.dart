@@ -5,7 +5,6 @@ import '../providers/providers.dart';
 import '../widgets/responsive_layout.dart';
 import '../widgets/top_nav_bar.dart';
 import '../widgets/vector_background.dart';
-import 'hosted_history_screen.dart';
 import 'package:intl/intl.dart';
 
 import '../widgets/global_drawer.dart';
@@ -300,7 +299,7 @@ class StatsScreen extends ConsumerWidget {
           onInfo: () => _showTooltip(
             context,
             'WINS',
-            'Total number of multiplayer sessions where you finished with the highest cumulative score.',
+            'Total number of sessions where you finished with the highest cumulative score. (Multiplayer wins coming in a future update.)',
           ),
         ),
         _StatCard(
@@ -331,19 +330,6 @@ class StatsScreen extends ConsumerWidget {
           ),
         ),
         const Spacer(),
-        TextButton.icon(
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => const HostedHistoryScreen(),
-            ),
-          ),
-          icon: const Icon(Icons.dns_rounded, size: 14),
-          label: const Text(
-            'HOSTED LOGS',
-            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-          ),
-        ),
-        const SizedBox(width: 12),
         Text(
           'LAST 50',
           style: TextStyle(

@@ -40,9 +40,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 'To prevent unauthorized tampering, Kalkra uses hardware-backed encryption (Android Keystore / iOS Keychain). This ensures your save data is tied to your physical device and protected by your system security.',
               ),
               const SizedBox(height: 24),
-              _buildHeader('3. MULTIPLAYER PRIVACY'),
+              _buildHeader('3. MULTIPLAYER (COMING SOON)'),
               _buildBody(
-                'During local multiplayer (LAN) matches, your Callsign and Elo are shared with other players on your same network to facilitate match-making and scoring. This data is never sent to external servers.',
+                'Kalkra is currently a fully offline, single-player game. When local multiplayer is introduced in a future update, this policy will be updated to describe exactly what is shared with other players before the feature is enabled.',
               ),
               const SizedBox(height: 24),
               _buildHeader('4. ANALYTICS & TRACKING'),

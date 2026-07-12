@@ -1,15 +1,11 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_engine/game_engine.dart';
-import 'package:transport_interface/transport_interface.dart';
-import 'package:transport_lan/transport_lan.dart';
 import '../providers/providers.dart';
 import '../widgets/global_drawer.dart';
 import '../services/sound_service.dart';
 import 'game_screen.dart';
 import 'multi_target_screen.dart';
-import 'match_summary_screen.dart';
 import 'solo_summary_screen.dart';
 import 'main_screen.dart';
 
@@ -17,10 +13,6 @@ class ResultsScreen extends ConsumerStatefulWidget {
   final String playerExpression;
   final num? playerValue;
   final int playerPoints;
-  final Map<String, dynamic>? multiplayerResults;
-  final Map<int, int>? teamPoints;
-  final Map<int, int>? teamTotalScores;
-  final Map<String, int>? eloShifts;
 
   // Triple Threat specific results
   final Map<int, String>? tripleThreatSolutions;
@@ -31,10 +23,6 @@ class ResultsScreen extends ConsumerStatefulWidget {
     required this.playerExpression,
     required this.playerValue,
     required this.playerPoints,
-    this.multiplayerResults,
-    this.teamPoints,
-    this.teamTotalScores,
-    this.eloShifts,
     this.tripleThreatSolutions,
     this.tripleThreatGuessed,
   });
@@ -44,39 +32,14 @@ class ResultsScreen extends ConsumerStatefulWidget {
 }
 
 class _ResultsScreenState extends ConsumerState<ResultsScreen> {
-  int _lockoutSeconds = 0;
-  Timer? _lockoutTimer;
-  bool _showIndividual = false;
-
   @override
   void initState() {
     super.initState();
-    final transport = ref.read(transportProvider);
-    final isHost = transport is LanHostTransport;
-    final isHostPlaying = !ref.read(isHostOnlyProvider);
-
-    if (isHost && isHostPlaying) {
-      _lockoutSeconds = 15;
-      _lockoutTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        if (_lockoutSeconds > 0) {
-          setState(() => _lockoutSeconds--);
-        } else {
-          _lockoutTimer?.cancel();
-        }
-      });
-    }
-
     if (widget.playerPoints > 0) {
       SoundService().playSuccess();
     } else if (widget.playerPoints == 0 && widget.playerExpression.isNotEmpty) {
       SoundService().playError();
     }
-  }
-
-  @override
-  void dispose() {
-    _lockoutTimer?.cancel();
-    super.dispose();
   }
 
   @override
@@ -102,8 +65,7 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
     final match = ref.watch(matchProvider).value;
     final session = ref.watch(sessionProvider);
 
-    final transport = ref.watch(transportProvider);
-    final myScore = session.getPlayerScore(transport.myId);
+    final myScore = session.getPlayerScore('solo');
 
     final bool isTripleThreat = widget.tripleThreatSolutions != null;
 
@@ -183,25 +145,7 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     child: Column(
                       children: [
-                        if (widget.multiplayerResults != null) ...[
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            child: _buildTeamLeaderboard(context),
-                          ),
-                          const SizedBox(height: 16),
-                          TextButton.icon(
-                            onPressed: () => setState(() => _showIndividual = !_showIndividual),
-                            icon: Icon(_showIndividual ? Icons.expand_less : Icons.expand_more),
-                            label: Text(_showIndividual ? 'HIDE INDIVIDUALS' : 'SHOW INDIVIDUALS'),
-                          ),
-                          if (_showIndividual)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                              child: _buildIndividualBreakdown(context),
-                            ),
-                          const SizedBox(height: 32),
-                        ],
-                        if (isTripleThreat) 
+                        if (isTripleThreat)
                           _TripleThreatRecap(
                             solutions: widget.tripleThreatSolutions!,
                             guessedValue: widget.tripleThreatGuessed,
@@ -235,15 +179,8 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
   Widget _buildNavigationRow(BuildContext context, ColorScheme colorScheme, WidgetRef ref) {
     final match = ref.read(matchProvider).value;
     final isLastRound = match != null && (match.isMatchOver || (match.gameMode != GameMode.endless && match.currentRound >= match.totalRounds));
-    final isHost = ref.read(transportProvider) is LanHostTransport;
-    final isLocked = _lockoutSeconds > 0;
 
-    String buttonText = isLastRound ? 'FINISH MATCH' : 'NEXT ROUND';
-    if (isLocked) {
-      buttonText = 'WAIT... ${_lockoutSeconds}s';
-    } else if (!isHost && widget.multiplayerResults != null) {
-      buttonText = 'WAITING FOR HOST';
-    }
+    final String buttonText = isLastRound ? 'FINISH MATCH' : 'NEXT ROUND';
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -253,15 +190,12 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
           width: double.infinity,
           height: 64,
           child: ElevatedButton(
-            onPressed: (isLocked || (!isHost && widget.multiplayerResults != null)) ? null : () async {
+            onPressed: () async {
               if (isLastRound) {
                 _finishMatch(context, ref);
                 return;
               }
-              final transport = ref.read(transportProvider);
-              if (transport is LanHostTransport) {
-                _triggerNextRound(ref, transport, match);
-              } else if (transport is NullTransport && match != null) {
+              if (match != null) {
                 match.nextRound();
                 final round = ref.read(roundProvider);
                 if (match.currentRoundData != null) round.startRound(data: match.currentRoundData!);
@@ -271,7 +205,7 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
                                       match?.gameMode == GameMode.doubleDanger;
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
-                    builder: (context) => isMultiTarget ? MultiTargetScreen() : GameScreen(),
+                    builder: (context) => isMultiTarget ? const MultiTargetScreen() : const GameScreen(),
                   ),
                 );
               }
@@ -281,8 +215,6 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
               foregroundColor: colorScheme.onPrimary,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
               elevation: 0,
-            ).copyWith(
-              backgroundColor: WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.disabled) ? colorScheme.surfaceContainerHighest : colorScheme.primary),
             ),
             child: FittedBox(
               fit: BoxFit.scaleDown,
@@ -302,86 +234,12 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
   }
 
   void _finishMatch(BuildContext context, WidgetRef ref) {
-    final transport = ref.read(transportProvider);
-    if (transport is NullTransport) {
-      final session = ref.read(sessionProvider);
-      final match = ref.read(matchProvider).value;
-      ref.read(careerProvider.notifier).recordSoloMatch(score: session.getPlayerScore('solo'), mode: match?.gameMode.name.toUpperCase() ?? 'SOLO');
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const SoloSummaryScreen()));
-    } else {
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => MatchSummaryScreen(teamTotalScores: widget.teamTotalScores ?? {}, multiplayerResults: widget.multiplayerResults)));
-    }
+    final session = ref.read(sessionProvider);
+    final match = ref.read(matchProvider).value;
+    ref.read(careerProvider.notifier).recordSoloMatch(score: session.getPlayerScore('solo'), mode: match?.gameMode.name.toUpperCase() ?? 'SOLO');
+    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const SoloSummaryScreen()));
   }
 
-  Future<void> _triggerNextRound(WidgetRef ref, IGameTransport transport, MatchManager? match) async {
-    if (match != null && !match.isMatchOver) {
-      match.nextRound();
-      final roundData = match.currentRoundData ?? MatchRoundData.mock();
-      ref.read(roundProvider).startRound(data: roundData);
-      ref.read(sessionProvider).resetRoundData();
-      await transport.sendEvent(GameEvent(type: GameEventType.roundStarted, payload: {
-        'target': roundData.targets.first, 'targets': roundData.targets, 'numbers': roundData.numbers,
-        'difficulty': 1, 'jeopardy': roundData.jeopardy?.index, 'lockedOperator': roundData.lockedOperator,
-        'totalRounds': match.totalRounds, 'gameMode': match.gameMode.index, 'currentRound': match.currentRound, 'config': roundData.config.title,
-      }));
-    }
-  }
-
-  Widget _buildTeamLeaderboard(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final session = ref.watch(sessionProvider);
-    final activeTeams = [1, 2, 3, 4].where((tId) => session.players.values.any((p) => p.teamId == tId)).toList()
-      ..sort((a, b) => (widget.teamTotalScores?[b] ?? 0).compareTo(widget.teamTotalScores?[a] ?? 0));
-
-    if (activeTeams.isEmpty) return const SizedBox.shrink();
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(color: colorScheme.surfaceContainerLow, borderRadius: BorderRadius.circular(32), border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.05))),
-      child: Column(children: [
-        Text('TEAM STANDINGS', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 4, fontSize: 10, color: colorScheme.primary.withValues(alpha: 0.5))),
-        const SizedBox(height: 24),
-        ...activeTeams.map((tId) {
-          final color = [Colors.blue, Colors.orange, Colors.purple, Colors.teal][tId - 1];
-          return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: color.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(20), border: Border.all(color: color.withValues(alpha: 0.1))),
-            child: Row(children: [
-              CircleAvatar(backgroundColor: color, radius: 14, child: Text('$tId', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))),
-              const SizedBox(width: 16),
-              Expanded(child: Text('TEAM $tId', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14))),
-              Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                Text('${widget.teamTotalScores?[tId] ?? 0} TOTAL', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: colorScheme.onSurface)),
-                if ((widget.teamPoints?[tId] ?? 0) > 0) Text('+${widget.teamPoints?[tId]} ROUND', style: const TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold)),
-              ]),
-            ]),
-          );
-        }),
-      ]),
-    );
-  }
-
-  Widget _buildIndividualBreakdown(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Column(children: widget.multiplayerResults!.entries.map((entry) {
-      final data = entry.value; final teamId = data['teamId'] as int;
-      final color = teamId > 0 ? [Colors.blue, Colors.orange, Colors.purple, Colors.teal][teamId - 1] : Colors.grey;
-      return Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(color: colorScheme.surfaceContainerHigh, borderRadius: BorderRadius.circular(16)),
-        child: Row(children: [
-          CircleAvatar(radius: 12, backgroundColor: color.withValues(alpha: 0.1), child: Text(data['name'][0].toUpperCase(), style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold))),
-          const SizedBox(width: 12),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(data['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-            Text(data['expression'].isEmpty ? 'NO SUBMISSION' : '${data['expression']} = ${data['value']}', style: TextStyle(fontFamily: 'monospace', fontSize: 10, color: colorScheme.onSurface.withValues(alpha: 0.5))),
-          ])),
-          if (data['proximity'] != null) Text('PROX: ${data['proximity']}', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-        ]),
-      );
-    }).toList());
-  }
 }
 
 class _TripleThreatRecap extends StatelessWidget {

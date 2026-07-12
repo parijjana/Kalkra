@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:transport_interface/transport_interface.dart';
-import 'package:transport_lan/transport_lan.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../providers/providers.dart';
-import '../screens/main_screen.dart';
 import '../screens/achievements_screen.dart';
 import '../screens/stats_screen.dart';
 import '../screens/account_screen.dart';
-import '../screens/host_screen.dart';
-import '../screens/join_screen.dart';
 import '../screens/match_setup_screen.dart';
-import '../screens/hosted_history_screen.dart';
 import '../screens/session_recap_screen.dart';
 import '../screens/game_screen.dart';
 import '../screens/credits_screen.dart';
@@ -24,8 +18,6 @@ class GlobalDrawer extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final transport = ref.watch(transportProvider);
-    final isSolo = transport is NullTransport;
     final careerAsync = ref.watch(careerProvider);
 
     return Drawer(
@@ -64,20 +56,7 @@ class GlobalDrawer extends ConsumerWidget {
                           ? Colors.orangeAccent
                           : colorScheme.primary,
                     ),
-                    _DrawerItem(
-                      icon: Icons.sensors_rounded,
-                      label: 'HOST ARENA',
-                      subtitle: 'Local multiplayer hub',
-                      onTap: () => _navTo(context, const HostScreen()),
-                      color: colorScheme.secondary,
-                    ),
-                    _DrawerItem(
-                      icon: Icons.bolt_rounded,
-                      label: 'JOIN BATTLE',
-                      subtitle: 'Enter active match',
-                      onTap: () => _navTo(context, const JoinScreen()),
-                      color: colorScheme.tertiary,
-                    ),
+                    _ComingSoonItem(colorScheme: colorScheme),
                   ]),
 
                   const Divider(height: 40, indent: 24, endIndent: 24),
@@ -92,11 +71,6 @@ class GlobalDrawer extends ConsumerWidget {
                       icon: Icons.emoji_events_rounded,
                       label: 'ACHIEVEMENTS',
                       onTap: () => _navTo(context, const AchievementsScreen()),
-                    ),
-                    _DrawerItem(
-                      icon: Icons.history_rounded,
-                      label: 'HOST HISTORY',
-                      onTap: () => _navTo(context, const HostedHistoryScreen()),
                     ),
                     _DrawerItem(
                       icon: Icons.auto_graph_rounded,
@@ -138,112 +112,6 @@ class GlobalDrawer extends ConsumerWidget {
   void _navTo(BuildContext context, Widget screen) {
     Navigator.pop(context);
     Navigator.of(context).push(MaterialPageRoute(builder: (context) => screen));
-  }
-
-  void _endMatch(BuildContext context, WidgetRef ref, bool isSolo) {
-    // 1. Close the drawer first
-    Navigator.pop(context);
-
-    final transport = ref.read(transportProvider);
-    final isHost = transport is LanHostTransport;
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(isSolo ? 'END MISSION?' : 'TERMINATE ARENA?'),
-        content: Text(
-          isSolo
-              ? 'Current progress will be lost.'
-              : (isHost
-                    ? 'This will kick all players and close the lobby.'
-                    : 'You will be removed from the active match.'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('CANCEL'),
-          ),
-          TextButton(
-            onPressed: () {
-              // 1. Close Dialog
-              Navigator.pop(dialogContext);
-
-              // 2. Reset Game State
-              if (!isSolo) {
-                transport.disconnect();
-                ref
-                    .read(transportProvider.notifier)
-                    .setTransport(NullTransport());
-              }
-              ref.read(matchProvider).value = null;
-              ref
-                  .read(matchStatusProvider.notifier)
-                  .setStatus(MatchStatus.lobby);
-              ref.read(isPausedProvider.notifier).setPaused(false);
-
-              // 3. Navigate back to Main Screen
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => const MainScreen()),
-                (route) => false,
-              );
-            },
-            child: Text(
-              isSolo ? 'END' : 'TERMINATE',
-              style: const TextStyle(
-                color: Colors.redAccent,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _resign(BuildContext context, WidgetRef ref, bool isHost) {
-    Navigator.pop(context);
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(isHost ? 'TERMINATE SESSION?' : 'RESIGN MATCH?'),
-        content: Text(
-          isHost
-              ? 'This will kick all players and close the lobby.'
-              : 'You will be removed from the arena.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('CANCEL'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              final transport = ref.read(transportProvider);
-              transport.disconnect();
-              ref
-                  .read(transportProvider.notifier)
-                  .setTransport(NullTransport());
-              ref
-                  .read(matchStatusProvider.notifier)
-                  .setStatus(MatchStatus.lobby);
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => const MainScreen()),
-                (route) => false,
-              );
-            },
-            child: Text(
-              isHost ? 'TERMINATE' : 'RESIGN',
-              style: const TextStyle(
-                color: Colors.redAccent,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildDrawerHeader(
@@ -399,6 +267,57 @@ class _DrawerItem extends StatelessWidget {
             )
           : null,
       onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    );
+  }
+}
+
+/// Non-navigating Coming Soon placeholder for multiplayer.
+class _ComingSoonItem extends StatelessWidget {
+  final ColorScheme colorScheme;
+  const _ComingSoonItem({required this.colorScheme});
+
+  @override
+  Widget build(BuildContext context) {
+    final dimColor = colorScheme.onSurface.withValues(alpha: 0.25);
+    return ListTile(
+      enabled: false,
+      leading: Icon(Icons.groups_rounded, color: dimColor),
+      title: Text(
+        'MULTIPLAYER',
+        style: TextStyle(
+          fontWeight: FontWeight.w900,
+          fontSize: 14,
+          letterSpacing: 1,
+          color: dimColor,
+        ),
+      ),
+      subtitle: Text(
+        'COMING SOON',
+        style: TextStyle(
+          fontWeight: FontWeight.w900,
+          fontSize: 10,
+          letterSpacing: 2,
+          color: dimColor.withValues(alpha: 0.6),
+        ),
+      ),
+      trailing: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          border: Border.all(color: dimColor, width: 1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          'SOON',
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 8,
+            letterSpacing: 1,
+            color: dimColor,
+          ),
+        ),
+      ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     );

@@ -27,8 +27,6 @@ void main() {
             playerExpression: '(75 * 7) + 10',
             playerValue: 535,
             playerPoints: 85,
-            multiplayerResults: null,
-            eloShifts: {'me': 24},
           ),
         );
         expect(find.byType(ResultsScreen), findsOneWidget);

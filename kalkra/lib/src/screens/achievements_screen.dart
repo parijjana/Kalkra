@@ -144,6 +144,9 @@ class AchievementsScreen extends ConsumerWidget {
     bool isDesktop,
   ) {
     final unlockedIds = career.unlockedAchievements;
+    final visibleAchievements = AchievementRegistry.all
+        .where((achievement) => achievement.category != AchievementCategory.multiplayer)
+        .toList();
 
     return GridView.builder(
       shrinkWrap: true,
@@ -154,9 +157,9 @@ class AchievementsScreen extends ConsumerWidget {
         crossAxisSpacing: 16,
         childAspectRatio: isDesktop ? 3.0 : 4.0,
       ),
-      itemCount: AchievementRegistry.all.length,
+      itemCount: visibleAchievements.length,
       itemBuilder: (context, index) {
-        final achievement = AchievementRegistry.all[index];
+        final achievement = visibleAchievements[index];
         final isUnlocked = unlockedIds.contains(achievement.id);
 
         if (achievement.isHidden && !isUnlocked) {

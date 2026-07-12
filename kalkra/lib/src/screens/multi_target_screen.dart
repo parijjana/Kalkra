@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_engine/game_engine.dart';
-import 'package:transport_interface/transport_interface.dart';
-import 'package:transport_lan/transport_lan.dart';
 import '../providers/providers.dart';
 import '../widgets/vector_background.dart';
 import '../widgets/game/game_widgets.dart';
@@ -89,7 +87,6 @@ class _MultiTargetScreenState extends ConsumerState<MultiTargetScreen> with Tick
     final state = ref.read(multiTargetControllerProvider);
     final round = ref.read(roundProvider);
     final match = ref.read(matchProvider).value;
-    final transport = ref.read(transportProvider);
     final session = ref.read(sessionProvider);
     
     ref.read(multiTargetControllerProvider.notifier).endRound();
@@ -106,7 +103,7 @@ class _MultiTargetScreenState extends ConsumerState<MultiTargetScreen> with Tick
     }
 
     // Record Score
-    session.recordSubmission(transport.myId, state.currentExpression, points);
+    session.recordSubmission('solo', state.currentExpression, points);
 
     if (mounted) {
       Navigator.of(context).pushReplacement(
@@ -134,11 +131,8 @@ class _MultiTargetScreenState extends ConsumerState<MultiTargetScreen> with Tick
     final round = ref.watch(roundProvider);
     final match = ref.watch(matchProvider).value;
     final session = ref.watch(sessionProvider);
-    final colorScheme = Theme.of(context).colorScheme;
 
-    final transport = ref.watch(transportProvider);
-    final myId = transport is LanHostTransport ? 'host' : 'me';
-    final myScore = session.getPlayerScore(transport is NullTransport ? 'solo' : myId);
+    final myScore = session.getPlayerScore('solo');
 
     ref.listen<MultiTargetState>(multiTargetControllerProvider, (prev, next) {
       if (next.isRoundEnding && !(prev?.isRoundEnding ?? false)) {
@@ -147,7 +141,6 @@ class _MultiTargetScreenState extends ConsumerState<MultiTargetScreen> with Tick
     });
 
     final isDoubleDanger = match?.gameMode == GameMode.doubleDanger;
-    final int reachableCount = isDoubleDanger ? 2 : 3;
     final title = isDoubleDanger ? 'DOUBLE DANGER' : 'TRIPLE THREAT';
 
     return Scaffold(

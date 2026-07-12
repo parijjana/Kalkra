@@ -7,8 +7,6 @@ import '../widgets/top_nav_bar.dart';
 import '../widgets/global_drawer.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'game_screen.dart';
-import 'host_screen.dart';
-import 'join_screen.dart';
 import 'account_screen.dart';
 import 'match_setup_screen.dart';
 import 'stats_screen.dart';
@@ -176,16 +174,7 @@ class _MainScreenMobile extends ConsumerWidget {
                   }
                 },
               ),
-              _ModeCard(
-                title: 'MULTIPLAYER',
-                description: 'Host or join a local session.',
-                icon: Icons.groups_rounded,
-                color: colorScheme.secondary,
-                onTap: () {
-                  SoundService().playTap();
-                  _showMultiplayerDialog(context);
-                },
-              ),
+              _MultiplayerComingSoonCard(colorScheme: colorScheme),
               const SizedBox(height: 32),
               _SectionHeader(title: 'NAVIGATION'),
               const SizedBox(height: 24),
@@ -319,32 +308,8 @@ class _MainScreenDesktop extends ConsumerWidget {
                         ),
                         const SizedBox(width: 40),
                         Expanded(
-                          child: _DesktopModeCard(
-                            title: 'HOST ARENA',
-                            desc:
-                                'Create a local room for friends to join via QR or IP.',
-                            icon: Icons.sensors_rounded,
-                            color: colorScheme.secondary,
-                            onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const HostScreen(),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 40),
-                        Expanded(
-                          child: _DesktopModeCard(
-                            title: 'JOIN BATTLE',
-                            desc:
-                                'Find an active host on your LAN and prove your speed.',
-                            icon: Icons.bolt_rounded,
-                            color: colorScheme.tertiary,
-                            onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const JoinScreen(),
-                              ),
-                            ),
+                          child: _DesktopComingSoonCard(
+                            colorScheme: colorScheme,
                           ),
                         ),
                       ],
@@ -706,117 +671,155 @@ class _ModeCard extends StatelessWidget {
   }
 }
 
-void _showMultiplayerDialog(BuildContext context) {
-  showModalBottomSheet(
-    context: context,
-    backgroundColor: Colors.transparent,
-    isScrollControlled: true,
-    builder: (context) => Container(
-      padding: const EdgeInsets.all(40),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(56)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 40,
-            offset: const Offset(0, -10),
+/// Mobile card placeholder for multiplayer — non-navigating, Coming Soon.
+class _MultiplayerComingSoonCard extends StatelessWidget {
+  final ColorScheme colorScheme;
+  const _MultiplayerComingSoonCard({required this.colorScheme});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final dimColor = colorScheme.onSurface.withValues(alpha: 0.3);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(40),
+        ),
+        child: Material(
+          color: colorScheme.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(40),
+          clipBehavior: Clip.antiAlias,
+          child: Container(
+            padding: const EdgeInsets.all(28),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: dimColor.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Icon(Icons.groups_rounded, color: dimColor, size: 36),
+                ),
+                const SizedBox(width: 24),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'MULTIPLAYER',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: dimColor,
+                          fontSize: 22,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'COMING IN A FUTURE UPDATE',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: dimColor.withValues(alpha: 0.6),
+                          fontWeight: FontWeight.w900,
+                          fontSize: 10,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: dimColor, width: 1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    'SOON',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 9,
+                      letterSpacing: 1,
+                      color: dimColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Desktop card placeholder for multiplayer — non-navigating, Coming Soon.
+class _DesktopComingSoonCard extends StatelessWidget {
+  final ColorScheme colorScheme;
+  const _DesktopComingSoonCard({required this.colorScheme});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final dimColor = colorScheme.onSurface.withValues(alpha: 0.25);
+    return Container(
+      padding: const EdgeInsets.all(48),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(48),
+        border: Border.all(color: dimColor.withValues(alpha: 0.3), width: 2),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 60,
-            height: 6,
+            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.black12,
-              borderRadius: BorderRadius.circular(3),
+              color: dimColor.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(24),
             ),
-          ),
-          const SizedBox(height: 32),
-          const Text(
-            'MULTIPLAYER',
-            style: TextStyle(
-              fontWeight: FontWeight.w900,
-              fontSize: 28,
-              letterSpacing: 4,
-            ),
+            child: Icon(Icons.groups_rounded, color: dimColor, size: 48),
           ),
           const SizedBox(height: 40),
           Row(
             children: [
-              Expanded(
-                child: _DialogButton(
-                  label: 'HOST',
-                  icon: Icons.qr_code_rounded,
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const HostScreen(),
-                      ),
-                    );
-                  },
+              Text(
+                'MULTIPLAYER',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2,
+                  color: dimColor,
                 ),
               ),
-              const SizedBox(width: 24),
-              Expanded(
-                child: _DialogButton(
-                  label: 'JOIN',
-                  icon: Icons.sensors_rounded,
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const JoinScreen(),
-                      ),
-                    );
-                  },
+              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  border: Border.all(color: dimColor, width: 1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'COMING SOON',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 8,
+                    letterSpacing: 1,
+                    color: dimColor,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
-        ],
-      ),
-    ),
-  );
-}
-
-class _DialogButton extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final VoidCallback onTap;
-  const _DialogButton({
-    required this.label,
-    required this.icon,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return ElevatedButton(
-      onPressed: onTap,
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 40),
-        backgroundColor: colorScheme.surfaceContainerLow,
-        foregroundColor: colorScheme.primary,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
-        elevation: 0,
-      ),
-      child: Column(
-        children: [
-          Icon(icon, size: 40),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Text(
-            label,
-            style: const TextStyle(
-              fontWeight: FontWeight.w900,
-              letterSpacing: 2,
-              fontSize: 16,
+            'Local multiplayer is arriving in a future update.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: dimColor.withValues(alpha: 0.6),
+              height: 1.6,
+              fontSize: 14,
             ),
           ),
         ],

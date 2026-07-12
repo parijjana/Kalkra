@@ -105,29 +105,11 @@ class _CalibrationScreenState extends ConsumerState<CalibrationScreen> {
     final roundData = match.currentRoundData;
     if (roundData == null) return;
 
-    if (widget.setupMode == MatchSetupMode.solo) {
-      ref.read(transportProvider.notifier).setTransport(NullTransport());
-      final career = await ref.read(careerProvider.future);
-      session.addPlayer('solo', career.playerName);
-      ref.read(roundProvider).startRound(data: roundData);
-    } else {
-      final transport = ref.read(transportProvider);
-      ref.read(roundProvider).startRound(data: roundData);
-      await transport.sendEvent(
-        GameEvent(
-          type: GameEventType.roundStarted,
-          payload: {
-            'target': roundData.targets.first,
-            'targets': roundData.targets,
-            'numbers': roundData.numbers,
-            'difficulty': widget.difficulty.index,
-            'jeopardy': roundData.jeopardy?.index,
-            'lockedOperator': roundData.lockedOperator,
-            'config': roundData.config.title,
-          },
-        ),
-      );
-    }
+    // Solo-only: reset transport and start the round locally.
+    ref.read(transportProvider.notifier).setTransport(NullTransport());
+    final career = await ref.read(careerProvider.future);
+    session.addPlayer('solo', career.playerName);
+    ref.read(roundProvider).startRound(data: roundData);
 
     // Start background generation for the remaining rounds if necessary
     if (isMultiTarget && widget.totalRounds > 1) {

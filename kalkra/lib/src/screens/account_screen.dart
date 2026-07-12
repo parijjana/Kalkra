@@ -252,13 +252,16 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SwitchListTile(
-            title: const Text('SOUND EFFECTS', style: TextStyle(fontWeight: FontWeight.bold)),
-            value: career.soundEnabled,
-            onChanged: (v) {
-              ref.read(careerProvider.notifier).setSoundEnabled(v);
-              SoundService().setSoundEnabled(v);
-            },
+          Material(
+            type: MaterialType.transparency,
+            child: SwitchListTile(
+              title: const Text('SOUND EFFECTS', style: TextStyle(fontWeight: FontWeight.bold)),
+              value: career.soundEnabled,
+              onChanged: (v) {
+                ref.read(careerProvider.notifier).setSoundEnabled(v);
+                SoundService().setSoundEnabled(v);
+              },
+            ),
           ),
           if (career.soundEnabled)
             Padding(
@@ -281,13 +284,16 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
               ),
             ),
           const SizedBox(height: 16),
-          SwitchListTile(
-            title: const Text('MUSIC', style: TextStyle(fontWeight: FontWeight.bold)),
-            value: career.musicEnabled,
-            onChanged: (v) {
-              ref.read(careerProvider.notifier).setMusicEnabled(v);
-              SoundService().setMusicEnabled(v);
-            },
+          Material(
+            type: MaterialType.transparency,
+            child: SwitchListTile(
+              title: const Text('MUSIC', style: TextStyle(fontWeight: FontWeight.bold)),
+              value: career.musicEnabled,
+              onChanged: (v) {
+                ref.read(careerProvider.notifier).setMusicEnabled(v);
+                SoundService().setMusicEnabled(v);
+              },
+            ),
           ),
           if (career.musicEnabled)
             Padding(

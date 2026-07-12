@@ -12,16 +12,50 @@ void main() {
       const MethodChannel('com.haberey/nsd'),
       (MethodCall methodCall) async {
         if (methodCall.method == 'register') {
-          return {
-            'handle': 'dummy-handle',
-            'service': {
-              'name': 'Kalkra Arena',
-              'type': '_kalkra._tcp',
-              'port': 8080,
-            }
+          final args = methodCall.arguments as Map;
+          final handle = args['handle'];
+          final serviceName = args['service.name'];
+          final serviceType = args['service.type'];
+          final servicePort = args['service.port'] ?? 8080;
+          final serviceTxt = args['service.txt'];
+
+          final responsePayload = {
+            'handle': handle,
+            'service.name': serviceName,
+            'service.type': serviceType,
+            'service.port': servicePort,
+            'service.txt': serviceTxt,
           };
+
+          final message = const StandardMethodCodec().encodeMethodCall(
+            MethodCall('onRegistrationSuccessful', responsePayload),
+          );
+
+          Future.microtask(() {
+            TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
+              'com.haberey/nsd',
+              message,
+              null,
+            );
+          });
+          return null;
         }
+
         if (methodCall.method == 'unregister') {
+          final args = methodCall.arguments as Map;
+          final handle = args['handle'];
+
+          final message = const StandardMethodCodec().encodeMethodCall(
+            MethodCall('onUnregistrationSuccessful', {'handle': handle}),
+          );
+
+          Future.microtask(() {
+            TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
+              'com.haberey/nsd',
+              message,
+              null,
+            );
+          });
           return null;
         }
         return null;
@@ -74,7 +108,7 @@ void main() {
       
       await client.joinSession(
         playerName: 'ClientBob', 
-        connectionInfo: 'ws://127.0.0.1:$port',
+        connectionInfo: 'ws://127.0.0.1:$port?secret=${host.lobbySecret}',
         options: {'elo': 1300},
       );
 
@@ -89,7 +123,7 @@ void main() {
       final port = host.port;
       
       final completer = Completer<GameEvent>();
-      await client.joinSession(playerName: 'ClientBob', connectionInfo: 'ws://127.0.0.1:$port');
+      await client.joinSession(playerName: 'ClientBob', connectionInfo: 'ws://127.0.0.1:$port?secret=${host.lobbySecret}');
       
       client.eventStream.listen((event) {
         if (event.type == GameEventType.roundStarted) {

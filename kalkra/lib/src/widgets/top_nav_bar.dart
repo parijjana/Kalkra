@@ -5,6 +5,7 @@ import '../screens/main_screen.dart';
 import '../screens/stats_screen.dart';
 import '../screens/account_screen.dart';
 import '../screens/achievements_screen.dart';
+import '../services/sound_service.dart';
 
 class TopNavBar extends ConsumerWidget implements PreferredSizeWidget {
   final String activeId;
@@ -83,6 +84,47 @@ class TopNavBar extends ConsumerWidget implements PreferredSizeWidget {
           ),
 
           const Spacer(),
+
+          IconButton(
+            onPressed: () {
+              final career = careerAsync.value;
+              if (career == null) return;
+              final next = !career.soundEnabled;
+              ref.read(careerProvider.notifier).setSoundEnabled(next);
+              SoundService().setSoundEnabled(next);
+            },
+            icon: Icon(
+              careerAsync.value?.soundEnabled == true
+                  ? Icons.volume_up_rounded
+                  : Icons.volume_off_rounded,
+              color: careerAsync.value?.soundEnabled == true
+                  ? colorScheme.primary
+                  : colorScheme.onSurface.withValues(alpha: 0.3),
+              size: 22,
+            ),
+            tooltip: careerAsync.value?.soundEnabled == true ? 'Sound On' : 'Sound Off',
+          ),
+          const SizedBox(width: 4),
+          IconButton(
+            onPressed: () {
+              final career = careerAsync.value;
+              if (career == null) return;
+              final next = !career.musicEnabled;
+              ref.read(careerProvider.notifier).setMusicEnabled(next);
+              SoundService().setMusicEnabled(next);
+            },
+            icon: Icon(
+              careerAsync.value?.musicEnabled == true
+                  ? Icons.music_note_rounded
+                  : Icons.music_off_rounded,
+              color: careerAsync.value?.musicEnabled == true
+                  ? colorScheme.primary
+                  : colorScheme.onSurface.withValues(alpha: 0.3),
+              size: 22,
+            ),
+            tooltip: careerAsync.value?.musicEnabled == true ? 'Music On' : 'Music Off',
+          ),
+          const SizedBox(width: 8),
 
           // Quick Profile Info
           careerAsync.when(

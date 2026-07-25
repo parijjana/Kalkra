@@ -35,9 +35,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 'Kalkra does NOT collect, transmit, or sell any personal information. All game progress — including your "Callsign", statistics, achievements, and match history — is stored exclusively on your device and never leaves it.',
               ),
               const SizedBox(height: 24),
-              _buildHeader('2. LOCAL DATA SECURITY'),
+              _buildHeader('2. LOCAL DATA'),
               _buildBody(
-                'To prevent unauthorized tampering, Kalkra encrypts your save data using your operating system\'s secure key storage (Android Keystore, iOS Keychain, macOS Keychain, or Windows credential storage). Your save data is protected by your device\'s own security and stays on your device.',
+                'Your game progress is stored locally on your device and never leaves it. Kalkra has no servers and transmits nothing.',
               ),
               const SizedBox(height: 24),
               _buildHeader('3. NETWORK ACCESS'),
@@ -76,7 +76,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       Text(
-                        'LAST UPDATED: JULY 12, 2026',
+                        'LAST UPDATED: JULY 25, 2026',
                         style: TextStyle(
                           fontWeight: FontWeight.w900,
                           fontSize: 10,

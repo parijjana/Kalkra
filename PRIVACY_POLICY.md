@@ -1,6 +1,6 @@
 # PRIVACY POLICY - KALKRA
 
-**Last Updated: July 12, 2026**
+**Last Updated: July 25, 2026**
 
 ### 🛡️ YOUR DATA IS YOURS
 
@@ -10,9 +10,9 @@ Kalkra is a fully offline, single-player game. It makes no network connections, 
 
 Kalkra does NOT collect, transmit, or sell any personal information. All game progress — including your "Callsign", statistics, achievements, and match history — is stored exclusively on your device and never leaves it.
 
-### 2. LOCAL DATA SECURITY
+### 2. LOCAL DATA
 
-To prevent unauthorized tampering, Kalkra encrypts your save data using your operating system's secure key storage (Android Keystore, iOS Keychain, macOS Keychain, or Windows credential storage). Your save data is protected by your device's own security and stays on your device.
+Your game progress is stored locally on your device and never leaves it. Kalkra has no servers and transmits nothing.
 
 ### 3. NETWORK ACCESS
 

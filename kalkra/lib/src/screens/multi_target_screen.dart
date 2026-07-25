@@ -16,13 +16,17 @@ class MultiTargetScreen extends ConsumerStatefulWidget {
   ConsumerState<MultiTargetScreen> createState() => _MultiTargetScreenState();
 }
 
-class _MultiTargetScreenState extends ConsumerState<MultiTargetScreen> with TickerProviderStateMixin {
+class _MultiTargetScreenState extends ConsumerState<MultiTargetScreen>
+    with TickerProviderStateMixin {
   late AnimationController _entranceController;
 
   @override
   void initState() {
     super.initState();
-    _entranceController = AnimationController(vsync: this, duration: const Duration(milliseconds: 800))..forward();
+    _entranceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    )..forward();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(multiTargetControllerProvider.notifier).initialize();
     });
@@ -38,10 +42,16 @@ class _MultiTargetScreenState extends ConsumerState<MultiTargetScreen> with Tick
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('EXIT MISSION?', style: TextStyle(fontWeight: FontWeight.w900)),
+        title: const Text(
+          'EXIT MISSION?',
+          style: TextStyle(fontWeight: FontWeight.w900),
+        ),
         content: const Text('Your progress in this round will be lost.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('CANCEL')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('CANCEL'),
+          ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
@@ -50,7 +60,10 @@ class _MultiTargetScreenState extends ConsumerState<MultiTargetScreen> with Tick
                 (route) => false,
               );
             },
-            child: const Text('EXIT', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+            child: const Text(
+              'EXIT',
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -62,14 +75,19 @@ class _MultiTargetScreenState extends ConsumerState<MultiTargetScreen> with Tick
     if (state.currentExpression.isEmpty || state.isRoundEnding) return;
 
     final round = ref.read(roundProvider);
-    final validation = SubmissionValidator().validate(state.currentExpression, round.numbers);
+    final validation = SubmissionValidator().validate(
+      state.currentExpression,
+      round.numbers,
+    );
 
     if (validation.isValid && validation.value != null) {
       final resultVal = validation.value!.toInt();
       final match = ref.read(matchProvider).value;
-      final int reachableCount = (match?.gameMode == GameMode.doubleDanger) ? 2 : 3;
+      final int reachableCount = (match?.gameMode == GameMode.doubleDanger)
+          ? 2
+          : 3;
       final achievable = round.targets.take(reachableCount).toList();
-      
+
       if (achievable.contains(resultVal)) {
         SoundService().playSuccess();
         _navigateToResults(true, resultVal);
@@ -79,7 +97,9 @@ class _MultiTargetScreenState extends ConsumerState<MultiTargetScreen> with Tick
       }
     } else {
       SoundService().playError();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('INVALID EXPRESSION')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('INVALID EXPRESSION')));
     }
   }
 
@@ -88,18 +108,24 @@ class _MultiTargetScreenState extends ConsumerState<MultiTargetScreen> with Tick
     final round = ref.read(roundProvider);
     final match = ref.read(matchProvider).value;
     final session = ref.read(sessionProvider);
-    
+
     ref.read(multiTargetControllerProvider.notifier).endRound();
 
-    final int reachableCount = (match?.gameMode == GameMode.doubleDanger) ? 2 : 3;
-    final achievable = round.targets.take(reachableCount).toList()..sort((a, b) => b.compareTo(a));
-    
+    final int reachableCount = (match?.gameMode == GameMode.doubleDanger)
+        ? 2
+        : 3;
+    final achievable = round.targets.take(reachableCount).toList()
+      ..sort((a, b) => b.compareTo(a));
+
     int points = 0;
     if (success && guessedValue != null) {
       if (guessedValue == achievable[0]) {
         points = 10;
-      } else if (guessedValue == achievable[1]) points = 7;
-      else if (reachableCount > 2 && guessedValue == achievable[2]) points = 5;
+      } else if (guessedValue == achievable[1]) {
+        points = 7;
+      } else if (reachableCount > 2 && guessedValue == achievable[2]) {
+        points = 5;
+      }
     }
 
     // Record Score
@@ -163,11 +189,11 @@ class _MultiTargetScreenState extends ConsumerState<MultiTargetScreen> with Tick
                   Expanded(
                     flex: 10,
                     child: TargetGrid(
-                      targets: state.targets, 
+                      targets: state.targets,
                       onTargetTap: (_) {},
                     ),
                   ),
-                
+
                 const Spacer(flex: 1),
 
                 FittedBox(
@@ -184,7 +210,7 @@ class _MultiTargetScreenState extends ConsumerState<MultiTargetScreen> with Tick
                   currentExpression: state.currentExpression,
                   onBackspace: controller.backspace,
                 ),
-                
+
                 const SizedBox(height: 12),
 
                 ControlsSection(

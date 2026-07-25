@@ -388,39 +388,40 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final key = event.logicalKey;
     if (key == LogicalKeyboardKey.keyH) {
       _onOperatorTap('+');
-    } else if (key == LogicalKeyboardKey.keyJ)
+    } else if (key == LogicalKeyboardKey.keyJ) {
       _onOperatorTap('-');
-    else if (key == LogicalKeyboardKey.keyK)
+    } else if (key == LogicalKeyboardKey.keyK) {
       _onOperatorTap('*');
-    else if (key == LogicalKeyboardKey.keyL)
+    } else if (key == LogicalKeyboardKey.keyL) {
       _onOperatorTap('/');
-    else if (key == LogicalKeyboardKey.keyN)
+    } else if (key == LogicalKeyboardKey.keyN) {
       _onOperatorTap('(');
-    else if (key == LogicalKeyboardKey.keyM)
+    } else if (key == LogicalKeyboardKey.keyM) {
       _onOperatorTap(')');
-    else if (key == LogicalKeyboardKey.backspace)
+    } else if (key == LogicalKeyboardKey.backspace) {
       _backspace();
-    else if (key == LogicalKeyboardKey.enter)
+    } else if (key == LogicalKeyboardKey.enter) {
       _submit();
-    else if (key == LogicalKeyboardKey.arrowLeft)
+    } else if (key == LogicalKeyboardKey.arrowLeft) {
       setState(
         () => _focusedTokenIndex = (_focusedTokenIndex - 1).clamp(
           0,
           ref.read(roundProvider).numbers.length - 1,
         ),
       );
-    else if (key == LogicalKeyboardKey.arrowRight)
+    } else if (key == LogicalKeyboardKey.arrowRight) {
       setState(
         () => _focusedTokenIndex = (_focusedTokenIndex + 1).clamp(
           0,
           ref.read(roundProvider).numbers.length - 1,
         ),
       );
-    else if (key == LogicalKeyboardKey.space)
+    } else if (key == LogicalKeyboardKey.space) {
       _onNumberTap(
         _focusedTokenIndex,
         ref.read(roundProvider).numbers[_focusedTokenIndex],
       );
+    }
   }
 
   void _navigateToResults() {
@@ -524,10 +525,11 @@ class _GameScreenState extends ConsumerState<GameScreen>
         if (match != null) {
           if (match.gameMode == GameMode.progressive) {
             roundText = 'PROGRESSIVE • ROUND ${match.currentRound}/10';
-          } else if (match.gameMode == GameMode.endless)
+          } else if (match.gameMode == GameMode.endless) {
             roundText = 'ENDLESS • ROUND ${match.currentRound}';
-          else
+          } else {
             roundText = 'ROUND ${match.currentRound}/${match.totalRounds}';
+          }
         }
         final myScore = session.getPlayerScore('solo');
 
@@ -558,7 +560,12 @@ class _GameScreenState extends ConsumerState<GameScreen>
                     child: Center(
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 1000),
-                        child: _buildGameCockpit(context, round, match, ResponsiveLayout.isDesktop(context)),
+                        child: _buildGameCockpit(
+                          context,
+                          round,
+                          match,
+                          ResponsiveLayout.isDesktop(context),
+                        ),
                       ),
                     ),
                   ),

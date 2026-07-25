@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:game_engine/game_engine.dart';
 import 'persistence_security.dart';
@@ -23,11 +25,18 @@ class CareerPersistence {
       if (legacyJson != null) {
         try {
           final manager = CareerManager.fromJson(jsonDecode(legacyJson));
-          // Immediately upgrade to encrypted storage
-          await save(manager, deviceId);
-          await _prefs.remove(_legacyKey);
+          // Best-effort upgrade to encrypted storage. save() never throws --
+          // if it fails (e.g. a transient keychain error) we keep the legacy
+          // key around so the next load() retries the migration, but we
+          // still return the manager we already parsed rather than losing it.
+          final migrated = await save(manager, deviceId);
+          if (migrated) {
+            await _prefs.remove(_legacyKey);
+          }
           return manager;
-        } catch (_) {}
+        } catch (_) {
+          // Legacy JSON itself is malformed -- nothing to salvage.
+        }
       }
       return CareerManager();
     }
@@ -39,17 +48,44 @@ class CareerPersistence {
       );
       final Map<String, dynamic> json = jsonDecode(jsonString);
       return CareerManager.fromJson(json);
+    } on UnrecoverableVaultException {
+      // The vault is genuinely undecryptable (lost/rotated master key) --
+      // there's nothing to recover, so start fresh.
+      return CareerManager();
+    } on PlatformException catch (e) {
+      // A transient/unknown failure from the storage plugin itself (e.g. the
+      // keychain being temporarily unavailable), as opposed to the data
+      // being corrupt. Resetting here would silently overwrite the real
+      // save the next time anything calls save(). Instead, let this
+      // propagate so the caller (CareerNotifier.build) surfaces it as an
+      // error state rather than a fresh, saveable-over career.
+      debugPrint('CareerPersistence.load: transient storage failure: $e');
+      rethrow;
     } catch (e) {
-      // Data is tampered or corrupted -> Reset for safety
+      // Structurally corrupt data (bad JSON/format) -> reset is safe here,
+      // it's not a storage failure that could recur and clobber real data.
+      debugPrint('CareerPersistence.load: corrupt career data, resetting: $e');
       return CareerManager();
     }
   }
 
   /// Saves the [CareerManager] data to local storage.
+  ///
+  /// Never throws: storage failures (e.g. a keychain entitlement error) are
+  /// caught and reported via the return value so a failed save can never
+  /// crash the app. In-memory state remains authoritative regardless.
   Future<bool> save(CareerManager career, String deviceId) async {
-    final String jsonString = jsonEncode(career.toJson());
-    final String packed = await PersistenceSecurity.pack(jsonString, deviceId);
-    return await _prefs.setString(_careerKey, packed);
+    try {
+      final String jsonString = jsonEncode(career.toJson());
+      final String packed = await PersistenceSecurity.pack(
+        jsonString,
+        deviceId,
+      );
+      return await _prefs.setString(_careerKey, packed);
+    } catch (e) {
+      debugPrint('CareerPersistence.save: failed to persist career data: $e');
+      return false;
+    }
   }
 
   /// Clears all local career data.

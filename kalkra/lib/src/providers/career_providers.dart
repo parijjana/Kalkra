@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_engine/game_engine.dart';
 import '../services/career_persistence.dart';
@@ -155,9 +156,23 @@ class CareerNotifier extends AsyncNotifier<CareerManager> {
 
   Future<void> _save() async {
     final manager = state.value;
-    if (manager != null) {
+    if (manager == null) return;
+
+    // A failed save must never be fatal: gameplay events trigger saves
+    // constantly, so the next one is a natural retry. In-memory state
+    // (already applied above by callers) stays authoritative either way.
+    try {
       final deviceId = await ref.read(deviceIdProvider.future);
-      await ref.read(careerPersistenceProvider).save(manager, deviceId);
+      final success = await ref
+          .read(careerPersistenceProvider)
+          .save(manager, deviceId);
+      if (!success) {
+        debugPrint(
+          'CareerNotifier: career save failed; will retry on next change.',
+        );
+      }
+    } catch (e) {
+      debugPrint('CareerNotifier: unexpected error while saving career: $e');
     }
   }
 }

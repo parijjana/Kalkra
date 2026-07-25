@@ -14,3 +14,5 @@ playtest_server/web/
 playtest_server/results.db
 playtest_server/build/
 kalkra_docs/app_store_submission_process/
+.DS_Store
+kalkra/macos/Runner.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings

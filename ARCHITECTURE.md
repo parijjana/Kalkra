@@ -20,7 +20,7 @@ A high-stakes math competition game (Kalkra) built with Flutter. It features a m
 - **Dynamic Refill**: Endless mode generates a small buffer (10 rounds) and replenishes it in the background as the player progresses.
 
 ## Deployment & Environments
-- **Mobile**: Full-featured Flutter app for Android/iOS (Isolates, Bluetooth/LAN multiplayer).
+- **Mobile**: Full-featured single-player Flutter app for Android/iOS (Isolates, offline-only). Multiplayer is preserved at git tag `multiplayer-baseline` for future development.
 - **Web (Playtest)**: Scaled-down "Solo Only" build with server-side result tracking for rapid gameplay feedback.
 - **Pi Zero / Mac Server**: Dart Shelf AOT binaries for low-power network hosting.
 

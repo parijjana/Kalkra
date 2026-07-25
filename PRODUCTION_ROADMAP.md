@@ -4,8 +4,8 @@ This document tracks the final requirements for a public Play Store release.
 
 ## 🔒 Security Hardening (Current Focus)
 - [x] **Obfuscation Mandate:** All production builds (AAB/IPA) must use `--obfuscate --split-debug-info`.
-- [ ] **Hardware-Backed Keys:** Migrate AES keys to `flutter_secure_storage` (Android Keystore / iOS Keychain).
-- [ ] **HMAC Validation:** Implement tampering detection for all local save files.
+- [x] **Save Integrity:** Plaintext + HMAC (master key in `flutter_secure_storage`); AES dropped so key loss can't destroy saves.
+- [x] **HMAC Validation:** Implement tampering detection for all local save files.
 - [ ] **R8 Scrambling:** Tighten `proguard-rules.pro` for Android native bridge protection.
 
 ## 🎨 Visual & UX Polish (Post-Music)
@@ -18,8 +18,9 @@ This document tracks the final requirements for a public Play Store release.
     - Promotional video
 
 ## ⚖️ Legal & Compliance
-- [ ] **Privacy Policy:** Create template and host on project site/GitHub Pages.
-- [ ] **In-App Legal:** Add Privacy Policy and Terms of Service links to the `CreditsScreen`.
+- [x] **Privacy Policy:** Live at https://overengineeredhobbies.dev/projects/kalkra_privacy.
+- [x] **Privacy Policy Link:** Added to `CreditsScreen` (external link active).
+- [ ] **Terms of Service Link:** Pending; awaiting ToS content creation.
 - [ ] **Data Safety Form:** Complete the Google Play Data Safety questionnaire based on local storage usage.
 
 ---

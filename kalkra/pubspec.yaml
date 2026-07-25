@@ -23,8 +23,6 @@ dependencies:
   transport_interface:
     path: ../packages/transport_interface
   window_manager: ^0.5.1
-  flutter_driver:
-    sdk: flutter
   uuid: ^4.5.3
   image: 4.5.2
   http: 1.6.0

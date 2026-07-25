@@ -48,78 +48,88 @@ class SoloSummaryScreen extends ConsumerWidget {
         child: SafeArea(
           child: Column(
             children: [
-              SizedBox(height: isDesktop ? 100 : 60),
-              Text(
-                'SOLO MATCH COMPLETE',
-                style: TextStyle(
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 8,
-                  color: colorScheme.primary.withValues(alpha: 0.5),
-                  fontSize: isDesktop ? 14 : 12,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'MATCH SUMMARY',
-                style:
-                    (isDesktop
-                            ? theme.textTheme.displayLarge
-                            : theme.textTheme.displayMedium)
-                        ?.copyWith(
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      SizedBox(height: isDesktop ? 100 : 60),
+                      Text(
+                        'SOLO MATCH COMPLETE',
+                        style: TextStyle(
                           fontWeight: FontWeight.w900,
-                          color: colorScheme.onSurface,
+                          letterSpacing: 8,
+                          color: colorScheme.primary.withValues(alpha: 0.5),
+                          fontSize: isDesktop ? 14 : 12,
                         ),
-              ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'MATCH SUMMARY',
+                        style:
+                            (isDesktop
+                                    ? theme.textTheme.displayLarge
+                                    : theme.textTheme.displayMedium)
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  color: colorScheme.onSurface,
+                                ),
+                      ),
 
-              SizedBox(height: isDesktop ? 120 : 80),
+                      SizedBox(height: isDesktop ? 120 : 80),
 
-              // Score Display
-              Column(
-                children: [
-                  Text(
-                    '$myScore',
-                    style: TextStyle(
-                      fontSize: isDesktop ? 180 : 120,
-                      fontWeight: FontWeight.w900,
-                      color: colorScheme.primary,
-                      height: 1,
-                    ),
+                      // Score Display
+                      Column(
+                        children: [
+                          Text(
+                            '$myScore',
+                            style: TextStyle(
+                              fontSize: isDesktop ? 180 : 120,
+                              fontWeight: FontWeight.w900,
+                              color: colorScheme.primary,
+                              height: 1,
+                            ),
+                          ),
+                          Text(
+                            'TOTAL POINTS',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 10,
+                              color: colorScheme.onSurface.withValues(
+                                alpha: 0.3,
+                              ),
+                              fontSize: isDesktop ? 18 : 14,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      SizedBox(height: isDesktop ? 100 : 60),
+
+                      // Match Stats
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 40),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _StatTile(
+                              label: 'ROUNDS',
+                              value: '${match?.totalRounds ?? 0}',
+                              isDesktop: isDesktop,
+                            ),
+                            _StatTile(
+                              label: 'MODE',
+                              value:
+                                  match?.gameMode.name.toUpperCase() ??
+                                  'PRACTICE',
+                              isDesktop: isDesktop,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    'TOTAL POINTS',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 10,
-                      color: colorScheme.onSurface.withValues(alpha: 0.3),
-                      fontSize: isDesktop ? 18 : 14,
-                    ),
-                  ),
-                ],
-              ),
-
-              SizedBox(height: isDesktop ? 100 : 60),
-
-              // Match Stats
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 40),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _StatTile(
-                      label: 'ROUNDS',
-                      value: '${match?.totalRounds ?? 0}',
-                      isDesktop: isDesktop,
-                    ),
-                    _StatTile(
-                      label: 'MODE',
-                      value: match?.gameMode.name.toUpperCase() ?? 'PRACTICE',
-                      isDesktop: isDesktop,
-                    ),
-                  ],
                 ),
               ),
-
-              const Spacer(),
 
               // Navigation
               Padding(

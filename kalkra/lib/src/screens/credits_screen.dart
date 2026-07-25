@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../widgets/vector_background.dart';
-import 'privacy_policy_screen.dart';
 
 class CreditsScreen extends ConsumerWidget {
   const CreditsScreen({super.key});
@@ -71,9 +71,12 @@ class CreditsScreen extends ConsumerWidget {
               const Divider(height: 64),
               Center(
                 child: TextButton.icon(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const PrivacyPolicyScreen()),
-                  ),
+                  onPressed: () async {
+                    final Uri url = Uri.parse('https://overengineeredhobbies.dev/projects/kalkra_privacy');
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(url, mode: LaunchMode.externalApplication);
+                    }
+                  },
                   icon: const Icon(Icons.privacy_tip_outlined, size: 16),
                   label: const Text(
                     'VIEW PRIVACY POLICY',

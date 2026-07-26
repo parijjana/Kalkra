@@ -79,13 +79,13 @@ something you'll actually want to keep playing.
 - **Category:** Games → Puzzle (primary). Optional secondary: Education.
 - **Age rating:** expected 4+ (no objectionable content, no user-generated
   content, no web access in the app).
-- **Support URL:** https://overengineeredhobbies.dev (or a Kalkra support page)
+- **Support URL:** https://overengineeredhobbies.dev/projects/kalkra_support
 - **Marketing URL (optional):** https://overengineeredhobbies.dev/demos/kalkra/
 - **Privacy Policy URL:** https://overengineeredhobbies.dev/projects/kalkra_privacy
 - **App Privacy questionnaire:** "Data Not Collected" (offline, no telemetry in
   store builds).
 - **Price:** TBD
-- **Copyright:** 2026 Overengineered Hobbies
+- **Copyright:** 2026 Animesh Sarkar (Overengineered Hobbies)
 
 ---
 

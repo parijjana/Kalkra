@@ -17,7 +17,16 @@ The app is fully offline in store builds — zero network calls, no accounts, no
   </tr>
 </table>
 
-<sub>Captured on macOS. Screens shown: Dashboard · Mission Control · Gameplay · Career Analytics.</sub>
+<sub>Desktop, captured on macOS. Screens shown: Dashboard · Mission Control · Gameplay · Career Analytics.</sub>
+
+<table>
+  <tr>
+    <td width="50%" align="center"><img src="docs/screenshots/mobile-dashboard.png" alt="Mobile home screen" width="270" /></td>
+    <td width="50%" align="center"><img src="docs/screenshots/mobile-stats.png" alt="Mobile career analytics" width="270" /></td>
+  </tr>
+</table>
+
+<sub>Mobile (portrait). The same UI adapts responsively across desktop and phone.</sub>
 
 ## Quick Start
 

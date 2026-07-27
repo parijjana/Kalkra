@@ -250,7 +250,7 @@ class StatsScreen extends ConsumerWidget {
       crossAxisCount: 2,
       mainAxisSpacing: 24,
       crossAxisSpacing: 24,
-      childAspectRatio: isDesktop ? 1.4 : 1.1,
+      childAspectRatio: isDesktop ? 1.4 : 0.95,
       children: [
         _StatCard(
           title: 'SPEED',

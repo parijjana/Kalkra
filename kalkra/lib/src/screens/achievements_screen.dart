@@ -155,7 +155,7 @@ class AchievementsScreen extends ConsumerWidget {
         crossAxisCount: isDesktop ? 3 : 1,
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
-        childAspectRatio: isDesktop ? 3.0 : 4.0,
+        childAspectRatio: isDesktop ? 3.0 : 3.5,
       ),
       itemCount: visibleAchievements.length,
       itemBuilder: (context, index) {

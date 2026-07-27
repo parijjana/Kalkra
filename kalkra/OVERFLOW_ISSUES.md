@@ -1,8 +1,17 @@
 # Kalkra — screenshot layout overflow issues
 
-**Status:** OPEN — to be fixed in a later session. Found 2026-07-27 by the
-store-launch-kit screenshot-validation pipeline (overflow detector). No app code
-has been changed; this log only records the findings.
+**Status:** RESOLVED 2026-07-27. All 10 overflows fixed across 6 source files;
+re-captured and re-validated → `SCREENSHOTS: PASS` (48/48 dims `[OK]`, 0
+`[OVERFLOW]`). Found earlier the same day by the store-launch-kit
+screenshot-validation pipeline. Fixes (uncommitted on `chore/store-screenshots`):
+- `account_screen.dart` `_ThemeCard` — theme-name `Text` → `Flexible`+ellipsis (30px+16px right)
+- `stats_screen.dart:253` — mobile `childAspectRatio` 1.1 → 0.95 (7px bottom ×4)
+- `achievements_screen.dart:158` — mobile `childAspectRatio` 4.0 → 3.5 (10px bottom ×7)
+- `match_setup_screen.dart` — right column body → `Expanded`+`SingleChildScrollView`, dropped `Spacer` (24px bottom)
+- `game_screen.dart` `_buildGameCockpit` — bottom stack wrapped in `FittedBox(scaleDown)` (29px bottom)
+- `top_nav_bar.dart:58` — brand→tabs gap 80 → 76; single edit clearing all 5 ipad-13 1.2px-right subpixel flags
+
+The original findings below are kept for reference.
 
 **Scope note:** These overflows appear only in the **Microsoft / iOS / Play**
 screenshot targets. The **Mac** shots are clean, so this does **not** block the

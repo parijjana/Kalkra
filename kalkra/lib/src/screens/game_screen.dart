@@ -613,11 +613,12 @@ class _GameScreenState extends ConsumerState<GameScreen>
             horizontal: isDesktop ? 60 : 20,
             vertical: isDesktop ? 32 : 12,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              FittedBox(
-                child: NumbersSection(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                NumbersSection(
                   numbers: round.numbers.take(_visibleNumberCount).toList(),
                   usedIndices: _usedIndices,
                   onNumberTap: _onNumberTap,
@@ -625,21 +626,21 @@ class _GameScreenState extends ConsumerState<GameScreen>
                   focusedIndex: _focusedTokenIndex,
                   isHorizontal: isDesktop,
                 ),
-              ),
-              SizedBox(height: isDesktop ? 24 : 12),
-              ExpressionSection(
-                currentExpression: _currentExpression,
-                onBackspace: _backspace,
-                isLarge: isDesktop,
-              ),
-              SizedBox(height: isDesktop ? 24 : 12),
-              ControlsSection(
-                onOperatorTap: _onOperatorTap,
-                onSubmit: _submit,
-                lockedOperator: _lockedOperator,
-                isLarge: isDesktop,
-              ),
-            ],
+                SizedBox(height: isDesktop ? 24 : 12),
+                ExpressionSection(
+                  currentExpression: _currentExpression,
+                  onBackspace: _backspace,
+                  isLarge: isDesktop,
+                ),
+                SizedBox(height: isDesktop ? 24 : 12),
+                ControlsSection(
+                  onOperatorTap: _onOperatorTap,
+                  onSubmit: _submit,
+                  lockedOperator: _lockedOperator,
+                  isLarge: isDesktop,
+                ),
+              ],
+            ),
           ),
         ),
       ],

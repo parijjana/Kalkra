@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-27T05:52:52.723758Z",
+  "generated": "2026-07-27T08:14:41.236856Z",
   "out_root": "/Users/animeshsarkar/code/projects/Kalkra/kalkra/store_screenshots",
   "shots": [
     {
@@ -109,10 +109,8 @@
       "scene": "mode-select",
       "expected_w": 2560,
       "expected_h": 1440,
-      "overflow": true,
-      "overflow_details": [
-        "A RenderFlex overflowed by 24 pixels on the bottom."
-      ]
+      "overflow": false,
+      "overflow_details": []
     },
     {
       "file": "microsoft/03-results.png",
@@ -177,10 +175,8 @@
       "scene": "game",
       "expected_w": 2560,
       "expected_h": 1440,
-      "overflow": true,
-      "overflow_details": [
-        "A RenderFlex overflowed by 29 pixels on the bottom."
-      ]
+      "overflow": false,
+      "overflow_details": []
     },
     {
       "file": "ios/iphone69/01-dashboard.png",
@@ -278,10 +274,8 @@
       "scene": "dashboard",
       "expected_w": 2048,
       "expected_h": 2732,
-      "overflow": true,
-      "overflow_details": [
-        "A RenderFlex overflowed by 1.2 pixels on the right."
-      ]
+      "overflow": false,
+      "overflow_details": []
     },
     {
       "file": "ios/ipad13/02-mode-select.png",
@@ -291,10 +285,8 @@
       "scene": "mode-select",
       "expected_w": 2048,
       "expected_h": 2732,
-      "overflow": true,
-      "overflow_details": [
-        "A RenderFlex overflowed by 1.2 pixels on the right."
-      ]
+      "overflow": false,
+      "overflow_details": []
     },
     {
       "file": "ios/ipad13/03-results.png",
@@ -326,10 +318,8 @@
       "scene": "stats",
       "expected_w": 2048,
       "expected_h": 2732,
-      "overflow": true,
-      "overflow_details": [
-        "A RenderFlex overflowed by 1.2 pixels on the right."
-      ]
+      "overflow": false,
+      "overflow_details": []
     },
     {
       "file": "ios/ipad13/06-account.png",
@@ -339,10 +329,8 @@
       "scene": "account",
       "expected_w": 2048,
       "expected_h": 2732,
-      "overflow": true,
-      "overflow_details": [
-        "A RenderFlex overflowed by 1.2 pixels on the right."
-      ]
+      "overflow": false,
+      "overflow_details": []
     },
     {
       "file": "ios/ipad13/07-achievements.png",
@@ -352,10 +340,8 @@
       "scene": "achievements",
       "expected_w": 2048,
       "expected_h": 2732,
-      "overflow": true,
-      "overflow_details": [
-        "A RenderFlex overflowed by 1.2 pixels on the right."
-      ]
+      "overflow": false,
+      "overflow_details": []
     },
     {
       "file": "ios/ipad13/08-game.png",
@@ -420,13 +406,8 @@
       "scene": "stats",
       "expected_w": 1080,
       "expected_h": 2400,
-      "overflow": true,
-      "overflow_details": [
-        "A RenderFlex overflowed by 7.1 pixels on the bottom.",
-        "A RenderFlex overflowed by 7.1 pixels on the bottom.",
-        "A RenderFlex overflowed by 7.1 pixels on the bottom.",
-        "A RenderFlex overflowed by 7.1 pixels on the bottom."
-      ]
+      "overflow": false,
+      "overflow_details": []
     },
     {
       "file": "play/phone/06-account.png",
@@ -436,11 +417,8 @@
       "scene": "account",
       "expected_w": 1080,
       "expected_h": 2400,
-      "overflow": true,
-      "overflow_details": [
-        "A RenderFlex overflowed by 30 pixels on the right.",
-        "A RenderFlex overflowed by 16 pixels on the right."
-      ]
+      "overflow": false,
+      "overflow_details": []
     },
     {
       "file": "play/phone/07-achievements.png",
@@ -450,16 +428,8 @@
       "scene": "achievements",
       "expected_w": 1080,
       "expected_h": 2400,
-      "overflow": true,
-      "overflow_details": [
-        "A RenderFlex overflowed by 10.0 pixels on the bottom.",
-        "A RenderFlex overflowed by 10.0 pixels on the bottom.",
-        "A RenderFlex overflowed by 10.0 pixels on the bottom.",
-        "A RenderFlex overflowed by 10.0 pixels on the bottom.",
-        "A RenderFlex overflowed by 10.0 pixels on the bottom.",
-        "A RenderFlex overflowed by 10.0 pixels on the bottom.",
-        "A RenderFlex overflowed by 10.0 pixels on the bottom."
-      ]
+      "overflow": false,
+      "overflow_details": []
     },
     {
       "file": "play/phone/08-game.png",

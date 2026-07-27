@@ -4,6 +4,21 @@ Kalkra is a single-player Flutter math game targeting the Mac App Store, iOS App
 
 The app is fully offline in store builds — zero network calls, no accounts, no tracking. Multiplayer is a placeholder ("Coming Soon") and is not active in any store build.
 
+## Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/dashboard.png" alt="Dashboard — home screen with performance summary" /></td>
+    <td width="50%"><img src="docs/screenshots/mode-select.png" alt="Mission Control — pick a mode, difficulty, and rounds" /></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/game.png" alt="Gameplay — reach the target from the number pool" /></td>
+    <td width="50%"><img src="docs/screenshots/stats.png" alt="Career Analytics — stats and match history" /></td>
+  </tr>
+</table>
+
+<sub>Captured on macOS. Screens shown: Dashboard · Mission Control · Gameplay · Career Analytics.</sub>
+
 ## Quick Start
 
 Prerequisites:

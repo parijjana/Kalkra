@@ -1,0 +1,565 @@
+{
+  "generated": "2026-07-27T05:52:52.723758Z",
+  "out_root": "/Users/animeshsarkar/code/projects/Kalkra/kalkra/store_screenshots",
+  "shots": [
+    {
+      "file": "mac/01-dashboard.png",
+      "store": "mac-app-store",
+      "device": "mac",
+      "dir": "mac",
+      "scene": "dashboard",
+      "expected_w": 2880,
+      "expected_h": 1800,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "mac/02-mode-select.png",
+      "store": "mac-app-store",
+      "device": "mac",
+      "dir": "mac",
+      "scene": "mode-select",
+      "expected_w": 2880,
+      "expected_h": 1800,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "mac/03-results.png",
+      "store": "mac-app-store",
+      "device": "mac",
+      "dir": "mac",
+      "scene": "results",
+      "expected_w": 2880,
+      "expected_h": 1800,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "mac/04-solo-summary.png",
+      "store": "mac-app-store",
+      "device": "mac",
+      "dir": "mac",
+      "scene": "solo-summary",
+      "expected_w": 2880,
+      "expected_h": 1800,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "mac/05-stats.png",
+      "store": "mac-app-store",
+      "device": "mac",
+      "dir": "mac",
+      "scene": "stats",
+      "expected_w": 2880,
+      "expected_h": 1800,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "mac/06-account.png",
+      "store": "mac-app-store",
+      "device": "mac",
+      "dir": "mac",
+      "scene": "account",
+      "expected_w": 2880,
+      "expected_h": 1800,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "mac/07-achievements.png",
+      "store": "mac-app-store",
+      "device": "mac",
+      "dir": "mac",
+      "scene": "achievements",
+      "expected_w": 2880,
+      "expected_h": 1800,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "mac/08-game.png",
+      "store": "mac-app-store",
+      "device": "mac",
+      "dir": "mac",
+      "scene": "game",
+      "expected_w": 2880,
+      "expected_h": 1800,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "microsoft/01-dashboard.png",
+      "store": "microsoft-store",
+      "device": "desktop",
+      "dir": "microsoft",
+      "scene": "dashboard",
+      "expected_w": 2560,
+      "expected_h": 1440,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "microsoft/02-mode-select.png",
+      "store": "microsoft-store",
+      "device": "desktop",
+      "dir": "microsoft",
+      "scene": "mode-select",
+      "expected_w": 2560,
+      "expected_h": 1440,
+      "overflow": true,
+      "overflow_details": [
+        "A RenderFlex overflowed by 24 pixels on the bottom."
+      ]
+    },
+    {
+      "file": "microsoft/03-results.png",
+      "store": "microsoft-store",
+      "device": "desktop",
+      "dir": "microsoft",
+      "scene": "results",
+      "expected_w": 2560,
+      "expected_h": 1440,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "microsoft/04-solo-summary.png",
+      "store": "microsoft-store",
+      "device": "desktop",
+      "dir": "microsoft",
+      "scene": "solo-summary",
+      "expected_w": 2560,
+      "expected_h": 1440,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "microsoft/05-stats.png",
+      "store": "microsoft-store",
+      "device": "desktop",
+      "dir": "microsoft",
+      "scene": "stats",
+      "expected_w": 2560,
+      "expected_h": 1440,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "microsoft/06-account.png",
+      "store": "microsoft-store",
+      "device": "desktop",
+      "dir": "microsoft",
+      "scene": "account",
+      "expected_w": 2560,
+      "expected_h": 1440,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "microsoft/07-achievements.png",
+      "store": "microsoft-store",
+      "device": "desktop",
+      "dir": "microsoft",
+      "scene": "achievements",
+      "expected_w": 2560,
+      "expected_h": 1440,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "microsoft/08-game.png",
+      "store": "microsoft-store",
+      "device": "desktop",
+      "dir": "microsoft",
+      "scene": "game",
+      "expected_w": 2560,
+      "expected_h": 1440,
+      "overflow": true,
+      "overflow_details": [
+        "A RenderFlex overflowed by 29 pixels on the bottom."
+      ]
+    },
+    {
+      "file": "ios/iphone69/01-dashboard.png",
+      "store": "ios-app-store",
+      "device": "iphone-6.9",
+      "dir": "ios/iphone69",
+      "scene": "dashboard",
+      "expected_w": 1290,
+      "expected_h": 2796,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "ios/iphone69/02-mode-select.png",
+      "store": "ios-app-store",
+      "device": "iphone-6.9",
+      "dir": "ios/iphone69",
+      "scene": "mode-select",
+      "expected_w": 1290,
+      "expected_h": 2796,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "ios/iphone69/03-results.png",
+      "store": "ios-app-store",
+      "device": "iphone-6.9",
+      "dir": "ios/iphone69",
+      "scene": "results",
+      "expected_w": 1290,
+      "expected_h": 2796,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "ios/iphone69/04-solo-summary.png",
+      "store": "ios-app-store",
+      "device": "iphone-6.9",
+      "dir": "ios/iphone69",
+      "scene": "solo-summary",
+      "expected_w": 1290,
+      "expected_h": 2796,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "ios/iphone69/05-stats.png",
+      "store": "ios-app-store",
+      "device": "iphone-6.9",
+      "dir": "ios/iphone69",
+      "scene": "stats",
+      "expected_w": 1290,
+      "expected_h": 2796,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "ios/iphone69/06-account.png",
+      "store": "ios-app-store",
+      "device": "iphone-6.9",
+      "dir": "ios/iphone69",
+      "scene": "account",
+      "expected_w": 1290,
+      "expected_h": 2796,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "ios/iphone69/07-achievements.png",
+      "store": "ios-app-store",
+      "device": "iphone-6.9",
+      "dir": "ios/iphone69",
+      "scene": "achievements",
+      "expected_w": 1290,
+      "expected_h": 2796,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "ios/iphone69/08-game.png",
+      "store": "ios-app-store",
+      "device": "iphone-6.9",
+      "dir": "ios/iphone69",
+      "scene": "game",
+      "expected_w": 1290,
+      "expected_h": 2796,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "ios/ipad13/01-dashboard.png",
+      "store": "ios-app-store",
+      "device": "ipad-13",
+      "dir": "ios/ipad13",
+      "scene": "dashboard",
+      "expected_w": 2048,
+      "expected_h": 2732,
+      "overflow": true,
+      "overflow_details": [
+        "A RenderFlex overflowed by 1.2 pixels on the right."
+      ]
+    },
+    {
+      "file": "ios/ipad13/02-mode-select.png",
+      "store": "ios-app-store",
+      "device": "ipad-13",
+      "dir": "ios/ipad13",
+      "scene": "mode-select",
+      "expected_w": 2048,
+      "expected_h": 2732,
+      "overflow": true,
+      "overflow_details": [
+        "A RenderFlex overflowed by 1.2 pixels on the right."
+      ]
+    },
+    {
+      "file": "ios/ipad13/03-results.png",
+      "store": "ios-app-store",
+      "device": "ipad-13",
+      "dir": "ios/ipad13",
+      "scene": "results",
+      "expected_w": 2048,
+      "expected_h": 2732,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "ios/ipad13/04-solo-summary.png",
+      "store": "ios-app-store",
+      "device": "ipad-13",
+      "dir": "ios/ipad13",
+      "scene": "solo-summary",
+      "expected_w": 2048,
+      "expected_h": 2732,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "ios/ipad13/05-stats.png",
+      "store": "ios-app-store",
+      "device": "ipad-13",
+      "dir": "ios/ipad13",
+      "scene": "stats",
+      "expected_w": 2048,
+      "expected_h": 2732,
+      "overflow": true,
+      "overflow_details": [
+        "A RenderFlex overflowed by 1.2 pixels on the right."
+      ]
+    },
+    {
+      "file": "ios/ipad13/06-account.png",
+      "store": "ios-app-store",
+      "device": "ipad-13",
+      "dir": "ios/ipad13",
+      "scene": "account",
+      "expected_w": 2048,
+      "expected_h": 2732,
+      "overflow": true,
+      "overflow_details": [
+        "A RenderFlex overflowed by 1.2 pixels on the right."
+      ]
+    },
+    {
+      "file": "ios/ipad13/07-achievements.png",
+      "store": "ios-app-store",
+      "device": "ipad-13",
+      "dir": "ios/ipad13",
+      "scene": "achievements",
+      "expected_w": 2048,
+      "expected_h": 2732,
+      "overflow": true,
+      "overflow_details": [
+        "A RenderFlex overflowed by 1.2 pixels on the right."
+      ]
+    },
+    {
+      "file": "ios/ipad13/08-game.png",
+      "store": "ios-app-store",
+      "device": "ipad-13",
+      "dir": "ios/ipad13",
+      "scene": "game",
+      "expected_w": 2048,
+      "expected_h": 2732,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "play/phone/01-dashboard.png",
+      "store": "google-play",
+      "device": "phone",
+      "dir": "play/phone",
+      "scene": "dashboard",
+      "expected_w": 1080,
+      "expected_h": 2400,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "play/phone/02-mode-select.png",
+      "store": "google-play",
+      "device": "phone",
+      "dir": "play/phone",
+      "scene": "mode-select",
+      "expected_w": 1080,
+      "expected_h": 2400,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "play/phone/03-results.png",
+      "store": "google-play",
+      "device": "phone",
+      "dir": "play/phone",
+      "scene": "results",
+      "expected_w": 1080,
+      "expected_h": 2400,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "play/phone/04-solo-summary.png",
+      "store": "google-play",
+      "device": "phone",
+      "dir": "play/phone",
+      "scene": "solo-summary",
+      "expected_w": 1080,
+      "expected_h": 2400,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "play/phone/05-stats.png",
+      "store": "google-play",
+      "device": "phone",
+      "dir": "play/phone",
+      "scene": "stats",
+      "expected_w": 1080,
+      "expected_h": 2400,
+      "overflow": true,
+      "overflow_details": [
+        "A RenderFlex overflowed by 7.1 pixels on the bottom.",
+        "A RenderFlex overflowed by 7.1 pixels on the bottom.",
+        "A RenderFlex overflowed by 7.1 pixels on the bottom.",
+        "A RenderFlex overflowed by 7.1 pixels on the bottom."
+      ]
+    },
+    {
+      "file": "play/phone/06-account.png",
+      "store": "google-play",
+      "device": "phone",
+      "dir": "play/phone",
+      "scene": "account",
+      "expected_w": 1080,
+      "expected_h": 2400,
+      "overflow": true,
+      "overflow_details": [
+        "A RenderFlex overflowed by 30 pixels on the right.",
+        "A RenderFlex overflowed by 16 pixels on the right."
+      ]
+    },
+    {
+      "file": "play/phone/07-achievements.png",
+      "store": "google-play",
+      "device": "phone",
+      "dir": "play/phone",
+      "scene": "achievements",
+      "expected_w": 1080,
+      "expected_h": 2400,
+      "overflow": true,
+      "overflow_details": [
+        "A RenderFlex overflowed by 10.0 pixels on the bottom.",
+        "A RenderFlex overflowed by 10.0 pixels on the bottom.",
+        "A RenderFlex overflowed by 10.0 pixels on the bottom.",
+        "A RenderFlex overflowed by 10.0 pixels on the bottom.",
+        "A RenderFlex overflowed by 10.0 pixels on the bottom.",
+        "A RenderFlex overflowed by 10.0 pixels on the bottom.",
+        "A RenderFlex overflowed by 10.0 pixels on the bottom."
+      ]
+    },
+    {
+      "file": "play/phone/08-game.png",
+      "store": "google-play",
+      "device": "phone",
+      "dir": "play/phone",
+      "scene": "game",
+      "expected_w": 1080,
+      "expected_h": 2400,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "play/tablet/01-dashboard.png",
+      "store": "google-play",
+      "device": "tablet",
+      "dir": "play/tablet",
+      "scene": "dashboard",
+      "expected_w": 1600,
+      "expected_h": 2560,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "play/tablet/02-mode-select.png",
+      "store": "google-play",
+      "device": "tablet",
+      "dir": "play/tablet",
+      "scene": "mode-select",
+      "expected_w": 1600,
+      "expected_h": 2560,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "play/tablet/03-results.png",
+      "store": "google-play",
+      "device": "tablet",
+      "dir": "play/tablet",
+      "scene": "results",
+      "expected_w": 1600,
+      "expected_h": 2560,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "play/tablet/04-solo-summary.png",
+      "store": "google-play",
+      "device": "tablet",
+      "dir": "play/tablet",
+      "scene": "solo-summary",
+      "expected_w": 1600,
+      "expected_h": 2560,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "play/tablet/05-stats.png",
+      "store": "google-play",
+      "device": "tablet",
+      "dir": "play/tablet",
+      "scene": "stats",
+      "expected_w": 1600,
+      "expected_h": 2560,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "play/tablet/06-account.png",
+      "store": "google-play",
+      "device": "tablet",
+      "dir": "play/tablet",
+      "scene": "account",
+      "expected_w": 1600,
+      "expected_h": 2560,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "play/tablet/07-achievements.png",
+      "store": "google-play",
+      "device": "tablet",
+      "dir": "play/tablet",
+      "scene": "achievements",
+      "expected_w": 1600,
+      "expected_h": 2560,
+      "overflow": false,
+      "overflow_details": []
+    },
+    {
+      "file": "play/tablet/08-game.png",
+      "store": "google-play",
+      "device": "tablet",
+      "dir": "play/tablet",
+      "scene": "game",
+      "expected_w": 1600,
+      "expected_h": 2560,
+      "overflow": false,
+      "overflow_details": []
+    }
+  ],
+  "skipped": []
+}

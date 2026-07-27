@@ -154,17 +154,27 @@ class _MatchSetupScreenState extends ConsumerState<MatchSetupScreen> {
                           children: [
                             _buildSectionHeader('CALIBRATION'),
                             const SizedBox(height: 24),
-                            if (_gameMode != GameMode.progressive) ...[
-                              _buildDifficultyDial(),
-                              const SizedBox(height: 32),
-                            ],
-                            if (_shouldShowRoundSelector) ...[
-                              _buildRoundSelector(),
-                              const SizedBox(height: 32),
-                            ],
-                            if (_gameMode != GameMode.progressive)
-                              _buildWildcardToggle(),
-                            const Spacer(),
+                            Expanded(
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    if (_gameMode != GameMode.progressive) ...[
+                                      _buildDifficultyDial(),
+                                      const SizedBox(height: 32),
+                                    ],
+                                    if (_shouldShowRoundSelector) ...[
+                                      _buildRoundSelector(),
+                                      const SizedBox(height: 32),
+                                    ],
+                                    if (_gameMode != GameMode.progressive)
+                                      _buildWildcardToggle(),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
                             _buildStartButton(context, isLarge: true),
                           ],
                         ),

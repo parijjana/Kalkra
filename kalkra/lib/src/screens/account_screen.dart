@@ -465,13 +465,17 @@ class _ThemeCard extends StatelessWidget {
               size: 20,
             ),
             const SizedBox(width: 12),
-            Text(
-              type.name.toUpperCase(),
-              style: TextStyle(
-                fontWeight: FontWeight.w900,
-                fontSize: 11,
-                letterSpacing: 1,
-                color: isActive ? Colors.white : colorScheme.onSurfaceVariant,
+            Flexible(
+              child: Text(
+                type.name.toUpperCase(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 11,
+                  letterSpacing: 1,
+                  color: isActive ? Colors.white : colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
           ],

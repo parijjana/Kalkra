@@ -55,7 +55,7 @@ class TopNavBar extends ConsumerWidget implements PreferredSizeWidget {
               color: colorScheme.primary,
             ),
           ),
-          const SizedBox(width: 80),
+          const SizedBox(width: 76),
 
           // Navigation Tabs
           _NavTab(

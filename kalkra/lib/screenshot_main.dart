@@ -184,7 +184,12 @@ const List<String> _allScenes = [
 const List<_Target> _targets = [
   _Target('mac-app-store',   'mac',               'mac',          1440,  900, 2.0, _allScenes),
   _Target('microsoft-store', 'desktop',           'microsoft',    1280,  720, 2.0, _allScenes),
+  // App Store Connect has SEPARATE iPhone slots and will not scale between them:
+  // uploading a 6.9" shot into the 6.5" slot is rejected outright. 6.5" accepts
+  // 1242x2688 or 1284x2778; we render the latter natively (428x926 @3.0) rather
+  // than resampling the 6.9" set, whose aspect ratio differs (0.4614 vs 0.4622).
   _Target('ios-app-store',   'iphone-6.9',        'ios/iphone69',  430,  932, 3.0, _allScenes),
+  _Target('ios-app-store',   'iphone-6.5',        'ios/iphone65',  428,  926, 3.0, _allScenes),
   _Target('ios-app-store',   'ipad-13-landscape', 'ios/ipad13',   1366, 1024, 2.0, _allScenes),
   _Target('google-play',     'phone',             'play/phone',    360,  800, 3.0, _allScenes),
   _Target('google-play',     'tablet-landscape',  'play/tablet',  1280,  800, 2.0, _allScenes),
@@ -381,7 +386,11 @@ class _ScreenshotCaptureAppState extends ConsumerState<_ScreenshotCaptureApp> {
           // forced fresh mount clears the transient case; a second failure is
           // recorded and fails the validator rather than silently shipping a
           // screenshot of the wrong screen.
-          var landed = await _showScene(scene, t, '${t.dir}/$fileBase');
+          // Build ONCE — the builders mutate shared provider state, so the retry
+          // below must remount this same widget rather than rebuild it.
+          final screen = _builderFor(scene)(ref);
+          var landed =
+              await _mountAndVerify(screen, scene, t, '${t.dir}/$fileBase');
           if (!landed) {
             _sceneRetries.add('$_currentShotId: '
                 '${_expectedWidget[scene]} not mounted — retrying');
@@ -392,7 +401,8 @@ class _ScreenshotCaptureAppState extends ConsumerState<_ScreenshotCaptureApp> {
               _shotId = '${t.dir}/$fileBase#blank';
             });
             await _awaitFrame();
-            landed = await _showScene(scene, t, '${t.dir}/$fileBase#retry');
+            landed = await _mountAndVerify(
+                screen, scene, t, '${t.dir}/$fileBase#retry');
             if (!landed) {
               _sceneMismatches.add('$_currentShotId: '
                   '${_expectedWidget[scene]} still not mounted after retry');
@@ -521,11 +531,21 @@ class _ScreenshotCaptureAppState extends ConsumerState<_ScreenshotCaptureApp> {
     return found;
   }
 
-  /// Mounts [scene] for [t] under [shotId] and settles. Returns whether the
-  /// expected widget for that scene is actually mounted inside the capture
-  /// boundary (see [_expectedWidget]); true when no expectation is registered.
-  Future<bool> _showScene(String scene, _Target t, String shotId) async {
-    final screen = _builderFor(scene)(ref);
+  /// Mounts an ALREADY-BUILT [screen] for [t] under [shotId] and settles.
+  /// Returns whether the expected widget for [scene] is actually mounted inside
+  /// the capture boundary (see [_expectedWidget]); true when no expectation is
+  /// registered.
+  ///
+  /// Takes a pre-built widget rather than a scene name ON PURPOSE. The scene
+  /// builders MUTATE shared provider state — the 'results' builder alone calls
+  /// startRoundWithData(), endRound(), addPlayer() and recordSubmission(). An
+  /// earlier version of the retry path re-invoked the builder, running those
+  /// side effects a second time; that corrupted the seeded state and cascaded
+  /// into the FOLLOWING target's shots (one failure at the end of ios/ipad13
+  /// was followed by five consecutive play/phone failures). Build once per shot,
+  /// mount as many times as needed.
+  Future<bool> _mountAndVerify(
+      Widget screen, String scene, _Target t, String shotId) async {
     setState(() {
       _target = t;
       _shotId = shotId;

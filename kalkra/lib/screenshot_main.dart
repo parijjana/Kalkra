@@ -15,10 +15,11 @@
 // Run with:
 //   flutter run -d macos -t lib/screenshot_main.dart
 //
-// NOTE: writes to an absolute path inside the repo (see [_outRoot]). The macOS
-// DEBUG build must have the app sandbox DISABLED for that path to be readable
-// (macos/Runner/DebugProfile.entitlements: com.apple.security.app-sandbox=false).
-// store-launch-kit toggles this for the capture run and reverts it afterward.
+// NOTE: writes to an absolute path inside the repo (see [_outRoot]). This works
+// with the App Sandbox left ENABLED — DebugProfile.entitlements grants a
+// debug-only `temporary-exception.files.absolute-path.read-write` for that path
+// (plus `network.server`, without which the sandbox blocks the Dart VM service
+// socket and `flutter run` cannot attach). Nothing needs toggling or reverting.
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -45,12 +46,12 @@ import 'src/services/sound_service.dart';
 import 'src/theme/app_theme.dart';
 
 /// Absolute output root inside the repo. Per-store subfolders are created under
-/// it. This requires the macOS DEBUG build to run WITHOUT the App Sandbox
-/// (Gotcha 5): Kalkra ships with the sandbox on, enforced by BOTH the entitlement
-/// AND an `ENABLE_APP_SANDBOX=YES` Xcode build setting — the sandboxed app can
-/// only write inside its protected container, which macOS then blocks the host
-/// from reading. store-launch-kit disables both for the capture run and reverts
-/// them (they are git-tracked) afterward. The run prints `SCREENSHOTS_WRITTEN_TO:`.
+/// it. Kalkra ships with the App Sandbox ON (entitlement + `ENABLE_APP_SANDBOX=YES`),
+/// and a sandboxed app can normally only write inside its own container. Rather
+/// than disabling the sandbox per run, DebugProfile.entitlements grants a
+/// DEBUG-ONLY absolute-path exception for exactly this directory — so this path
+/// must stay in sync with that entitlement. Release.entitlements has no such key,
+/// so store builds are unaffected. The run prints `SCREENSHOTS_WRITTEN_TO:`.
 const String _outRoot =
     '/Users/animeshsarkar/code/projects/Kalkra/kalkra/store_screenshots';
 
@@ -123,6 +124,34 @@ class _Target {
   const _Target(
       this.store, this.device, this.dir, this.w, this.h, this.ratio, this.scenes);
 }
+
+/// Scene -> the widget type that must be MOUNTED inside the capture boundary for
+/// that scene. The capture loop verifies this after settling, so it photographs
+/// the screen it asked for rather than assuming setState + settle got there.
+///
+/// This exists because a capture run once wrote MISSION CONTROL (the *previous*
+/// scene) into play/tablet/03-results.png. ResultsScreen carries a
+/// `ref.listen(matchStatusProvider)` that can navigate away, and a stale layer
+/// can end up rasterized; the shot had perfect dimensions, no overflow and no
+/// layout error, so every other gate passed it. Only a human comparing 48 images
+/// caught it, and it did not reproduce on the next run.
+///
+/// The oracle is a walk of the live element tree, NOT `currentScreenIdProvider`.
+/// That provider was tried first and is unusable here: it sticks at
+/// 'SoloSummaryScreen' from the solo-summary scene onward even while the correct
+/// screens demonstrably mount and paint, so it false-positived 39 of 48 shots.
+/// The element tree is ground truth — if the widget is mounted under the capture
+/// boundary, it is what gets rasterized.
+const Map<String, String> _expectedWidget = {
+  'dashboard': 'MainScreen',
+  'mode-select': 'MatchSetupScreen',
+  'results': 'ResultsScreen',
+  'solo-summary': 'SoloSummaryScreen',
+  'stats': 'StatsScreen',
+  'account': 'AccountScreen',
+  'achievements': 'AchievementsScreen',
+  'game': 'GameScreen',
+};
 
 // Every scene, in dependency order (some shots seed state the next one reads).
 const List<String> _allScenes = [
@@ -261,6 +290,12 @@ class _ScreenshotCaptureAppState extends ConsumerState<_ScreenshotCaptureApp> {
   /// Shots whose tree never reached visual rest within [_settleTimeout] — each
   /// one may have been rasterized mid-animation, so it needs a human look.
   final List<String> _settleTimeouts = [];
+  /// Shots that landed on the wrong screen and recovered on the retry.
+  /// Informational: the written PNG is correct, but the flake is real.
+  final List<String> _sceneRetries = [];
+  /// Shots still on the wrong screen AFTER the retry — the PNG shows a different
+  /// screen than its filename claims. A validator failure.
+  final List<String> _sceneMismatches = [];
   final List<Map<String, dynamic>> _manifestShots = []; // one entry per written PNG
 
   bool _started = false;
@@ -342,14 +377,27 @@ class _ScreenshotCaptureAppState extends ConsumerState<_ScreenshotCaptureApp> {
         // during the build / _settle() layout+paint pass attributes to this shot.
         _currentShotId = '${t.dir}/$fileBase';
         try {
-          final screen = _builderFor(scene)(ref);
-          setState(() {
-            _target = t;
-            _shotId = '${t.dir}/$fileBase';
-            _currentScreen = screen;
-          });
-
-          await _settle();
+          // Mount the scene and CHECK we actually landed on it. One retry with a
+          // forced fresh mount clears the transient case; a second failure is
+          // recorded and fails the validator rather than silently shipping a
+          // screenshot of the wrong screen.
+          var landed = await _showScene(scene, t, '${t.dir}/$fileBase');
+          if (!landed) {
+            _sceneRetries.add('$_currentShotId: '
+                '${_expectedWidget[scene]} not mounted — retrying');
+            // Blank the tree first so the retry is a genuine remount and not a
+            // no-op rebuild of an identical widget.
+            setState(() {
+              _currentScreen = null;
+              _shotId = '${t.dir}/$fileBase#blank';
+            });
+            await _awaitFrame();
+            landed = await _showScene(scene, t, '${t.dir}/$fileBase#retry');
+            if (!landed) {
+              _sceneMismatches.add('$_currentShotId: '
+                  '${_expectedWidget[scene]} still not mounted after retry');
+            }
+          }
 
           final renderObject = _boundaryKey.currentContext?.findRenderObject();
           if (renderObject is! RenderRepaintBoundary) {
@@ -415,6 +463,16 @@ class _ScreenshotCaptureAppState extends ConsumerState<_ScreenshotCaptureApp> {
       print('SETTLE_TIMEOUT (may be mid-animation, inspect these): '
           '${_settleTimeouts.join(' | ')}');
     }
+    if (_sceneRetries.isNotEmpty) {
+      // ignore: avoid_print
+      print('SCENE_RETRY (landed on the wrong screen, recovered): '
+          '${_sceneRetries.join(' | ')}');
+    }
+    if (_sceneMismatches.isNotEmpty) {
+      // ignore: avoid_print
+      print('SCENE_MISMATCH (PNG shows the WRONG screen): '
+          '${_sceneMismatches.join(' | ')}');
+    }
     if (_layoutErrorsByShot.isNotEmpty) {
       // ignore: avoid_print
       print('LAYOUT_ERRORS (subtree unpainted — these shots are BLANK): '
@@ -435,12 +493,53 @@ class _ScreenshotCaptureAppState extends ConsumerState<_ScreenshotCaptureApp> {
       'shots': _manifestShots,
       'skipped': _skipped,
       'settle_timeouts': _settleTimeouts,
+      'scene_retries': _sceneRetries,
+      'scene_mismatches': _sceneMismatches,
     };
     final path = '$_outRoot/capture_manifest.json';
     File(path).writeAsStringSync(
         const JsonEncoder.withIndent('  ').convert(manifest));
     // ignore: avoid_print
     print('MANIFEST_WRITTEN: $path');
+  }
+
+  /// Whether a widget whose runtimeType is named [typeName] is mounted anywhere
+  /// under [ctx]. Debug-harness only — matching on a type NAME would break under
+  /// release obfuscation, but this entry point never ships.
+  bool _isMountedUnder(BuildContext ctx, String typeName) {
+    var found = false;
+    void walk(Element el) {
+      if (found) return;
+      if (el.widget.runtimeType.toString() == typeName) {
+        found = true;
+        return;
+      }
+      el.visitChildren(walk);
+    }
+
+    ctx.visitChildElements(walk);
+    return found;
+  }
+
+  /// Mounts [scene] for [t] under [shotId] and settles. Returns whether the
+  /// expected widget for that scene is actually mounted inside the capture
+  /// boundary (see [_expectedWidget]); true when no expectation is registered.
+  Future<bool> _showScene(String scene, _Target t, String shotId) async {
+    final screen = _builderFor(scene)(ref);
+    setState(() {
+      _target = t;
+      _shotId = shotId;
+      _currentScreen = screen;
+    });
+    await _settle();
+    final expected = _expectedWidget[scene];
+    if (expected == null) return true;
+    final ctx = _boundaryKey.currentContext;
+    // No live boundary context means there is nothing to photograph; let the
+    // existing 'no RenderRepaintBoundary' skip path report that rather than
+    // double-failing here.
+    if (ctx == null || !ctx.mounted) return true;
+    return _isMountedUnder(ctx, expected);
   }
 
   /// Awaits the next frame, but never blocks longer than [_frameWaitTimeout] —

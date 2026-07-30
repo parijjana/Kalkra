@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-30T07:13:40.081629Z",
+  "generated": "2026-07-30T08:19:27.784492Z",
   "out_root": "/Users/animeshsarkar/code/projects/Kalkra/kalkra/store_screenshots",
   "shots": [
     {
@@ -628,5 +628,7 @@
     }
   ],
   "skipped": [],
-  "settle_timeouts": []
+  "settle_timeouts": [],
+  "scene_retries": [],
+  "scene_mismatches": []
 }

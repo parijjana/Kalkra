@@ -57,20 +57,57 @@ const String _outRoot =
 /// Theme used for every hero shot.
 const AppThemeType _heroTheme = AppThemeType.vectorPop;
 
+/// How long `_settle()` will wait for a screen to stop animating before giving
+/// up and rasterizing anyway. Comfortably clears the longest entrance animation
+/// in the app (GameScreen's 800ms controller) with room for slow frames.
+const Duration _settleTimeout = Duration(seconds: 4);
+
+/// Consecutive animation-free frames `_settle()` requires before it calls the
+/// tree settled.
+const int _quietFramesRequired = 3;
+
+/// Longest a single `endOfFrame` await may block before `_settle()` gives up on
+/// that frame. macOS stops producing frames for an occluded window or a sleeping
+/// display, and an un-timed-out `await endOfFrame` then hangs the whole capture
+/// run forever — [_settleTimeout] cannot save it, because a deadline between
+/// awaits is never reached while one await is blocked.
+const Duration _frameWaitTimeout = Duration(milliseconds: 500);
+
 // ---------------------------------------------------------------------------
-// OVERFLOW ATTRIBUTION (harness-side, framework ground truth).
+// LAYOUT-ERROR ATTRIBUTION (harness-side, framework ground truth).
 //
-// A single FlutterError.onError hook (installed in main()) records any layout
-// error whose string contains 'overflowed' against the shot being rendered
-// RIGHT NOW. `_currentShotId` is set BEFORE setState for each shot, so errors
-// thrown during the build / _settle() layout+paint pass attribute to the
-// correct shot. Each shot's list is folded into its capture_manifest.json entry.
+// A single FlutterError.onError hook (installed in main()) records layout errors
+// against the shot being rendered RIGHT NOW. `_currentShotId` is set BEFORE
+// setState for each shot, so errors thrown during the build / _settle()
+// layout+paint pass attribute to the correct shot. Each shot's lists are folded
+// into its capture_manifest.json entry.
 //
-// DEBUG-ONLY: Flutter only routes overflow errors through FlutterError.onError
-// when assertions are on. NEVER capture with --release/--profile or overflows
-// go silently undetected.
+// TWO buckets, because they fail differently:
+//   _overflowByShot     — 'overflowed': content too big for its box, but it
+//                         still PAINTS. Visible as clipped/striped content.
+//   _layoutErrorsByShot — layout ASSERTION failures ([_layoutErrorNeedles]):
+//                         the subtree never gets a size, so it paints NOTHING.
+//                         This is strictly worse and used to be invisible here:
+//                         a hook watching only 'overflowed' let four blank-cockpit
+//                         gameplay shots through with correct pixel dimensions,
+//                         and the validator passed them. See
+//                         lessons_learnt/flutter-fittedbox-infinite-width-blank-subtree.md
+//
+// DEBUG-ONLY: Flutter only routes these through FlutterError.onError when
+// assertions are on. NEVER capture with --release/--profile or they go silently
+// undetected.
 // ---------------------------------------------------------------------------
 final Map<String, List<String>> _overflowByShot = <String, List<String>>{};
+final Map<String, List<String>> _layoutErrorsByShot = <String, List<String>>{};
+
+/// Substrings identifying a layout failure that leaves a subtree unpainted.
+const List<String> _layoutErrorNeedles = [
+  'forces an infinite', // BoxConstraints forces an infinite width/height
+  'was not laid out', // RenderBox was not laid out
+  'hasSize', // 'child!.hasSize': is not true
+  'Failed assertion', // any other rendering-library assertion
+];
+
 String _currentShotId = '';
 
 /// One store/device output target. Mirrors store-launch-kit's
@@ -156,9 +193,14 @@ void main() async {
   // FlutterError.onError when assertions are on — never capture in release/profile.
   FlutterError.onError = (FlutterErrorDetails details) {
     final msg = details.exceptionAsString();
+    final first = msg.split('\n').first.trim();
     if (msg.contains('overflowed')) {
-      (_overflowByShot[_currentShotId] ??= <String>[])
-          .add(msg.split('\n').first.trim());
+      (_overflowByShot[_currentShotId] ??= <String>[]).add(first);
+    } else if (_layoutErrorNeedles.any(msg.contains)) {
+      // Cap the list: one broken subtree can throw the same assertion on every
+      // pumped frame, and an unbounded list would bloat the manifest.
+      final bucket = _layoutErrorsByShot[_currentShotId] ??= <String>[];
+      if (bucket.length < 10 && !bucket.contains(first)) bucket.add(first);
     }
     FlutterError.presentError(details);
   };
@@ -208,6 +250,9 @@ class _ScreenshotCaptureAppState extends ConsumerState<_ScreenshotCaptureApp> {
   final GlobalKey _boundaryKey = GlobalKey();
   final List<String> _writtenFiles = [];
   final List<String> _skipped = [];
+  /// Shots whose tree never reached visual rest within [_settleTimeout] — each
+  /// one may have been rasterized mid-animation, so it needs a human look.
+  final List<String> _settleTimeouts = [];
   final List<Map<String, dynamic>> _manifestShots = []; // one entry per written PNG
 
   bool _started = false;
@@ -319,6 +364,10 @@ class _ScreenshotCaptureAppState extends ConsumerState<_ScreenshotCaptureApp> {
           // `overflow` reflects whatever the FlutterError hook attributed to
           // this shot id during its layout/paint (empty => no overflow).
           final overflow = _overflowByShot[_currentShotId] ?? const <String>[];
+          // `layout_errors` are assertion failures that leave a subtree
+          // UNPAINTED — a shot can be pixel-perfect in size and still be blank.
+          final layoutErrors =
+              _layoutErrorsByShot[_currentShotId] ?? const <String>[];
           _manifestShots.add(<String, dynamic>{
             'file': rel,
             'store': t.store,
@@ -329,6 +378,8 @@ class _ScreenshotCaptureAppState extends ConsumerState<_ScreenshotCaptureApp> {
             'expected_h': (t.h * t.ratio).round(),
             'overflow': overflow.isNotEmpty,
             'overflow_details': List<String>.from(overflow),
+            'layout_error': layoutErrors.isNotEmpty,
+            'layout_error_details': List<String>.from(layoutErrors),
           });
           // ignore: avoid_print
           print('CAPTURED ${file.path}');
@@ -351,6 +402,16 @@ class _ScreenshotCaptureAppState extends ConsumerState<_ScreenshotCaptureApp> {
       // ignore: avoid_print
       print('SKIPPED: ${_skipped.join(' | ')}');
     }
+    if (_settleTimeouts.isNotEmpty) {
+      // ignore: avoid_print
+      print('SETTLE_TIMEOUT (may be mid-animation, inspect these): '
+          '${_settleTimeouts.join(' | ')}');
+    }
+    if (_layoutErrorsByShot.isNotEmpty) {
+      // ignore: avoid_print
+      print('LAYOUT_ERRORS (subtree unpainted — these shots are BLANK): '
+          '${_layoutErrorsByShot.keys.join(' | ')}');
+    }
 
     exit(0);
   }
@@ -365,6 +426,7 @@ class _ScreenshotCaptureAppState extends ConsumerState<_ScreenshotCaptureApp> {
       'out_root': _outRoot,
       'shots': _manifestShots,
       'skipped': _skipped,
+      'settle_timeouts': _settleTimeouts,
     };
     final path = '$_outRoot/capture_manifest.json';
     File(path).writeAsStringSync(
@@ -373,13 +435,51 @@ class _ScreenshotCaptureAppState extends ConsumerState<_ScreenshotCaptureApp> {
     print('MANIFEST_WRITTEN: $path');
   }
 
-  /// Pumps several frames and waits a little real time so async-decoded content
-  /// (SVGs, fonts, images) and post-frame callbacks complete before rasterizing.
+  /// Awaits the next frame, but never blocks longer than [_frameWaitTimeout] —
+  /// see that constant for why an un-timed-out `endOfFrame` can hang a run.
+  Future<void> _awaitFrame() => WidgetsBinding.instance.endOfFrame
+      .timeout(_frameWaitTimeout, onTimeout: () {});
+
+  /// Pumps frames until nothing is animating, so async-decoded content (SVGs,
+  /// fonts, images) and post-frame callbacks complete — and no shot is
+  /// rasterized mid entrance-animation — before we rasterize.
+  ///
+  /// A running AnimationController drives a ticker, which registers a transient
+  /// frame callback, so `transientCallbackCount == 0` means the tree is visually
+  /// at rest. This replaced a fixed ~770ms wait that *raced* GameScreen's 800ms
+  /// entrance controller: large targets (mac 2880x1800) took long enough to
+  /// rasterize that they landed after the animation, but the small phone targets
+  /// rendered fast enough to beat it and captured a faded-out, near-blank frame.
+  ///
+  /// No screen animates on a `repeat()` loop, so this always reaches rest;
+  /// [_settleTimeout] is a safety net if a looping animation is ever added.
   Future<void> _settle() async {
+    // Minimum pump: lets first-frame post-frame callbacks register their
+    // tickers, so we never sample the count before any animation has started.
     for (var i = 0; i < 6; i++) {
-      await WidgetsBinding.instance.endOfFrame;
+      await _awaitFrame();
       await Future<void>.delayed(const Duration(milliseconds: 70));
     }
+
+    final deadline = DateTime.now().add(_settleTimeout);
+    var quietFrames = 0;
+    while (quietFrames < _quietFramesRequired) {
+      if (!DateTime.now().isBefore(deadline)) {
+        _settleTimeouts.add(_currentShotId);
+        break;
+      }
+      // An idle tree schedules no frames on its own, so ask for one; otherwise
+      // `endOfFrame` would wait forever once everything has settled.
+      WidgetsBinding.instance.scheduleFrame();
+      await _awaitFrame();
+      // Require consecutive quiet frames so a controller that chains into
+      // another is not mistaken for a fully settled tree.
+      quietFrames =
+          WidgetsBinding.instance.transientCallbackCount == 0 ? quietFrames + 1 : 0;
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    }
+
+    // Final breather for async decode work already scheduled above.
     await Future<void>.delayed(const Duration(milliseconds: 350));
   }
 

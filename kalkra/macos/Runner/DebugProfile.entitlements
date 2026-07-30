@@ -6,6 +6,23 @@
 	<true/>
 	<key>com.apple.security.cs.allow-jit</key>
 	<true/>
+	<!-- DEBUG/PROFILE ONLY — never shipped; absent from Release.entitlements,
+	     so store builds stay fully offline. The Dart VM service binds a local
+	     socket, which the sandbox blocks without this; without it `flutter run`
+	     cannot attach ("Error waiting for a debug connection"). -->
+	<key>com.apple.security.network.server</key>
+	<true/>
+	<!-- DEBUG/PROFILE ONLY — never shipped. Store builds sign against
+	     Release.entitlements, which does NOT contain this key.
+	     Lets the screenshot capture harness (lib/screenshot_main.dart) write
+	     PNGs straight into the repo while the App Sandbox stays ENABLED, so a
+	     capture run no longer requires temporarily flipping app-sandbox and
+	     ENABLE_APP_SANDBOX and reverting them afterward. Keep this path in
+	     sync with _outRoot in lib/screenshot_main.dart. -->
+	<key>com.apple.security.temporary-exception.files.absolute-path.read-write</key>
+	<array>
+		<string>/Users/animeshsarkar/code/projects/Kalkra/kalkra/store_screenshots/</string>
+	</array>
 	<key>keychain-access-groups</key>
 	<array>
 		<string>$(AppIdentifierPrefix)com.overengineeredhobbies.kalkra</string>

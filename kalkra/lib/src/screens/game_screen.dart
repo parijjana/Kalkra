@@ -594,56 +594,80 @@ class _GameScreenState extends ConsumerState<GameScreen>
     MatchManager? match,
     bool isDesktop,
   ) {
-    return Column(
-      children: [
-        Expanded(
-          flex: isDesktop ? 4 : 3,
-          child: Center(
-            child: AnimatedTarget(
-              targets: round.targets,
-              isHighStakes: _activeWildcard == WildcardType.doubleOrNothing,
-              entrance: _entranceController,
-              isDesktop: isDesktop,
-              match: match,
+    return LayoutBuilder(
+      builder: (context, outer) => Column(
+        children: [
+          Expanded(
+            flex: isDesktop ? 4 : 3,
+            child: Center(
+              child: AnimatedTarget(
+                targets: round.targets,
+                isHighStakes: _activeWildcard == WildcardType.doubleOrNothing,
+                entrance: _entranceController,
+                isDesktop: isDesktop,
+                match: match,
+              ),
             ),
           ),
-        ),
-        Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: isDesktop ? 60 : 20,
-            vertical: isDesktop ? 32 : 12,
-          ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                NumbersSection(
-                  numbers: round.numbers.take(_visibleNumberCount).toList(),
-                  usedIndices: _usedIndices,
-                  onNumberTap: _onNumberTap,
-                  entranceAnimation: _entranceController,
-                  focusedIndex: _focusedTokenIndex,
-                  isHorizontal: isDesktop,
+          // Cap the cockpit at a share of the available height so the
+          // FittedBox(scaleDown) below has a bound to scale against: a Column
+          // hands its non-flex children an UNBOUNDED max height, under which
+          // scaleDown is a no-op and an oversized cockpit overflows instead of
+          // shrinking. The cap only engages when the content truly does not
+          // fit, so targets that already had room are unaffected.
+          ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: outer.maxHeight * 0.75),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: isDesktop ? 60 : 20,
+                vertical: isDesktop ? 32 : 12,
+              ),
+              // FittedBox lays its child out with UNBOUNDED width, so the
+              // `double.infinity` widths the sections use below 1024dp wide
+              // (ExpressionSection, ControlsSection) would throw
+              // "BoxConstraints forces an infinite width" and leave the whole
+              // cockpit unsized — painting nothing at all. The inner
+              // LayoutBuilder + SizedBox hands the subtree a definite width to
+              // resolve against.
+              child: LayoutBuilder(
+                builder: (context, inner) => FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: SizedBox(
+                    width: inner.maxWidth,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        NumbersSection(
+                          numbers:
+                              round.numbers.take(_visibleNumberCount).toList(),
+                          usedIndices: _usedIndices,
+                          onNumberTap: _onNumberTap,
+                          entranceAnimation: _entranceController,
+                          focusedIndex: _focusedTokenIndex,
+                          isHorizontal: isDesktop,
+                        ),
+                        SizedBox(height: isDesktop ? 24 : 12),
+                        ExpressionSection(
+                          currentExpression: _currentExpression,
+                          onBackspace: _backspace,
+                          isLarge: isDesktop,
+                        ),
+                        SizedBox(height: isDesktop ? 24 : 12),
+                        ControlsSection(
+                          onOperatorTap: _onOperatorTap,
+                          onSubmit: _submit,
+                          lockedOperator: _lockedOperator,
+                          isLarge: isDesktop,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                SizedBox(height: isDesktop ? 24 : 12),
-                ExpressionSection(
-                  currentExpression: _currentExpression,
-                  onBackspace: _backspace,
-                  isLarge: isDesktop,
-                ),
-                SizedBox(height: isDesktop ? 24 : 12),
-                ControlsSection(
-                  onOperatorTap: _onOperatorTap,
-                  onSubmit: _submit,
-                  lockedOperator: _lockedOperator,
-                  isLarge: isDesktop,
-                ),
-              ],
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

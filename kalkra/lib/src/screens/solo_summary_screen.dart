@@ -27,6 +27,17 @@ class SoloSummaryScreen extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
     final isDesktop = ResponsiveLayout.isDesktop(context);
 
+    // The desktop metrics below (180px score, 100/120dp gaps) were sized for a
+    // tall window. In a short one the content outgrows the SingleChildScrollView
+    // and gets clipped: the stats row disappears, 'TOTAL POINTS' ends up flush
+    // against the RESTART MATCH button, and at 720dp the score itself scrolls
+    // out of sight. Compact metrics keep the whole summary on screen.
+    final compact = isDesktop && MediaQuery.of(context).size.height < 1000;
+    final headerGap = isDesktop ? (compact ? 48.0 : 100.0) : 60.0;
+    final scoreGap = isDesktop ? (compact ? 56.0 : 120.0) : 80.0;
+    final statsGap = isDesktop ? (compact ? 48.0 : 100.0) : 60.0;
+    final scoreSize = isDesktop ? (compact ? 128.0 : 180.0) : 120.0;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref
           .read(currentScreenIdProvider.notifier)
@@ -52,7 +63,7 @@ class SoloSummaryScreen extends ConsumerWidget {
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
-                      SizedBox(height: isDesktop ? 100 : 60),
+                      SizedBox(height: headerGap),
                       Text(
                         'SOLO MATCH COMPLETE',
                         style: TextStyle(
@@ -75,7 +86,7 @@ class SoloSummaryScreen extends ConsumerWidget {
                                 ),
                       ),
 
-                      SizedBox(height: isDesktop ? 120 : 80),
+                      SizedBox(height: scoreGap),
 
                       // Score Display
                       Column(
@@ -83,7 +94,7 @@ class SoloSummaryScreen extends ConsumerWidget {
                           Text(
                             '$myScore',
                             style: TextStyle(
-                              fontSize: isDesktop ? 180 : 120,
+                              fontSize: scoreSize,
                               fontWeight: FontWeight.w900,
                               color: colorScheme.primary,
                               height: 1,
@@ -103,7 +114,7 @@ class SoloSummaryScreen extends ConsumerWidget {
                         ],
                       ),
 
-                      SizedBox(height: isDesktop ? 100 : 60),
+                      SizedBox(height: statsGap),
 
                       // Match Stats
                       Padding(
@@ -133,7 +144,7 @@ class SoloSummaryScreen extends ConsumerWidget {
 
               // Navigation
               Padding(
-                padding: EdgeInsets.only(bottom: isDesktop ? 100 : 60),
+                padding: EdgeInsets.only(bottom: statsGap),
                 child: Column(
                   children: [
                     if (match != null)

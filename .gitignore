@@ -16,3 +16,7 @@ playtest_server/build/
 kalkra_docs/app_store_submission_process/
 .DS_Store
 kalkra/macos/Runner.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
+
+# Derived store-submission bundle: regenerate with
+# store-launch-kit/scripts/build_bundle.py (duplicates store_screenshots/).
+kalkra/store_submission/

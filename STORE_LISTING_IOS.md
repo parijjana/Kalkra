@@ -1,7 +1,13 @@
-# Kalkra — Mac App Store Listing (draft)
+# Kalkra — iOS App Store Listing (draft)
 
 Draft copy for App Store Connect. Character limits noted in parentheses; all
-within Apple's limits. Pick from the options where several are given.
+within Apple's limits and machine-checked with
+`store-launch-kit/scripts/validate_listing.py --store ios-app-store`.
+
+Apple uses an **identical field set** for the Mac App Store and the iOS App
+Store, so this mirrors `STORE_LISTING_MAC.md`. Only the platform-specific lines
+differ — they are marked **[iOS]** below. Keep the two files in sync when
+editing shared copy.
 
 ---
 
@@ -14,20 +20,21 @@ within Apple's limits. Pick from the options where several are given.
 - `Six numbers. One target.` (24)
 
 ## Promotional Text (170) — editable anytime without review
-> Six numbers, one target, and countless ways to get there. Sharpen your
-> mental math with fast, addictive number puzzles. Fully offline — no
-> accounts, no ads, no tracking. (169)
+> Six numbers, one target, endless ways to get there. Sharpen your mental math
+> with fast, addictive number puzzles. Fully offline — no accounts, no ads, no
+> tracking. (163)
 
-*(Count corrected 2026-07-30: this line is 169/170, not 156 — it fits, but with
-only one character to spare. `STORE_LISTING_IOS.md` carries a 163-char rewording
-if you want headroom. Promotional text is editable without review.)*
+*(The Mac file's variant of this line is **169/170** — it fits, but with one
+character to spare. This wording says the same thing with 7 characters of
+headroom. Note `—` is one character, and Apple counts the whole string.)*
 
-## Keywords (100, comma-separated, no spaces needed) — pick one line
+## Keywords (100, comma-separated, no spaces) — pick one line
 - `mental math,math game,numbers,puzzle,brain training,arithmetic,target,countdown,logic,offline` (93) ← recommended
 - `math,numbers game,mental arithmetic,brain,puzzle,logic,target number,countdown,training,solo` (92)
 
 *(Don't repeat words already in the app name/subtitle — Apple indexes those
-separately. "Kalkra" and "mental"/"math" are covered by name+subtitle.)*
+separately. Don't include device names like "iPhone"/"iPad"; Apple ignores them
+and they waste the budget.)*
 
 ---
 
@@ -62,11 +69,14 @@ you honest.
 **BUILT TO COME BACK TO**
 • A full career with stats, an Elo skill rating, and unlockable achievements.
 • Multiple hand-crafted visual themes to make it yours.
-• Clean, responsive design that feels at home on the Mac.
+• **[iOS]** One responsive design that adapts to the device: a focused portrait
+  layout on iPhone, and the full roomy layout in landscape on iPad — including
+  Split View, where it switches layouts as you resize.
 
 **PRIVACY BY DESIGN**
-Kalkra is completely offline. No account. No sign-up. No ads. No analytics, no
-tracking, no data ever leaves your device. Just you and the numbers.
+Kalkra is completely offline. No account. No sign-up. No ads. No in-app
+purchases. No analytics, no tracking, no data ever leaves your device. Just you
+and the numbers.
 
 Whether you've got two minutes or twenty, Kalkra turns mental math into
 something you'll actually want to keep playing.
@@ -91,7 +101,27 @@ something you'll actually want to keep playing.
 - **Price:** TBD
 - **Copyright:** 2026 Animesh Sarkar (Overengineered Hobbies)
 
+### **[iOS]** Platform-specific notes
+- **Bundle ID:** `com.overengineeredhobbies.kalkra` — the SAME id as the macOS
+  build, so both platforms live under one App Store Connect app record. Build
+  numbers are unique **per platform**, so iOS may reuse `1.0.0 (1)` even though
+  the macOS `1.0.0 (1)` is already submitted. No version bump is required.
+- **Device support:** iPhone and iPad. Orientation is enforced in code by
+  `main.dart` `_applyOrientationLock()` — phones (`shortestSide < 600`) are
+  locked to portrait; tablets allow all four orientations. `Info.plist` permits
+  landscape on both.
+- **Screenshots:** iPhone 6.9" 1290×2796 (portrait) and iPad Pro 13"
+  2732×2048 (**landscape**) — 8 scenes each, in
+  `kalkra/store_screenshots/ios/{iphone69,ipad13}/`.
+- **Encryption / export compliance:** no encryption beyond Apple-exempt
+  platform crypto. Saves use an HMAC for tamper detection, which falls under the
+  standard exemption; answer the export-compliance question accordingly. Setting
+  `ITSAppUsesNonExemptEncryption=false` in `Info.plist` avoids being asked per
+  build.
+- **No ads, no IAP, no accounts, no network calls** in store builds — the
+  multiplayer transport packages are not compiled in.
+
 ---
 
-*Draft — review and adjust tone/claims before submitting. Verify any specific
-mode names against the shipped build.*
+*Draft — review and adjust tone/claims before submitting. Verify mode names
+against the shipped build.*

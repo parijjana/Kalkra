@@ -6,27 +6,45 @@ The app is fully offline in store builds — zero network calls, no accounts, no
 
 ## Screenshots
 
+One responsive Flutter UI ships to all four stores. These shots come from the
+store submission captures, grouped by form factor.
+
+### Desktop
+
 <table>
   <tr>
     <td width="50%"><img src="docs/screenshots/dashboard.png" alt="Dashboard — home screen with performance summary" /></td>
-    <td width="50%"><img src="docs/screenshots/mode-select.png" alt="Mission Control — pick a mode, difficulty, and rounds" /></td>
+    <td width="50%"><img src="docs/screenshots/mode-select.png" alt="Mission Control — pick a mission type, difficulty, and round count" /></td>
   </tr>
   <tr>
     <td width="50%"><img src="docs/screenshots/game.png" alt="Gameplay — reach the target from the number pool" /></td>
-    <td width="50%"><img src="docs/screenshots/stats.png" alt="Career Analytics — stats and match history" /></td>
+    <td width="50%"><img src="docs/screenshots/stats.png" alt="Career Analytics — career metrics and match logs" /></td>
   </tr>
 </table>
 
-<sub>Desktop, captured on macOS. Screens shown: Dashboard · Mission Control · Gameplay · Career Analytics.</sub>
+<sub>Captured on macOS (Mac App Store). The Microsoft Store build renders the same layout. Screens: Dashboard · Mission Control · Gameplay · Career Analytics.</sub>
+
+### Tablet
 
 <table>
   <tr>
-    <td width="50%" align="center"><img src="docs/screenshots/mobile-dashboard.png" alt="Mobile home screen" width="270" /></td>
-    <td width="50%" align="center"><img src="docs/screenshots/mobile-stats.png" alt="Mobile career analytics" width="270" /></td>
+    <td width="50%" align="center"><img src="docs/screenshots/tablet-dashboard.png" alt="Tablet dashboard — wide layout with performance summary" width="380" /></td>
+    <td width="50%" align="center"><img src="docs/screenshots/tablet-stats.png" alt="Tablet career analytics — metric grid beside match logs" width="380" /></td>
   </tr>
 </table>
 
-<sub>Mobile (portrait). The same UI adapts responsively across desktop and phone.</sub>
+<sub>Captured at iPad Pro 13" (iOS App Store). Tablet widths get the two-column layout rather than the stacked phone one.</sub>
+
+### Phone
+
+<table>
+  <tr>
+    <td width="50%" align="center"><img src="docs/screenshots/mobile-dashboard.png" alt="Phone home screen — stacked navigation" width="270" /></td>
+    <td width="50%" align="center"><img src="docs/screenshots/mobile-stats.png" alt="Phone career analytics — stacked metric cards" width="270" /></td>
+  </tr>
+</table>
+
+<sub>Captured at iPhone 6.9" (iOS App Store). The Google Play phone build renders the same layout at a narrower width.</sub>
 
 ## Quick Start
 

@@ -597,15 +597,26 @@ class _GameScreenState extends ConsumerState<GameScreen>
     return LayoutBuilder(
       builder: (context, outer) => Column(
         children: [
+          // AnimatedTarget's Container sets `alignment`, which makes it expand to
+          // fill whatever height it is offered. Unconstrained it swallowed this
+          // whole flex region, so on tall targets the target number floated in
+          // the middle of an enormous pale card with a large blank band above it.
+          // Cap the card to roughly its content height and pin it to the top: it
+          // reads as the header band its rounded bottom corners imply, and the
+          // slack goes to the background instead of padding out the card.
           Expanded(
             flex: isDesktop ? 4 : 3,
-            child: Center(
-              child: AnimatedTarget(
-                targets: round.targets,
-                isHighStakes: _activeWildcard == WildcardType.doubleOrNothing,
-                entrance: _entranceController,
-                isDesktop: isDesktop,
-                match: match,
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: isDesktop ? 240 : 200),
+                child: AnimatedTarget(
+                  targets: round.targets,
+                  isHighStakes: _activeWildcard == WildcardType.doubleOrNothing,
+                  entrance: _entranceController,
+                  isDesktop: isDesktop,
+                  match: match,
+                ),
               ),
             ),
           ),

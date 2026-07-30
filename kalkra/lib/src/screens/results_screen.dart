@@ -166,7 +166,9 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.only(bottom: 40),
+                // top gap so the scroll area's content never abuts the button
+                // even when it does scroll — that read as an overlap.
+                padding: const EdgeInsets.only(top: 12, bottom: 40),
                 child: _buildNavigationRow(context, colorScheme, ref),
               ),
             ],
@@ -319,32 +321,46 @@ class _HeroRecap extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context); final colorScheme = theme.colorScheme; final isExact = playerValue == target;
+
+    // This recap's vertical rhythm was fixed-size, totalling ~700dp. On a short
+    // viewport it outgrew the parent SingleChildScrollView and got clipped right
+    // where the NEXT ROUND button begins, so the button appeared to sit on top of
+    // the score: play/phone (800dp) lost the bottom of 'N PTS' and microsoft
+    // (720dp) lost the score entirely plus part of the RESULT pill. Scale the
+    // gaps and display type down on short viewports so it always fits.
+    final tight = MediaQuery.of(context).size.height < 900;
+    final gap = tight ? 0.6 : 1.0;
+    final bandPad = tight ? 28.0 : 48.0;
+    final targetSize = tight ? 72.0 : 100.0;
+    final exprSize = tight ? 56.0 : 80.0;
+    final ptsSize = tight ? 64.0 : 90.0;
+
     return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
       Text('TARGET NUMBER', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 4, color: colorScheme.onSurface.withValues(alpha: 0.2), fontSize: 10)),
-      FittedBox(fit: BoxFit.scaleDown, child: Text('$target', style: theme.textTheme.displayLarge?.copyWith(fontSize: 100, color: colorScheme.primary, height: 1, fontWeight: FontWeight.w900))),
-      const SizedBox(height: 24),
-      if (isExact) Container(width: double.infinity, padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 20), decoration: const BoxDecoration(color: Colors.green), child: Column(children: [
+      FittedBox(fit: BoxFit.scaleDown, child: Text('$target', style: theme.textTheme.displayLarge?.copyWith(fontSize: targetSize, color: colorScheme.primary, height: 1, fontWeight: FontWeight.w900))),
+      SizedBox(height: 24 * gap),
+      if (isExact) Container(width: double.infinity, padding: EdgeInsets.symmetric(vertical: bandPad, horizontal: 20), decoration: const BoxDecoration(color: Colors.green), child: Column(children: [
           const Text('TARGET REACHED!', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 8, color: Colors.white70, fontSize: 14)),
-          const SizedBox(height: 24),
-          FittedBox(fit: BoxFit.scaleDown, child: Text(playerExpression, style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.w900, fontSize: 80, color: Colors.white, letterSpacing: 4))),
+          SizedBox(height: 24 * gap),
+          FittedBox(fit: BoxFit.scaleDown, child: Text(playerExpression, style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.w900, fontSize: exprSize, color: Colors.white, letterSpacing: 4))),
       ])) else ...[
-        Container(width: double.infinity, padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 20), decoration: BoxDecoration(color: colorScheme.secondary), child: Column(children: [
+        Container(width: double.infinity, padding: EdgeInsets.symmetric(vertical: bandPad, horizontal: 20), decoration: BoxDecoration(color: colorScheme.secondary), child: Column(children: [
             Text('POSSIBLE SOLUTION', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 8, color: colorScheme.onSecondary.withValues(alpha: 0.5), fontSize: 14)),
-            const SizedBox(height: 24),
-            FittedBox(fit: BoxFit.scaleDown, child: Text(solverExpression, style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.w900, fontSize: 80, color: colorScheme.onSecondary, letterSpacing: 4))),
+            SizedBox(height: 24 * gap),
+            FittedBox(fit: BoxFit.scaleDown, child: Text(solverExpression, style: TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.w900, fontSize: exprSize, color: colorScheme.onSecondary, letterSpacing: 4))),
         ])),
-        const SizedBox(height: 32),
+        SizedBox(height: 32 * gap),
         Padding(padding: const EdgeInsets.symmetric(horizontal: 24), child: Column(children: [
             Text('YOUR SUBMISSION', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2, color: colorScheme.onSurface.withValues(alpha: 0.2), fontSize: 10)),
             const SizedBox(height: 8),
             FittedBox(fit: BoxFit.scaleDown, child: Text(playerExpression.isEmpty ? 'NO SUBMISSION' : playerExpression, style: theme.textTheme.headlineMedium?.copyWith(fontFamily: 'monospace', fontWeight: FontWeight.w900, fontSize: 32))),
-            const SizedBox(height: 20),
+            SizedBox(height: 20 * gap),
             Container(padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16), decoration: BoxDecoration(color: colorScheme.onSurface, borderRadius: BorderRadius.circular(20)), child: Text('RESULT: $playerValue', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22, color: Colors.white))),
         ])),
       ],
-      const SizedBox(height: 48),
+      SizedBox(height: 48 * gap),
       FittedBox(fit: BoxFit.scaleDown, child: Column(children: [
-          Text('$playerPoints PTS', style: TextStyle(fontSize: 90, fontWeight: FontWeight.w900, color: playerPoints > 0 ? Colors.amber : Colors.grey.withValues(alpha: 0.5), letterSpacing: -2, height: 1)),
+          Text('$playerPoints PTS', style: TextStyle(fontSize: ptsSize, fontWeight: FontWeight.w900, color: playerPoints > 0 ? Colors.amber : Colors.grey.withValues(alpha: 0.5), letterSpacing: -2, height: 1)),
           const SizedBox(height: 4),
           Text('EARNED THIS ROUND', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 6, fontSize: 10, color: colorScheme.onSurface.withValues(alpha: 0.3))),
       ])),

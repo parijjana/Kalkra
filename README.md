@@ -28,12 +28,12 @@ store submission captures, grouped by form factor.
 
 <table>
   <tr>
-    <td width="50%" align="center"><img src="docs/screenshots/tablet-dashboard.png" alt="Tablet dashboard — wide layout with performance summary" width="380" /></td>
-    <td width="50%" align="center"><img src="docs/screenshots/tablet-stats.png" alt="Tablet career analytics — metric grid beside match logs" width="380" /></td>
+    <td width="50%"><img src="docs/screenshots/tablet-dashboard.png" alt="Tablet dashboard in landscape — full navigation bar and performance summary" /></td>
+    <td width="50%"><img src="docs/screenshots/tablet-stats.png" alt="Tablet career analytics in landscape — metric grid beside match logs" /></td>
   </tr>
 </table>
 
-<sub>Captured at iPad Pro 13" (iOS App Store). Tablet widths get the two-column layout rather than the stacked phone one.</sub>
+<sub>Captured at iPad Pro 13" landscape (iOS App Store); Google Play tablets render the same layout. Tablets run landscape by default and get the roomy desktop-style layout — resize or split-screen below 1024dp and the phone layout takes over automatically.</sub>
 
 ### Phone
 

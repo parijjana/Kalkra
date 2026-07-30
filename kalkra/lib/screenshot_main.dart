@@ -139,18 +139,26 @@ const List<String> _allScenes = [
 // One row per screenshot_targets entry in store-fields.json. Mac/Microsoft are
 // single-device stores → flat, prefix-free subfolders. iOS/Play are multi-device
 // → device subfolders (ios/iphone69, ios/ipad13, play/phone, play/tablet) so no
-// filename prefix is needed. Kalkra is PORTRAIT-ONLY by design, so there is NO
-// landscape-iPad target and every target renders the full 8-scene set (the
-// cramped narrow-phone scenes are the overflow suspects this run is meant to catch).
+// filename prefix is needed. Every target renders the full 8-scene set.
 //
-//        store               device         dir              w     h     ratio  scenes
+// ORIENTATION. PHONES are portrait-only: main.dart's _applyOrientationLock()
+// pins shortestSide < 600 to portraitUp/Down. TABLETS get all four orientations,
+// so they are captured LANDSCAPE — that is the intended default presentation and
+// it clears ResponsiveLayout's 1024dp isDesktop breakpoint, giving the roomy
+// desktop-style layout instead of a phone layout stretched up a tall canvas.
+// (Portrait tablet at 800-1024dp logical width fell under that breakpoint, which
+// is why those shots looked like blown-up phone UI with large empty bands.)
+// A tablet resized/split-screened below 1024dp still gets the narrow layout at
+// runtime — ResponsiveLayout keys off MediaQuery width, so that adapts for free.
+//
+//        store               device                dir              w     h     ratio  scenes
 const List<_Target> _targets = [
-  _Target('mac-app-store',   'mac',        'mac',          1440,  900, 2.0, _allScenes),
-  _Target('microsoft-store', 'desktop',    'microsoft',    1280,  720, 2.0, _allScenes),
-  _Target('ios-app-store',   'iphone-6.9', 'ios/iphone69',  430,  932, 3.0, _allScenes),
-  _Target('ios-app-store',   'ipad-13',    'ios/ipad13',   1024, 1366, 2.0, _allScenes),
-  _Target('google-play',     'phone',      'play/phone',    360,  800, 3.0, _allScenes),
-  _Target('google-play',     'tablet',     'play/tablet',   800, 1280, 2.0, _allScenes),
+  _Target('mac-app-store',   'mac',               'mac',          1440,  900, 2.0, _allScenes),
+  _Target('microsoft-store', 'desktop',           'microsoft',    1280,  720, 2.0, _allScenes),
+  _Target('ios-app-store',   'iphone-6.9',        'ios/iphone69',  430,  932, 3.0, _allScenes),
+  _Target('ios-app-store',   'ipad-13-landscape', 'ios/ipad13',   1366, 1024, 2.0, _allScenes),
+  _Target('google-play',     'phone',             'play/phone',    360,  800, 3.0, _allScenes),
+  _Target('google-play',     'tablet-landscape',  'play/tablet',  1280,  800, 2.0, _allScenes),
 ];
 
 /// A realistic, experienced-player career so the dashboard and stats screens

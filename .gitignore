@@ -26,3 +26,6 @@ kalkra/store_submission/
 # also leaks local build paths. Track the README only; keep the maps private.
 release-symbols/**
 !release-symbols/README.md
+
+# Internal project docs live in the private project_docs repo
+.project-docs

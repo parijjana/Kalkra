@@ -29,3 +29,8 @@ release-symbols/**
 
 # Internal project docs live in the private project_docs repo
 .project-docs
+
+# Internal docs default to the private project_docs repo. Already-tracked
+# public docs (README, PLAYERS_GUIDE, licences, package docs) are unaffected;
+# this only stops NEW .md files being swept into the public repo.
+*.md

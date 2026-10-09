@@ -37,6 +37,7 @@ dev_dependencies:
   riverpod_generator: ^4.0.3
   build_runner: ^2.13.1
   flutter_launcher_icons: ^0.14.4
+  msix: ^3.18.0
 flutter_native_splash:
   color: "#121212"
   image: "assets/images/app_icon.png"
@@ -105,3 +106,20 @@ flutter_launcher_icons:
   image_path: "assets/images/app_icon.png"
   adaptive_icon_background: "#121212"
   adaptive_icon_foreground: "assets/images/app_icon.png"
+
+# Microsoft Store package. Runbook: project_docs/Kalkra/docs/app_store_submission_process/MICROSOFT_STORE.md.
+# Build on Windows only: `flutter build windows --release` first, then `dart run msix:create --store`
+# (Store upload) or plain `dart run msix:create --install-certificate false` (self-signed local test build).
+# publisher / publisher_display_name are the account's (same as Pellucid); identity_name must be
+# checked against Partner Center → Kalkra → Product identity once the name is reserved.
+msix_config:
+  display_name: Kalkra
+  publisher_display_name: OverEngineeredHobbies
+  identity_name: OverEngineeredHobbies.Kalkra
+  publisher: "CN=DC2CEF40-679E-422D-881F-9B5352D05AEB"
+  msix_version: 1.0.0.0
+  logo_path: assets/images/app_icon.png
+  capabilities: internetClient
+  languages: en-us
+  store: false  # test build by default; Store package: dart run msix:create --store
+  build_windows: false
